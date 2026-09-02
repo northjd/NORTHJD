@@ -37,6 +37,61 @@ const { eventDocuments, eventEntities, eventTaxonomy, events, insights, rawDocum
 
 /** Lookback windows offered in the UI, in days. */
 export const LOOKBACK_OPTIONS = [7, 30, 90, 365] as const;
+
+/**
+ * Plain-language shorthands over the maturity and evidence taxonomy.
+ *
+ * Implementation maturity and evidence strength are the two filters that make this
+ * product different from a news reader — "measured outcomes, not announcements" is the
+ * whole pitch — so removing them would remove the point. But as raw vocabulary they are
+ * jargon, and twelve dropdowns crowded the bar until nobody used any of them.
+ *
+ * So the plain-language version sits in front and the precise taxonomy stays available
+ * behind "More". Nothing is lost; the primary row went from twelve controls to six.
+ */
+export const CONFIDENCE_LEVELS = {
+  measured: {
+    label: 'Measured outcomes',
+    hint: 'A figure is claimed and at least one source is not the subject itself.',
+    maturities: ['QUANTIFIED_BUSINESS_IMPACT', 'INDEPENDENTLY_VALIDATED_IMPACT'],
+    independentOnly: true,
+  },
+  deployed: {
+    label: 'Actually deployed',
+    hint: 'In production or at scale — not an announcement or a pilot.',
+    maturities: [
+      'SCALED_DEPLOYMENT',
+      'LIMITED_DEPLOYMENT',
+      'QUANTIFIED_BUSINESS_IMPACT',
+      'INDEPENDENTLY_VALIDATED_IMPACT',
+    ],
+    independentOnly: false,
+  },
+  corroborated: {
+    label: 'Independently reported',
+    hint: 'Reported by someone other than the company it is about.',
+    maturities: [],
+    independentOnly: true,
+  },
+  announced: {
+    label: 'Announcements only',
+    hint: 'Stated intent with no implementation scope. Useful to see what is noise.',
+    maturities: ['ANNOUNCED', 'CONCEPT'],
+    independentOnly: false,
+  },
+  reversed: {
+    label: 'Reversals',
+    hint: 'Stopped or rolled back — usually the most informative category.',
+    maturities: ['DISCONTINUED_OR_REVERSED'],
+    independentOnly: false,
+  },
+} as const satisfies Record<
+  string,
+  { label: string; hint: string; maturities: readonly string[]; independentOnly: boolean }
+>;
+
+export type ConfidenceLevel = keyof typeof CONFIDENCE_LEVELS;
+export const CONFIDENCE_KEYS = Object.keys(CONFIDENCE_LEVELS) as ConfidenceLevel[];
 export type LookbackDays = (typeof LOOKBACK_OPTIONS)[number];
 
 export interface ExploreFilters {
@@ -62,6 +117,9 @@ export interface ExploreFilters {
 
   /** Only events with at least one independent source. */
   independentOnly: boolean;
+
+  /** Plain-language shorthand that expands into maturities + independentOnly. */
+  confidence: ConfidenceLevel | null;
   /** Hide clearly-labelled demo fixtures. */
   excludeDemo: boolean;
   /** Free-text search across the event's title and summary. */
@@ -69,6 +127,7 @@ export interface ExploreFilters {
 }
 
 export const EMPTY_FILTERS: ExploreFilters = {
+  confidence: null,
   industries: [],
   topics: [],
   technologies: [],
@@ -130,6 +189,16 @@ const truthy = (v: ParamValue): boolean => ['1', 'true', 'yes'].includes(first(v
 
 export function parseFilters(params: SearchParams): ExploreFilters {
   const group = first(params.perspective);
+
+  // Confidence is a shorthand, so it is expanded here rather than in the query builder:
+  // everything downstream then sees ordinary maturity and independence filters, and the
+  // two paths cannot drift apart.
+  const rawConfidence = first(params.confidence);
+  const confidenceValue = (CONFIDENCE_KEYS as readonly string[]).includes(rawConfidence)
+    ? (rawConfidence as ConfidenceLevel)
+    : null;
+  const preset = confidenceValue ? CONFIDENCE_LEVELS[confidenceValue] : null;
+
   return {
     industries: slugList(params.industry),
     topics: slugList(params.topic),
@@ -137,7 +206,9 @@ export function parseFilters(params: SearchParams): ExploreFilters {
     capabilities: slugList(params.capability),
     entities: slugList(params.company),
     eventTypes: enumList(params.eventType, EVENT_TYPES),
-    maturities: enumList(params.maturity, CASE_MATURITIES),
+    maturities: preset?.maturities.length
+      ? ([...preset.maturities] as CaseMaturity[])
+      : enumList(params.maturity, CASE_MATURITIES),
     evidenceStrengths: enumList(params.evidence, EVIDENCE_STRENGTHS),
     impacts: enumList(params.impact, STRATEGIC_IMPACTS),
     novelties: enumList(params.novelty, NOVELTY_KINDS),
@@ -145,9 +216,10 @@ export function parseFilters(params: SearchParams): ExploreFilters {
       group && (PERSPECTIVE_FILTER_GROUPS as readonly string[]).includes(group) && group !== 'ALL'
         ? (group as PerspectiveFilterGroup)
         : null,
+    confidence: confidenceValue,
     withinDays: intIn(params.within, LOOKBACK_OPTIONS) as LookbackDays | null,
     maxMinutes: boundedInt(params.minutes, 1, 60),
-    independentOnly: truthy(params.independent),
+    independentOnly: preset?.independentOnly || truthy(params.independent),
     excludeDemo: truthy(params.hideDemo),
     query: first(params.q).slice(0, 200).trim(),
   };
@@ -156,6 +228,7 @@ export function parseFilters(params: SearchParams): ExploreFilters {
 /** Round-trips a filter object back to a query string, for links and share URLs. */
 export function toSearchParams(f: ExploreFilters): URLSearchParams {
   const p = new URLSearchParams();
+  if (f.confidence) p.set('confidence', f.confidence);
   const put = (key: string, values: string[]) => {
     if (values.length > 0) p.set(key, values.join(','));
   };
@@ -179,6 +252,18 @@ export function toSearchParams(f: ExploreFilters): URLSearchParams {
 }
 
 export function activeFilterCount(f: ExploreFilters): number {
+  // Confidence is counted as one selection rather than as the maturities and
+  // independence flag it expands into — the user made one choice, so "Clear 1 filter"
+  // has to mean what it says.
+  if (f.confidence) {
+    const withoutPreset: ExploreFilters = {
+      ...f,
+      confidence: null,
+      independentOnly: false,
+      maturities: [],
+    };
+    return 1 + activeFilterCount(withoutPreset);
+  }
   return (
     f.industries.length +
     f.topics.length +

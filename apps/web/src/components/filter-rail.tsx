@@ -21,6 +21,20 @@ interface Props {
   activeCount: number;
 }
 
+/** Mirrors CONFIDENCE_LEVELS; kept as a plain array so this stays a client component. */
+const CONFIDENCE_CHOICES = [
+  { key: 'measured', label: 'Measured outcomes',
+    hint: 'A figure is claimed and at least one source is not the subject itself.' },
+  { key: 'deployed', label: 'Actually deployed',
+    hint: 'In production or at scale — not an announcement or a pilot.' },
+  { key: 'corroborated', label: 'Independently reported',
+    hint: 'Reported by someone other than the company it is about.' },
+  { key: 'announced', label: 'Announcements only',
+    hint: 'Stated intent with no implementation scope. Useful to see what is noise.' },
+  { key: 'reversed', label: 'Reversals',
+    hint: 'Stopped or rolled back — usually the most informative category.' },
+] as const;
+
 type Dimension = {
   key: string;
   label: string;
@@ -162,6 +176,37 @@ export function FilterRail({ facets, activeCount }: Props) {
           <p className="t-meta mt-1.5">
             Counts show what you would get by adding each option to the current selection.
           </p>
+        </div>
+
+        {/*
+          Confidence sits first and speaks English. Implementation maturity and evidence
+          strength are what make this different from a news reader — "measured outcomes,
+          not announcements" is the whole pitch — but as raw vocabulary they are jargon.
+          The precise taxonomy is still available further down; this is the way in.
+        */}
+        <div className="border-b border-[var(--border)] px-4 py-3">
+          <div className="t-section mb-2">Confidence</div>
+          <p className="t-meta mb-2">How much weight the sources actually support.</p>
+          <div className="flex flex-wrap gap-1.5">
+            {CONFIDENCE_CHOICES.map((c) => {
+              const on = params.get('confidence') === c.key;
+              return (
+                <button
+                  key={c.key}
+                  type="button"
+                  title={c.hint}
+                  onClick={() => setSingle('confidence', on ? '' : c.key)}
+                  className={`rounded-md border px-2 py-1 text-[11.5px] transition-colors ${
+                    on
+                      ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--surface)]'
+                      : 'border-[var(--border-strong)] text-[var(--text-muted)] hover:border-[var(--accent-line)] hover:text-[var(--text)]'
+                  }`}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {dimensions.map((d) =>

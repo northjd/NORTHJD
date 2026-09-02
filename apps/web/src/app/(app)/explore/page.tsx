@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { asc, eq, sql } from 'drizzle-orm';
 import { db, schema } from '@mios/database';
 import { requireUser } from '@/lib/session';
-import { parseFilters, activeFilterCount, type SearchParams } from '@/lib/filters';
+import { parseFilters, activeFilterCount, type SearchParams, CONFIDENCE_LEVELS } from '@/lib/filters';
 import { queryExploreWidening, queryFacets, querySuggestedFilters, humanise } from '@/lib/explore-queries';
 import { FilterRail, ActiveFilterChips } from '@/components/filter-rail';
 import { SuggestedFilters } from '@/components/suggested-filters';
@@ -113,18 +113,59 @@ export default async function ExplorePage({
           </div>
 
           {rows.length === 0 ? (
-            <EmptyState
-              title="No events match these filters."
-              body={`That is a statement about the monitored sources, not about the world. Loosen a filter, or check where the coverage gaps are.`}
-              action={
-                <Link
-                  href="/admin/coverage"
-                  className="mt-1 text-[13px] font-medium text-[var(--accent)] underline underline-offset-2"
-                >
-                  Coverage dashboard
-                </Link>
-              }
-            />
+            /*
+             * An empty result under a Confidence filter is a finding, not a failure —
+             * "nothing here clears that bar" is exactly what the filter was asked. So it
+             * gets explained rather than shrugged at, with the nearest looser filter
+             * offered as the next click.
+             */
+            filters.confidence ? (
+              <div className="surface p-6">
+                <p className="t-eyebrow">A result, not an error</p>
+                <h2 className="mt-2 text-[17px] font-semibold leading-snug">
+                  Nothing in the monitored sources clears the{' '}
+                  {CONFIDENCE_LEVELS[filters.confidence].label.toLowerCase()} bar.
+                </h2>
+                <p className="mt-2.5 max-w-[68ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
+                  {CONFIDENCE_LEVELS[filters.confidence].hint} That this returns nothing is
+                  itself the most useful thing on the page: it says the corpus is dominated
+                  by announcements and self-reporting, which is a real limitation of the
+                  current source set rather than a bug in the filter.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {(['deployed', 'corroborated', 'announced'] as const)
+                    .filter((k) => k !== filters.confidence)
+                    .map((k) => (
+                      <Link
+                        key={k}
+                        href={`/explore?confidence=${k}`}
+                        className="rounded-md border border-[var(--border-strong)] px-2.5 py-1 text-[12px] hover:border-[var(--accent-line)]"
+                      >
+                        Try “{CONFIDENCE_LEVELS[k].label}”
+                      </Link>
+                    ))}
+                  <Link
+                    href="/explore"
+                    className="rounded-md border border-[var(--border-strong)] px-2.5 py-1 text-[12px] hover:border-[var(--accent-line)]"
+                  >
+                    Clear the filter
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <EmptyState
+                title="No events match these filters."
+                body={`That is a statement about the monitored sources, not about the world. Loosen a filter, or check where the coverage gaps are.`}
+                action={
+                  <Link
+                    href="/admin/coverage"
+                    className="mt-1 text-[13px] font-medium text-[var(--accent)] underline underline-offset-2"
+                  >
+                    Coverage dashboard
+                  </Link>
+                }
+              />
+            )
           ) : (
             <ul className="grid gap-3">
               {rows.map((r, i) => (

@@ -5,6 +5,10 @@ import { CompanionLauncher } from '@/components/companion-launcher';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { NavLink } from '@/components/nav-link';
 import { corpusStatus } from '@/lib/queries';
+import { CommandPalette } from '@/components/command-palette';
+import { searchEntities } from '@/lib/entity-search';
+import { db, schema } from '@mios/database';
+import { asc } from 'drizzle-orm';
 
 /**
  * Application shell — an operator console rather than a document.
@@ -49,6 +53,24 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const mode = generationMode();
   const isAdmin = user.role === 'owner' || user.role === 'admin';
   const corpus = await corpusStatus();
+
+  // Palette contents are loaded once with the shell rather than fetched on open, so ⌘K
+  // is instant. Entities include those with no coverage — selecting one routes to the
+  // coverage check, which is the honest answer rather than an empty result.
+  const paletteEntities = (await searchEntities('', 60)).map((e) => ({
+    slug: e.slug,
+    name: e.name,
+    events: e.events,
+    aliases: e.aliases,
+  }));
+  const paletteIndustries = await db()
+    .select({ slug: schema.industries.slug, name: schema.industries.name })
+    .from(schema.industries)
+    .orderBy(asc(schema.industries.name));
+  const paletteTopics = await db()
+    .select({ slug: schema.topics.slug, name: schema.topics.name })
+    .from(schema.topics)
+    .orderBy(asc(schema.topics.name));
 
   return (
     <div className="app-shell">
@@ -131,6 +153,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         ) : null}
 
         <div className="ml-auto flex items-center gap-2">
+          <span className="hidden items-center gap-1.5 rounded-md border border-[var(--border)] px-2 py-1 text-[11px] text-[var(--text-subtle)] sm:inline-flex">
+            Search, filter or ask
+            <kbd className="rounded border border-[var(--border-strong)] px-1 text-[9.5px]">⌘K</kbd>
+          </span>
           <span
             className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] px-2 py-1 text-[11px] text-[var(--text-muted)]"
             title={
@@ -173,6 +199,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </span>
       </footer>
 
+      <CommandPalette
+        entities={paletteEntities}
+        industries={paletteIndustries}
+        topics={paletteTopics}
+      />
       <CompanionLauncher />
     </div>
   );
