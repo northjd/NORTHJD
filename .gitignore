@@ -1,0 +1,32 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# local database + object storage (never commit)
+/data/
+/.pgdata/
+/storage/
+
+# secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# test + tooling output
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+/.temporary/
+
+# os / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json

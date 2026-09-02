@@ -1,0 +1,482 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens.
+ *
+ * Calm, dense, evidence-first — but not flat. The first pass mistook restraint for
+ * absence of craft: too little type contrast, borders doing all the structural work,
+ * no depth, no motion, colour confined to badges. This revision keeps the principles
+ * (no engagement manipulation, no visual noise) and adds the hierarchy back.
+ *
+ * Colour still means something. It is reserved for evidence strength, source
+ * perspective, implementation maturity and claim type, so when something is coloured
+ * it is telling you about trust rather than decorating a card.
+ */
+
+@theme {
+  --font-sans: 'Inter var', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Iowan Old Style', 'Source Serif 4', ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --color-ink-50: #f6f7f9;
+  --color-ink-100: #eceef2;
+  --color-ink-200: #e3e6eb;
+  --color-ink-300: #d3d8e0;
+  --color-ink-400: #98a1b2;
+  --color-ink-500: #6b7488;
+  --color-ink-600: #414a5c;
+  --color-ink-700: #2b3344;
+  --color-ink-800: #1a2030;
+  --color-ink-900: #0f1420;
+  --color-ink-950: #0a0d14;
+
+  --color-accent-50: #edf2ff;
+  --color-accent-100: #dbe5ff;
+  --color-accent-200: #c8d7fb;
+  --color-accent-400: #5b7cf0;
+  --color-accent-500: #3455d1;
+  --color-accent-600: #2a45ad;
+  --color-accent-700: #223a8c;
+
+  --color-caution-100: #fdf2e0;
+  --color-caution-500: #c8801f;
+  --color-caution-700: #9a6212;
+
+  --color-alert-100: #fceceb;
+  --color-alert-500: #c0392b;
+  --color-alert-700: #b3372c;
+
+  --color-verified-100: #e6f5ee;
+  --color-verified-500: #17916a;
+  --color-verified-700: #0f7a52;
+}
+
+/*
+ * Grayscale first, one accent.
+ *
+ * The previous palette used blue for navigation, selection, links and accents alike —
+ * which meant a coloured element on screen carried no information. Here the accent is
+ * near-black (or near-white in dark mode) and is spent only on the active state; the
+ * semantic colours are desaturated hard so that when something *is* coloured, it means
+ * evidence strength or maturity and nothing else.
+ */
+:root {
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #fbfbfa;
+  --surface-inset: #f0f0ee;
+  --border: #e6e6e3;
+  --border-strong: #d4d4d0;
+  --text: #0d0d0e;
+  --text-muted: #55555c;
+  --text-subtle: #78787f;
+  --accent: #0d0d0e;
+  --accent-hi: #33333a;
+  --accent-soft: #f0f0ee;
+  --accent-line: #cfcfca;
+
+  /* Rules do the work shadows used to. Kept for overlays, which still need lift. */
+  --shadow-1: none;
+  --shadow-2: 0 2px 4px rgb(13 13 14 / 0.04), 0 8px 24px -8px rgb(13 13 14 / 0.10);
+  --shadow-3: 0 12px 48px -12px rgb(13 13 14 / 0.24);
+
+  --radius: 8px;
+  --radius-sm: 6px;
+
+  /* One easing curve throughout, so motion feels like one system. */
+  --ease: cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+
+.dark {
+  --surface: #0a0a0b;
+  --surface-raised: #0e0e10;
+  --surface-sunken: #0a0a0b;
+  --surface-inset: #17171b;
+  --border: #1e1e22;
+  --border-strong: #2a2a30;
+  --text: #f2f2f4;
+  --text-muted: #a1a1a8;
+  --text-subtle: #70707a;
+  --accent: #f2f2f4;
+  --accent-hi: #ffffff;
+  --accent-soft: #1c1c21;
+  --accent-line: #33333c;
+
+  --shadow-1: none;
+  --shadow-2: 0 2px 4px rgb(0 0 0 / 0.3), 0 8px 24px -8px rgb(0 0 0 / 0.6);
+  --shadow-3: 0 12px 48px -12px rgb(0 0 0 / 0.8);
+}
+
+* {
+  border-color: var(--border);
+}
+
+/* The hidden attribute must beat any explicit display rule. A section with
+   `display: grid` otherwise stays on screen while marked hidden. */
+[hidden] {
+  display: none !important;
+}
+
+html {
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--surface-sunken);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* ── Type scale ─────────────────────────────────────────────────────────────
+   Real contrast between levels. The previous scale sat between 13 and 17px for
+   everything, which is why it read as undifferentiated. */
+
+.t-display {
+  font-size: clamp(26px, 3.4vw, 36px);
+  line-height: 1.08;
+  letter-spacing: -0.028em;
+  font-weight: 660;
+}
+.t-title {
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 640;
+}
+.t-heading {
+  font-size: 16.5px;
+  line-height: 1.32;
+  letter-spacing: -0.011em;
+  font-weight: 600;
+}
+.t-lede {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.t-body {
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: var(--text-muted);
+}
+.t-meta {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-subtle);
+}
+.t-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-weight: 650;
+  color: var(--accent);
+}
+.t-section {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.085em;
+  font-weight: 650;
+  color: var(--text-subtle);
+}
+
+/* Reading surfaces use a serif at a comfortable measure — this is a product people
+   read for fifteen minutes a day, not a dashboard they glance at. */
+.prose-reading {
+  font-family: var(--font-serif);
+  font-size: 15.5px;
+  line-height: 1.7;
+  max-width: 66ch;
+  color: var(--text);
+}
+.prose-reading p + p {
+  margin-top: 0.85em;
+}
+
+/* ── Surfaces ───────────────────────────────────────────────────────────── */
+
+/* A ruled plane, not a raised card. Removing the shadow is what stops the page
+   reading as a stack of floating boxes. */
+.surface {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.surface-flat {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+/* Cards lift on hover and carry a left edge coloured by evidence strength, so a
+   scan of the page communicates trust before any text is read. */
+.card-lift {
+  position: relative;
+  transition:
+    box-shadow 0.2s var(--ease),
+    border-color 0.2s var(--ease),
+    transform 0.2s var(--ease);
+}
+.card-lift:hover {
+  box-shadow: var(--shadow-2);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+.card-lift::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 2.5px;
+  border-radius: 0 3px 3px 0;
+  background: var(--border-strong);
+  transition: background 0.2s var(--ease);
+}
+.card-lift[data-evidence='strong']::before {
+  background: var(--color-verified-500);
+}
+.card-lift[data-evidence='weak']::before {
+  background: var(--color-caution-500);
+}
+.card-lift:hover::before {
+  background: var(--accent);
+}
+
+/* The hero carries a gradient wash rather than being another white box. */
+.hero-wash {
+  background:
+    radial-gradient(
+      900px 300px at 8% -30%,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      700px 260px at 92% 130%,
+      color-mix(in srgb, var(--accent-hi) 12%, transparent),
+      transparent 70%
+    ),
+    var(--surface-raised);
+}
+
+.hairline {
+  border-top: 1px solid var(--border);
+}
+
+/* ── Motion ─────────────────────────────────────────────────────────────────
+   Purposeful only: entrance for lists so the eye has an order to follow, and
+   feedback on interactive elements. Nothing loops, nothing demands attention. */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-rise {
+  animation: rise 0.34s var(--ease) backwards;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 180% 0;
+  }
+  to {
+    background-position: -40% 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(
+    100deg,
+    var(--surface-inset) 20%,
+    var(--surface-raised) 40%,
+    var(--surface-inset) 60%
+  );
+  background-size: 220% 100%;
+  animation: shimmer 1.3s infinite linear;
+  border-radius: var(--radius);
+}
+
+@keyframes pulse-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-alert-500) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 9px transparent;
+  }
+}
+.listening {
+  animation: pulse-ring 1.3s infinite;
+}
+
+.focus-ring:focus-visible,
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ── Trust affordances ──────────────────────────────────────────────────────
+   The visual separation is load-bearing. A reader skimming must not be able to
+   mistake our interpretation for something a source said. */
+
+.label-interpretation {
+  border-left: 2.5px solid var(--color-caution-500);
+  padding-left: 0.75rem;
+}
+.label-evidence {
+  border-left: 2.5px solid var(--color-verified-500);
+  padding-left: 0.75rem;
+}
+.label-counter {
+  border-left: 2.5px solid var(--color-alert-500);
+  padding-left: 0.75rem;
+}
+
+mark.evidence-highlight {
+  background: var(--color-caution-100);
+  color: var(--color-ink-900);
+  padding: 0.12em 0;
+  box-shadow: 0 0 0 0.16em var(--color-caution-100);
+  border-radius: 2px;
+}
+.dark mark.evidence-highlight {
+  background: #4a3a12;
+  color: #f7e6c4;
+  box-shadow: 0 0 0 0.16em #4a3a12;
+}
+
+/* Implementation-maturity distribution, as a single stacked bar. */
+.mix-bar {
+  display: flex;
+  height: 7px;
+  border-radius: 999px;
+  overflow: hidden;
+  gap: 1.5px;
+}
+.mix-bar > * {
+  display: block;
+  transition: flex-grow 0.5s var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .card-lift:hover {
+    transform: none;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .surface,
+  .card-lift {
+    border: 1px solid #ccc;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  .card-lift::before {
+    display: none;
+  }
+}
+
+/* ── Console shell ────────────────────────────────────────────────────────────
+   Persistent sidebar, top bar, scrolling main, status bar. Structure carried over
+   from the design round that introduced numbered rows and tracked labels. */
+.app-shell {
+  display: grid;
+  height: 100dvh;
+  grid-template-columns: 228px minmax(0, 1fr);
+  grid-template-rows: 46px minmax(0, 1fr) 26px;
+  grid-template-areas: 'side bar' 'side main' 'side status';
+}
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 46px auto minmax(0, 1fr) 26px;
+    grid-template-areas: 'bar' 'side' 'main' 'status';
+    height: auto;
+    min-height: 100dvh;
+  }
+}
+
+.shell-side { grid-area: side; background: var(--surface-raised); border-right: 1px solid var(--border); overflow-y: auto; }
+.shell-bar { grid-area: bar; background: var(--surface-sunken); border-bottom: 1px solid var(--border); }
+.shell-main { grid-area: main; overflow-y: auto; background: var(--surface-sunken); }
+.shell-status { grid-area: status; background: var(--surface-raised); border-top: 1px solid var(--border); }
+@media (max-width: 900px) {
+  .shell-side { border-right: 0; border-bottom: 1px solid var(--border); }
+  .shell-main { overflow: visible; }
+}
+
+/* Uppercase micro-labels are the structural device: wide tracking, small size,
+   subtle colour. They replace headings that would otherwise need weight to register. */
+.t-eyebrow, .t-section {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-weight: 700;
+  color: var(--text-subtle);
+}
+.t-rule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+  color: var(--text-subtle);
+}
+.t-rule::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.nav-item { position: relative; }
+.nav-item[data-active='true']::before {
+  content: '';
+  position: absolute;
+  left: -6px; top: 6px; bottom: 6px;
+  width: 2px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+}
+
+/* 01, 02, 03 … orientation in a long list. */
+.row-index {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  color: var(--text-subtle);
+  user-select: none;
+}

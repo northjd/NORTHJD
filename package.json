@@ -1,0 +1,59 @@
+{
+  "name": "market-intelligence-os",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Evidence-grounded market intelligence, learning and conversation platform for consultants",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "db:up": "tsx scripts/db-server.ts",
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "db:seed": "tsx scripts/db-seed.ts",
+    "db:reset": "tsx scripts/db-reset.ts",
+    "db:generate": "drizzle-kit generate --config=drizzle.config.ts",
+    "dev": "npm run dev --workspace=@mios/web",
+    "build": "npm run build --workspace=@mios/web",
+    "start": "npm run start --workspace=@mios/web",
+    "pipeline": "tsx apps/worker/src/cli.ts",
+    "eval": "tsx packages/evaluation/src/cli.ts",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^24.13.3",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "drizzle-kit": "^0.31.10",
+    "eslint": "^10.9.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "prettier": "^3.9.6",
+    "tsx": "^4.23.13",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.69.0",
+    "vitest": "^4.1.11"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-socket": "^0.2.11",
+    "drizzle-orm": "^0.45.2",
+    "fast-xml-parser": "^5.11.1",
+    "pg": "^8.23.0",
+    "zod": "^4.5.4"
+  }
+}

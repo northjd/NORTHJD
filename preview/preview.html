@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Market Intelligence OS — draft view</title>
+<style>
+:root{
+  --surface:#fff; --surface-raised:#fff; --surface-sunken:#f7f8f9; --surface-inset:#eceef1;
+  --border:#dcdfe4; --text:#161a23; --text-muted:#4c5462; --text-subtle:#67707f;
+  --accent:#2f56b3; --accent-soft:#eef4ff;
+  --shadow:0 1px 2px rgb(13 16 23/.04),0 1px 3px rgb(13 16 23/.06);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-sunken);color:var(--text);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',Inter,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 72px}
+header.top{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.96);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--border);margin-bottom:26px}
+.topin{max-width:1180px;margin:0 auto;padding:11px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{width:27px;height:27px;border-radius:6px;background:var(--accent);color:#fff;
+  display:grid;place-items:center;font-weight:700;font-size:13px}
+nav{display:flex;gap:2px;flex-wrap:wrap}
+nav span{padding:5px 10px;border-radius:5px;font-size:13px;font-weight:500;color:var(--text-muted)}
+nav span.on{background:var(--accent-soft);color:var(--accent)}
+.banner{background:#fdf0dd;color:#8a5610;border-bottom:1px solid rgba(200,128,31,.3);
+  padding:7px 20px;font-size:12.5px;text-align:center}
+.note{background:var(--accent-soft);border:1px solid #c7d8f7;border-radius:8px;
+  padding:13px 15px;font-size:13px;color:#26438c;margin-bottom:26px;line-height:1.6}
+h1{font-size:26px;line-height:1.2;letter-spacing:-.01em;margin:0 0 6px}
+h2.sec{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-subtle);
+  font-weight:600;margin:0 0 3px}
+.hint{font-size:12.5px;color:var(--text-subtle);margin:0 0 12px}
+h3{font-size:16.5px;line-height:1.3;letter-spacing:-.005em;margin:0 0 5px}
+section.blk{margin-bottom:34px}
+.card{background:var(--surface-raised);border:1px solid var(--border);border-radius:9px;
+  padding:15px;box-shadow:var(--shadow);margin-bottom:10px}
+.badge{display:inline-flex;align-items:center;gap:4px;border:1px solid;border-radius:4px;
+  padding:1.5px 6px;font-size:11px;font-weight:500;line-height:1.45;white-space:nowrap;margin:0 3px 3px 0}
+.meta{font-size:11.5px;color:var(--text-subtle);display:flex;gap:14px;flex-wrap:wrap;margin-top:9px}
+.muted{color:var(--text-muted);font-size:14px;line-height:1.6;margin:5px 0 0}
+.grid{display:grid;gap:22px;grid-template-columns:minmax(0,1fr) 296px}
+@media(max-width:940px){.grid{grid-template-columns:1fr}}
+.stats{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));margin-bottom:26px}
+.stat{background:var(--surface-raised);border:1px solid var(--border);border-radius:8px;padding:11px 13px}
+.stat .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-subtle);font-weight:600}
+.stat .v{font-size:23px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
+.stat .v.ok{color:#1f5c3f}
+.ev{border-left:2px solid #2f855a;padding-left:12px;margin-bottom:13px}
+.interp{border-left:2px solid #c8801f;padding-left:12px;margin-bottom:13px}
+.interp .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;
+  color:#8a5610;margin-bottom:4px}
+.ev .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;
+  color:#1f5c3f;margin-bottom:4px}
+.unk{background:var(--surface-sunken);border-radius:7px;padding:12px 14px}
+.unk .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-subtle);
+  font-weight:600;margin-bottom:6px}
+ul,ol{margin:0;padding-left:17px}
+li{margin-bottom:5px;font-size:13.5px;line-height:1.6;color:var(--text-muted)}
+li.tight{margin-bottom:3px}
+.serif{font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;font-size:15.5px;
+  line-height:1.68;max-width:66ch;color:var(--text)}
+.excerpt{background:var(--surface-sunken);border-radius:7px;padding:14px 16px;
+  font-family:'Iowan Old Style',Georgia,serif;font-size:14.5px;line-height:1.7}
+mark{background:#fdf0dd;padding:.12em 0;box-shadow:0 0 0 .16em #fdf0dd;border-radius:2px}
+.dim{color:var(--text-subtle)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-subtle);font-weight:600}
+.caught{background:var(--surface-raised);border:1px solid var(--border);border-radius:9px;
+  padding:26px;text-align:center;box-shadow:var(--shadow)}
+.caught .big{font-size:18px;font-weight:600}
+.why{background:var(--surface-sunken);border:1px solid var(--border);border-radius:7px;
+  padding:10px 12px;margin-top:9px}
+.why .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-subtle);
+  font-weight:600;margin-bottom:5px}
+.why li{font-size:12.5px;margin-bottom:3px}
+code{background:var(--surface-inset);padding:1px 5px;border-radius:3px;font-size:12px}
+.divider{border:0;border-top:1px solid var(--border);margin:38px 0 28px}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--accent);
+  font-weight:600;margin-bottom:7px}
+</style></head><body>
+
+<div class="banner"><strong>Extractive mode.</strong> No language model is configured, so
+summaries reuse source sentences verbatim and nothing is paraphrased.</div>
+
+<header class="top"><div class="topin">
+  <div class="logo">M</div>
+  <strong style="font-size:14px;letter-spacing:-.01em">Market Intelligence OS</strong>
+  <nav><span class="on">Today</span><span>Companion</span><span>Learn</span><span>Prepare</span><span>Explore</span><span>Library</span></nav>
+</div></header>
+
+<div class="wrap">
+
+<div class="note">
+  <strong>Draft view — generated from the live database, not a mockup.</strong><br>
+  Every headline, claim, quote, date, badge and classification below was produced by the
+  real pipeline from real publisher feeds: 191 documents → 369
+  claims → 185 events → 184 insights.
+  Rendered as static HTML because corporate endpoint policy is currently blocking
+  filesystem access to the repository, so the Next server cannot start — the database is
+  reachable over TCP, which needs no file access.
+  <br><br>
+  <strong>What this preview cannot show:</strong> interactivity, the Companion, live
+  ranking, voice, or navigation. Those need the running application.
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="k">Documents</div><div class="v">191</div></div>
+  <div class="stat"><div class="k">Evidenced claims</div><div class="v">369</div></div>
+  <div class="stat"><div class="k">Events</div><div class="v">185</div></div>
+  <div class="stat"><div class="k">Insights</div><div class="v">184</div></div>
+  <div class="stat"><div class="k">Facts w/o evidence</div><div class="v ok">0</div></div>
+  <div class="stat"><div class="k">Active sources</div><div class="v">14</div></div>
+</div>
+
+<h1>12 developments selected for you</h1>
+<p class="muted" style="margin-bottom:28px">About 12 minutes · reading budget 12 minutes ·
+the brief ends when you reach the bottom</p>
+
+<section class="blk">
+  <h2 class="sec">The three that matter</h2><p class="hint">Highest combined relevance, impact and evidence strength today.</p>
+  <article class="card">
+    <div>
+      <span class="badge" style="background:transparent;color:var(--text-subtle);border-color:var(--border)">Restated</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Stated intent. No implementation scope given.">Announced</span>
+      <span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">Quantified primary evidence</span>
+      <span class="badge" style="background:#fbe4e4;color:#8b2820;border-color:transparent">Sources disagree</span>
+      
+      
+    </div>
+    <h3>Daily News 26 / 08 / 2026</h3>
+    <p class="muted">European Commission Press release Brussels, 31 Aug 2026 Today, the Commission has designated ChatGPT as a Very Large Online Search Engine (VLOSE), as well as Reddit and Roblox as Very Large Online Platforms (VLOPs), under the Digital Services Act (DSA).</p>
+    <div class="meta">
+      <span>Event: date not stated in source</span>
+      <span>Published: 26 August 2026</span>
+      <span>1 source</span>
+      <span>1 min</span>
+    </div>
+    <div class="why"><div class="lbl">Why am I seeing this?</div><ul><li class="tight">It is in retail, fashion-apparel, which you follow.</li><li class="tight">It involves a company on your watchlist.</li><li class="tight">It connects to a concept you have not covered yet.</li><li class="tight">Note: this restates an earlier announcement rather than adding anything.</li></ul></div>
+  </article><article class="card">
+    <div>
+      <span class="badge" style="background:transparent;color:var(--text-subtle);border-color:var(--border)">Restated</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Stated intent. No implementation scope given.">Announced</span>
+      <span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">Primary evidence</span>
+      
+      
+      
+    </div>
+    <h3>NextGenerationEU reaches implementation deadline</h3>
+    <p class="muted">European Commission Press release Brussels, 31 Aug 2026 Today marks an important milestone for the Recovery and Resilience Facility, the centrepiece of NextGenerationEU, as Member States reach the final implementation deadline for the reforms and investments set out in their national recovery and resilience plans.</p>
+    <div class="meta">
+      <span>Event: date not stated in source</span>
+      <span>Published: 30 August 2026</span>
+      <span>1 source</span>
+      <span>1 min</span>
+    </div>
+    <div class="why"><div class="lbl">Why am I seeing this?</div><ul><li class="tight">It is in retail, fashion-apparel, which you follow.</li><li class="tight">It connects to a concept you have not covered yet.</li><li class="tight">Note: this restates an earlier announcement rather than adding anything.</li></ul></div>
+  </article><article class="card">
+    <div>
+      <span class="badge" style="background:var(--accent-soft);color:var(--accent);border-color:transparent">New</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Stated intent. No implementation scope given.">Announced</span>
+      <span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">Primary evidence</span>
+      
+      
+      
+    </div>
+    <h3>Entry into force or application of EU legislation key milestones 1 September – 15 October 2026</h3>
+    <p class="muted">European Commission Factsheet Brussels, 01 Sep 2026 Entry into force or application of EU legislation key milestones 1 September – 15 October 2026 Entry into force or application of EU legislation key mileston...</p>
+    <div class="meta">
+      <span>Event: date not stated in source</span>
+      <span>Published: 1 September 2026</span>
+      <span>1 source</span>
+      <span>1 min</span>
+    </div>
+    <div class="why"><div class="lbl">Why am I seeing this?</div><ul><li class="tight">It is in retail, fashion-apparel, which you follow.</li><li class="tight">It connects to a concept you have not covered yet.</li></ul></div>
+  </article><article class="card">
+    <div>
+      <span class="badge" style="background:var(--accent-soft);color:var(--accent);border-color:transparent">New</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Stated intent. No implementation scope given.">Announced</span>
+      <span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">Primary evidence</span>
+      
+      
+      
+    </div>
+    <h3>Visite dans les Hautes Fagnes</h3>
+    <p class="muted">European Commission Discours Brussels, 25 Aug 2026 Je suis aujourd'hui dans les Hautes Fagnes, alors que l'opération d'urgence touche à sa fin et que les secours européens que nous avons mobilisés s'apprêtent à ...</p>
+    <div class="meta">
+      <span>Event: date not stated in source</span>
+      <span>Published: 25 August 2026</span>
+      <span>1 source</span>
+      <span>1 min</span>
+    </div>
+    <div class="why"><div class="lbl">Why am I seeing this?</div><ul><li class="tight">It is in retail, fashion-apparel, which you follow.</li><li class="tight">It connects to a concept you have not covered yet.</li></ul></div>
+  </article><article class="card">
+    <div>
+      <span class="badge" style="background:var(--accent-soft);color:var(--accent);border-color:transparent">New</span>
+      <span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Bounded trial. Most pilots do not scale.">Pilot</span>
+      <span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">Primary evidence</span>
+      
+      
+      
+    </div>
+    <h3>Keynote speech by Commissioner Hoekstra at the Opening of the Academic Year in Delft: 'Europe's Industrial and Technological Renaissance'</h3>
+    <p class="muted">European Commission Speech Delft, 01 Sep 2026 Dames en heren</p>
+    <div class="meta">
+      <span>Event: date not stated in source</span>
+      <span>Published: 31 August 2026</span>
+      <span>1 source</span>
+      <span>1 min</span>
+    </div>
+    <div class="why"><div class="lbl">Why am I seeing this?</div><ul><li class="tight">It is in retail, fashion-apparel, which you follow.</li><li class="tight">It connects to a concept you have not covered yet.</li></ul></div>
+  </article><article class="card">
+    <div>
+      <span class="badge" style="background:var(--accent-soft);color:var(--accent);border-color:transparent">New</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Stated intent. No implementation scope given.">Announced</span>
+      <span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)">One independent source</span>
+      
+      
+      <span class="badge" style="background:#fbe4e4;color:#8b2820;border-color:transparent" title="Illustrative fixture. Not real reporting.">Demo data</span>
+    </div>
+    <h3>EU textile traceability rules move to product-level data from 2027</h3>
+    <p class="muted">EU textile traceability rules move to product-level data from 2027</p>
+    <div class="meta">
+      <span>Event: date not stated in source</span>
+      <span>Published: 27 August 2026</span>
+      <span>1 source</span>
+      <span>1 min</span>
+    </div>
+    <div class="why"><div class="lbl">Why am I seeing this?</div><ul><li class="tight">It is in retail, fashion-apparel, which you follow.</li><li class="tight">It connects to a concept you have not covered yet.</li></ul></div>
+  </article>
+</section><section class="blk">
+  <h2 class="sec">Your companies</h2><p class="hint">Developments at organisations on your watchlist.</p>
+  <article class="card">
+    <div>
+      <span class="badge" style="background:var(--accent-soft);color:var(--accent);border-color:transparent">New</span>
+      <span class="badge" style="background:var(--accent-soft);color:var(--accent);border-color:transparent" title="Described as deployed across the organisation.">Scaled</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent">Company self-reporting</span>
+      
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="No independent source has confirmed this.">Self-reported only</span>
+      
+    </div>
+    <h3>Introducing OpenAI models on Amazon Bedrock for in-country inferencing in India</h3>
+    <p class="muted">Amazon Bedrock now supports the OpenAI GPT-5.6 models, Terra and Luna, in India, with India geographic cross-Region inference.</p>
+    <div class="meta">
+      <span>Event: date not stated in source</span>
+      <span>Published: 27 August 2026</span>
+      <span>1 source</span>
+      <span>1 min</span>
+    </div>
+    <div class="why"><div class="lbl">Why am I seeing this?</div><ul><li class="tight">It is in technology-ai, which you follow.</li><li class="tight">It involves a company on your watchlist.</li><li class="tight">It connects to a concept you have not covered yet.</li><li class="tight">Only the company itself has reported this so far.</li></ul></div>
+  </article><article class="card">
+    <div>
+      <span class="badge" style="background:transparent;color:var(--text-subtle);border-color:var(--border)">Restated</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Stated intent. No implementation scope given.">Announced</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent">Company self-reporting</span>
+      
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="No independent source has confirmed this.">Self-reported only</span>
+      
+    </div>
+    <h3>SpaceXAI Adopts NVIDIA Vera CPU to Accelerate Agentic AI at Massive Scale</h3>
+    <p class="muted">SpaceXAI Adopts NVIDIA Vera CPU to Accelerate Agentic AI at Massive Scale</p>
+    <div class="meta">
+      <span>Event: date not stated in source</span>
+      <span>Published: 24 August 2026</span>
+      <span>1 source</span>
+      <span>1 min</span>
+    </div>
+    <div class="why"><div class="lbl">Why am I seeing this?</div><ul><li class="tight">It is in technology-ai, which you follow.</li><li class="tight">It touches agentic-ai.</li><li class="tight">It involves a company on your watchlist.</li><li class="tight">It connects to a concept you have not covered yet.</li><li class="tight">Note: this restates an earlier announcement rather than adding anything.</li><li class="tight">Only the company itself has reported this so far.</li></ul></div>
+  </article><article class="card">
+    <div>
+      <span class="badge" style="background:var(--accent-soft);color:var(--accent);border-color:transparent">New</span>
+      <span class="badge" style="background:var(--accent-soft);color:var(--accent);border-color:transparent" title="Described as deployed across the organisation.">Scaled</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent">Company self-reporting</span>
+      
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="No independent source has confirmed this.">Self-reported only</span>
+      
+    </div>
+    <h3>How XPUs Meet a World-Class AI Factory</h3>
+    <p class="muted">How XPUs Meet a World-Class AI Factory</p>
+    <div class="meta">
+      <span>Event: date not stated in source</span>
+      <span>Published: 24 August 2026</span>
+      <span>1 source</span>
+      <span>1 min</span>
+    </div>
+    <div class="why"><div class="lbl">Why am I seeing this?</div><ul><li class="tight">It is in technology-ai, which you follow.</li><li class="tight">It involves a company on your watchlist.</li><li class="tight">It connects to a concept you have not covered yet.</li><li class="tight">Only the company itself has reported this so far.</li></ul></div>
+  </article><article class="card">
+    <div>
+      <span class="badge" style="background:var(--accent-soft);color:var(--accent);border-color:transparent">New</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Stated intent. No implementation scope given.">Announced</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent">Company self-reporting</span>
+      
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="No independent source has confirmed this.">Self-reported only</span>
+      
+    </div>
+    <h3>NVIDIA Announces Jetson Orin Nano 2 Robotics Computer to Redefine Entry-Level Edge AI</h3>
+    <p class="muted">NVIDIA today announced NVIDIA Jetson Orin Nano™ 2, a new robotics computer set to redefine entry-level edge AI — putting frontier-class generative AI performance in the hands of millions of developers.</p>
+    <div class="meta">
+      <span>Event: date not stated in source</span>
+      <span>Published: 25 August 2026</span>
+      <span>1 source</span>
+      <span>1 min</span>
+    </div>
+    <div class="why"><div class="lbl">Why am I seeing this?</div><ul><li class="tight">It is in technology-ai, which you follow.</li><li class="tight">It involves a company on your watchlist.</li><li class="tight">It connects to a concept you have not covered yet.</li><li class="tight">Only the company itself has reported this so far.</li></ul></div>
+  </article>
+</section><section class="blk">
+  <h2 class="sec">Your industries</h2><p class="hint">Signals from the industries you follow.</p>
+  <article class="card">
+    <div>
+      <span class="badge" style="background:transparent;color:var(--text-subtle);border-color:var(--border)">Restated</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Stated intent. No implementation scope given.">Announced</span>
+      <span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">Primary evidence</span>
+      
+      
+      
+    </div>
+    <h3>Speech by Commissioner Jozefa Síkela at the Opening of the EU Arctic Forum in Brussels</h3>
+    <p class="muted">European Commission Speech Brussels, 01 Sep 2026 Thank you, Commissioner Kadis.</p>
+    <div class="meta">
+      <span>Event: date not stated in source</span>
+      <span>Published: 1 September 2026</span>
+      <span>1 source</span>
+      <span>1 min</span>
+    </div>
+    <div class="why"><div class="lbl">Why am I seeing this?</div><ul><li class="tight">It is in retail, fashion-apparel, which you follow.</li><li class="tight">It connects to a concept you have not covered yet.</li><li class="tight">Note: this restates an earlier announcement rather than adding anything.</li></ul></div>
+  </article><article class="card">
+    <div>
+      <span class="badge" style="background:transparent;color:var(--text-subtle);border-color:var(--border)">Restated</span>
+      <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Stated intent. No implementation scope given.">Announced</span>
+      <span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">Primary evidence</span>
+      
+      
+      
+    </div>
+    <h3>Daily News 01 / 09 / 2026</h3>
+    <p class="muted">European Commission Daily news Brussels, 01 Sep 2026 Latest data on investment in education sector across Europe highlights ways to boost attractiveness of teaching profession</p>
+    <div class="meta">
+      <span>Event: date not stated in source</span>
+      <span>Published: 1 September 2026</span>
+      <span>1 source</span>
+      <span>1 min</span>
+    </div>
+    <div class="why"><div class="lbl">Why am I seeing this?</div><ul><li class="tight">It is in retail, fashion-apparel, which you follow.</li><li class="tight">It connects to a concept you have not covered yet.</li><li class="tight">Note: this restates an earlier announcement rather than adding anything.</li></ul></div>
+  </article>
+</section>
+
+<div class="caught">
+  <div class="big">You are caught up.</div>
+  <p class="muted" style="max-width:44ch;margin:7px auto 0">That is the whole brief for
+  today — 12 items. Nothing more will load here.</p>
+</div>
+
+<hr class="divider">
+
+<div class="eyebrow">Insight detail</div>
+<h1>Northwind Apparel reports 18% markdown reduction after AI allocation rollout</h1>
+<div style="margin:9px 0 4px">
+  <span class="badge" style="background:var(--accent-soft);color:var(--accent);border-color:transparent" title="A measured outcome is claimed — check who is claiming it.">Quantified impact</span>
+  <span class="badge" style="background:#fbe4e4;color:#8b2820;border-color:transparent">Weak signal</span>
+  <span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)">single source</span>
+  <span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent">Self-reported only</span>
+  <span class="badge" style="background:transparent;color:var(--text-subtle);border-color:var(--border)" title="No language model configured. Sentences reused verbatim from the sources.">Extractive</span>
+  <span class="badge" style="background:#fbe4e4;color:#8b2820;border-color:transparent">Demo data</span>
+</div>
+<p class="muted" style="max-width:66ch">Northwind Apparel today announced results from the group-wide rollout of its machine learning allocation platform.</p>
+<div class="meta" style="margin-bottom:22px">
+  <span>Event date: date not stated in source</span>
+  <span>First reported: 26 August 2026</span>
+  <span>Sources: 1 (0 independent)</span>
+  <span>Reading time: 1 min</span>
+</div>
+
+<div class="grid">
+<div>
+
+<section class="blk">
+  <h2 class="sec">Verified facts</h2>
+  <p class="hint">Sentences taken verbatim from the sources. Each links to the exact passage it came from.</p>
+  <div class="ev">
+    <div class="lbl">Fact 1</div>
+    <p class="serif" style="margin:0 0 6px">Northwind Apparel today announced results from the group-wide rollout of its machine learning allocation platform.</p>
+    <div><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">Fact</span><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ User-provided</span><span class="badge" style="background:#fbe4e4;color:#8b2820;border-color:transparent">Weak signal</span></div>
+  </div><div class="ev">
+    <div class="lbl">Fact 2</div>
+    <p class="serif" style="margin:0 0 6px">The company reported an 18% reduction in markdown rate across its European store estate in the spring/summer season compared with the prior year.</p>
+    <div><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">Fact</span><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ User-provided</span><span class="badge" style="background:#fbe4e4;color:#8b2820;border-color:transparent">Weak signal</span></div>
+  </div><div class="ev">
+    <div class="lbl">Fact 3</div>
+    <p class="serif" style="margin:0 0 6px">The platform has been deployed across all 1,240 stores in twelve markets following a pilot in Germany and the Netherlands during 2025.</p>
+    <div><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">Fact</span><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ User-provided</span><span class="badge" style="background:#fbe4e4;color:#8b2820;border-color:transparent">Weak signal</span></div>
+  </div><div class="ev">
+    <div class="lbl">Fact 4</div>
+    <p class="serif" style="margin:0 0 6px">Chief Operating Officer Lena Farkas said the system now generates allocation proposals for every store and size curve twice weekly, replacing a manual process that ran fortnightly.</p>
+    <div><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">Fact</span><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ User-provided</span><span class="badge" style="background:#fbe4e4;color:#8b2820;border-color:transparent">Weak signal</span></div>
+  </div>
+</section>
+
+<section class="blk">
+  <h2 class="sec">Evidence for fact 1</h2>
+  <p class="hint">Characters 0–114 of the stored document version.
+  Offsets refer to an immutable snapshot, so a later edit to the article cannot move this citation.</p>
+  <div class="excerpt"><span class="dim"></span><mark>Northwind Apparel today announced results from the group-wide rollout of its machine learning allocation platform.</mark><span class="dim"> The company reported an 18% reduction in markdown rate across its European store estate in the spring/summer season compared with the prior year. Full-price sell-through improved by 4 percentage points over the same period. The platform has been deployed across all 1,240 stores in twelve markets following a pilot in G</span> …</div>
+  <div class="meta">
+    <span><strong>Northwind Apparel reports 18% markdown reduction after AI allocation rollout</strong></span>
+    <span>Demo Corporate Newsroom (illustrative data)</span>
+    <span>Published 26 August 2026</span>
+  </div>
+</section>
+
+<section class="blk">
+  <h2 class="sec">What changed</h2>
+  <p class="serif">This is the first development on this topic for Northwind Apparel in the monitored sources. Reported 26 August 2026.</p>
+</section>
+
+<section class="blk">
+  <h2 class="sec">What is genuinely new</h2>
+  <p class="serif">A quantified outcome — which is rarer than an announcement and is the part worth examining.</p>
+</section>
+
+<section class="blk">
+  <h2 class="sec">Why it matters</h2>
+  <p class="serif">If it works, this moves margin improvement and inventory productivity. The measurable expression would be Full-price sell-through and Markdown rate. Delivering it depends on process and technology — not only on the technology. All reporting so far is first-party, so the strategic significance rests on the company’s own account of it.</p>
+</section>
+
+<section class="blk">
+  <h2 class="sec">Market context</h2>
+  <p class="hint">Where this sits in the market model.</p>
+  <p class="serif">Industry: Fashion &amp; Apparel. The KPIs that move in this part of the model are Full-price sell-through and Markdown rate. These links are classifications we applied, not statements from the source.</p>
+</section>
+
+
+
+<section class="blk">
+  <h2 class="sec">Consultant perspective</h2>
+  <div class="interp">
+    <div class="lbl">Reading · our interpretation</div>
+    <p class="muted">Read as a investment that is reported with a quantified outcome. A quantified outcome is stated, but only by the party reporting it. Not independently verified. The value levers this would move, if it works, are margin improvement and inventory productivity. This paragraph is our interpretation, not a statement from the source.</p>
+  </div>
+  <div class="interp"><div class="lbl">Client implications · our interpretation</div>
+    <ul><li>Competitors in Fashion &amp; Apparel may be asked by their own boards why they are not doing the equivalent — the announcement itself creates internal pressure regardless of whether it works.</li><li>Anyone building a margin improvement case in this space now has a public reference point to be measured against.</li><li>These implications are inference, not reported fact.</li></ul></div>
+  <div class="interp"><div class="lbl">Hypotheses · our interpretation</div>
+    <ul><li>Hypothesis: Northwind Apparel is prioritising margin improvement over the alternatives available to it, which would imply pressure on that line specifically. Testable against the next results statement.</li></ul></div>
+  <div class="interp"><div class="lbl">Contrarian angle · our interpretation</div>
+    <ul><li>The sceptical reading: this is communications rather than operations. Nothing in the monitored sources independently confirms it, and Northwind Apparel has an interest in the announcement itself.</li></ul></div>
+</section>
+
+</div>
+<aside>
+
+<div class="card">
+  <h2 class="sec">Conversation starters</h2>
+  <ol><li>What changed internally that made this the right moment for Northwind Apparel to move on this?</li><li>The reported figure is self-reported. How is the baseline defined, over what period, and what share is attributable to this initiative rather than to trading conditions?</li><li>If this delivers on margin improvement, where does that show up first: Full-price sell-through, or somewhere else?</li><li>Is there any external evidence of this working at comparable scale, or is the company account the only one so far?</li></ol>
+</div>
+
+<div class="card unk">
+  <div class="lbl">What this does not tell you</div>
+  <ul><li class="tight">No independent source in the monitored set has confirmed this.</li><li class="tight">Reported by a single source.</li><li class="tight">The source does not state when this happened; only the publication date is known.</li><li class="tight">Coverage: 14 monitored sources across 4 industries. Developments outside that set are not visible here.</li></ul>
+</div>
+
+<div class="card">
+  <h2 class="sec">Sources</h2>
+  <div style="margin-bottom:11px">
+      <div style="font-size:13px;font-weight:500">Northwind Apparel reports 18% markdown reduction after AI allocation rollout</div>
+      <div style="margin-top:3px"><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ User-provided</span></div>
+      <div class="meta" style="margin-top:2px"><span>Demo Corporate Newsroom (illustrative data) · 26 August 2026</span></div>
+    </div>
+</div>
+
+</aside>
+</div>
+
+<hr class="divider">
+
+<div class="eyebrow">Explore → Industry</div>
+<h1>Fashion &amp; Apparel</h1>
+<p class="serif" style="margin-bottom:6px">Design, production and sale of clothing, footwear and accessories. Distinguished from general retail by short product life cycles, high style risk and long sourcing lead times — the combination that makes fashion an inventory-timing problem more than a selling problem.</p>
+<p class="hint">6 value chain stages · 5 KPIs · market model
+reviewed and dated, kept distinct from the news above it</p>
+
+<div class="grid">
+<div>
+<section class="blk">
+  <h2 class="sec">Market structure</h2>
+  <p class="serif">A barbell: vertically integrated fast fashion and ultra-fast digital players at one end, luxury houses with pricing power at the other, and a squeezed mid-market between them. Manufacturing is concentrated in Asia with lead times of 8–40 weeks, which is why nearshoring recurs as a strategic theme. Resale and rental are growing but remain small relative to primary sales.</p>
+</section>
+
+<section class="blk">
+  <h2 class="sec">Value chain</h2>
+  <p class="hint">Upstream to downstream. Each stage notes where margin actually sits.</p>
+  <div class="card">
+    <h3 style="font-size:14.5px"><span class="dim">1</span> Design &amp; product development</h3>
+    <p class="muted">Trend interpretation, line building, sampling.</p>
+    <p class="muted"><strong style="color:var(--text)">Profit pool:</strong> Determines style risk. Cheap to change here, ruinous to change later.</p>
+  </div><div class="card">
+    <h3 style="font-size:14.5px"><span class="dim">2</span> Merchandising &amp; buying</h3>
+    <p class="muted">Translating the range plan into an open-to-buy and committed orders.</p>
+    <p class="muted"><strong style="color:var(--text)">Profit pool:</strong> The commitment point: capital is locked here months before demand is known.</p>
+  </div><div class="card">
+    <h3 style="font-size:14.5px"><span class="dim">3</span> Sourcing &amp; manufacturing</h3>
+    <p class="muted">Supplier selection, capacity booking, production, quality.</p>
+    <p class="muted"><strong style="color:var(--text)">Profit pool:</strong> Cost price and lead time are set here; lead time is the constraint on responsiveness.</p>
+  </div><div class="card">
+    <h3 style="font-size:14.5px"><span class="dim">4</span> Distribution</h3>
+    <p class="muted">Inbound logistics, distribution centres, market allocation.</p>
+    <p class="muted"><strong style="color:var(--text)">Profit pool:</strong> Cost pool; speed here partially compensates for long production lead times.</p>
+  </div><div class="card">
+    <h3 style="font-size:14.5px"><span class="dim">5</span> Retail &amp; digital sales</h3>
+    <p class="muted">Own stores, wholesale, own digital, marketplaces.</p>
+    <p class="muted"><strong style="color:var(--text)">Profit pool:</strong> Channel mix determines realised margin more than list price does.</p>
+  </div><div class="card">
+    <h3 style="font-size:14.5px"><span class="dim">6</span> Resale, repair &amp; recycling</h3>
+    <p class="muted">Take-back, resale, repair and material recovery.</p>
+    <p class="muted"><strong style="color:var(--text)">Profit pool:</strong> Currently a cost of compliance for most; a margin pool for very few.</p>
+  </div>
+</section>
+
+<section class="blk">
+  <h2 class="sec">KPI tree</h2>
+  <p class="hint">What moves, and why an executive cares.</p>
+  <div class="card">
+    <h3 style="font-size:14.5px">Design-to-shelf lead time <span class="dim" style="font-weight:400;font-size:12px">3 weeks (ultra-fast) to 12 months (traditional)</span></h3>
+    <p class="muted">Elapsed time from design freeze to product on sale.</p>
+    <p class="muted" style="color:var(--text)">Every week removed is a week closer to real demand and a smaller pre-season bet.</p>
+  </div><div class="card">
+    <h3 style="font-size:14.5px">Open-to-buy</h3>
+    <p class="muted">Budget remaining for future purchases within a plan period.</p>
+    <p class="muted" style="color:var(--text)">The financial control that stops merchandising over-committing. Where planning discipline is actually enforced.</p>
+  </div><div class="card">
+    <h3 style="font-size:14.5px">Return rate <span class="dim" style="font-weight:400;font-size:12px">20–50% for online apparel in Europe</span></h3>
+    <p class="muted">Share of shipped units returned.</p>
+    <p class="muted" style="color:var(--text)">In digital fashion, returns decide whether an order was profitable. Fit and content quality drive it more than policy does.</p>
+  </div><div class="card">
+    <h3 style="font-size:14.5px">Sell-through rate <span class="dim" style="font-weight:400;font-size:12px">70–90% by season end</span></h3>
+    <p class="muted">Share of a buy sold within the season.</p>
+    <p class="muted" style="color:var(--text)">The verdict on the buy. Below plan means either the product or the quantity was wrong, and the two need different fixes.</p>
+  </div>
+</section>
+</div>
+
+<aside>
+<div class="card unk">
+  <div class="lbl">Open questions</div>
+  <ul><li class="tight">Does ultra-fast fashion economics survive regulation on textile waste and import de minimis rules?</li><li class="tight">Can traceability be delivered at product level without a step change in supplier data quality?</li><li class="tight">Is AI shortening the design-to-shelf cycle in practice, or only the content production part of it?</li></ul>
+</div>
+
+<div class="card">
+  <h2 class="sec">Implementation mix</h2>
+  <p class="hint" style="margin-bottom:8px">Announcements vs. things actually evidenced as deployed.</p>
+  <table><tbody>
+  <tr><td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Stated intent. No implementation scope given.">Announced</span></td><td style="text-align:right;font-weight:600">163</td></tr><tr><td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Bounded trial. Most pilots do not scale.">Pilot</span></td><td style="text-align:right;font-weight:600">8</td></tr><tr><td><span class="badge" style="background:var(--accent-soft);color:var(--accent);border-color:transparent" title="Described as deployed across the organisation.">Scaled</span></td><td style="text-align:right;font-weight:600">7</td></tr><tr><td><span class="badge" style="background:var(--accent-soft);color:var(--accent);border-color:transparent" title="A measured outcome is claimed — check who is claiming it.">Quantified impact</span></td><td style="text-align:right;font-weight:600">2</td></tr><tr><td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Being explored; nothing built.">Concept</span></td><td style="text-align:right;font-weight:600">2</td></tr><tr><td><span class="badge" style="background:#fbe4e4;color:#8b2820;border-color:transparent" title="Stopped or reversed. Often more informative than the announcement.">Discontinued</span></td><td style="text-align:right;font-weight:600">1</td></tr><tr><td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent" title="A party other than the beneficiary reports the same outcome.">Independently validated</span></td><td style="text-align:right;font-weight:600">1</td></tr><tr><td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Live in selected locations.">Limited deployment</span></td><td style="text-align:right;font-weight:600">1</td></tr>
+  </tbody></table>
+  <p class="hint" style="margin:9px 0 0">Counting announcements is not a measure of market leadership.</p>
+</div>
+
+<div class="card">
+  <h2 class="sec">Documents by perspective</h2>
+  <table><tbody>
+  <tr><td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Vendor itself</span></td><td style="text-align:right;font-weight:600">95</td></tr><tr><td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ Public institution</span></td><td style="text-align:right;font-weight:600">25</td></tr><tr><td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Consulting firm itself</span></td><td style="text-align:right;font-weight:600">25</td></tr><tr><td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ Regulator</span></td><td style="text-align:right;font-weight:600">20</td></tr><tr><td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ Trade press</span></td><td style="text-align:right;font-weight:600">13</td></tr><tr><td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Company itself</span></td><td style="text-align:right;font-weight:600">10</td></tr><tr><td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ User-provided</span></td><td style="text-align:right;font-weight:600">3</td></tr>
+  </tbody></table>
+  <p class="hint" style="margin:9px 0 0">Roughly 70% first-party. A real limitation, visible rather than hidden.</p>
+</div>
+</aside>
+</div>
+
+<hr class="divider">
+
+<div class="eyebrow">Admin → Source registry</div>
+<h1>Sources</h1>
+<p class="hint" style="max-width:66ch">Being publicly reachable is not permission to
+ingest, store or redistribute. Each source carries a rights decision, and the fetcher
+refuses anything that has not passed review.</p>
+
+<div class="card" style="padding:4px 8px">
+<table>
+<thead><tr><th>Source</th><th>Perspective</th><th>Rights</th><th>Retains</th><th>State</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>AWS Machine Learning Blog</strong></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Vendor itself</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">excerpt</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>Demo Corporate Newsroom (illustrative data)</strong></td>
+  <td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ User-provided</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">full text</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>Demo Trade Press (illustrative data)</strong></td>
+  <td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ Trade press</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">full text</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>European Commission — Press Corner</strong></td>
+  <td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ Regulator</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">excerpt</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>Google — The Keyword</strong></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Vendor itself</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">excerpt</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>H&amp;M Group News</strong></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Company itself</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">excerpt</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>Manual URL Ingestion</strong></td>
+  <td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ User-provided</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">excerpt</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>McKinsey Insights</strong></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Consulting firm itself</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">excerpt</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>Meta Newsroom</strong></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Vendor itself</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">excerpt</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>Microsoft News</strong><div class="dim" style="font-size:11px;margin-top:2px">Refused to fetch https://news.microsoft.com/feed/: HTTP 403</div></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Vendor itself</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">excerpt</td>
+  <td><span class="badge" style="background:transparent;color:var(--text-subtle);border-color:var(--border)">disabled</span></td>
+</tr><tr>
+  <td><strong>NIST News</strong></td>
+  <td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ Public institution</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">excerpt</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>NVIDIA Newsroom</strong></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Vendor itself</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">excerpt</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>OpenAI News</strong></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Vendor itself</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">excerpt</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>Retail Dive</strong></td>
+  <td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ Trade press</span></td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">approved</span></td>
+  <td class="dim">excerpt</td>
+  <td><span class="badge" style="background:#e2f2e8;color:#1f5c3f;border-color:transparent">healthy</span></td>
+</tr><tr>
+  <td><strong>Accenture Newsroom</strong></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Consulting firm itself</span></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent">pending review</span></td>
+  <td class="dim">metadata</td>
+  <td><span class="badge" style="background:transparent;color:var(--text-subtle);border-color:var(--border)">disabled</span></td>
+</tr><tr>
+  <td><strong>Anthropic News</strong></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Vendor itself</span></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent">pending review</span></td>
+  <td class="dim">metadata</td>
+  <td><span class="badge" style="background:transparent;color:var(--text-subtle);border-color:var(--border)">disabled</span></td>
+</tr><tr>
+  <td><strong>Inditex Press Releases</strong></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Company itself</span></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent">pending review</span></td>
+  <td class="dim">metadata</td>
+  <td><span class="badge" style="background:transparent;color:var(--text-subtle);border-color:var(--border)">disabled</span></td>
+</tr><tr>
+  <td><strong>SEC EDGAR Filings</strong></td>
+  <td><span class="badge" style="background:var(--surface-inset);color:var(--text-muted);border-color:var(--border)" title="Reported by a party other than the subject.">○ Regulator</span></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent">pending review</span></td>
+  <td class="dim">metadata</td>
+  <td><span class="badge" style="background:transparent;color:var(--text-subtle);border-color:var(--border)">disabled</span></td>
+</tr><tr>
+  <td><strong>Zalando Corporate Newsroom</strong></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent" title="Self-reported. The subject of the story is also the source of it.">◑ Company itself</span></td>
+  <td><span class="badge" style="background:#fdf0dd;color:#8a5610;border-color:transparent">pending review</span></td>
+  <td class="dim">metadata</td>
+  <td><span class="badge" style="background:transparent;color:var(--text-subtle);border-color:var(--border)">disabled</span></td>
+</tr>
+</tbody></table>
+</div>
+
+<p class="hint" style="margin-top:16px;max-width:66ch">
+Four first-party newsrooms (Accenture, Anthropic, Inditex, Zalando) publish no
+discoverable feed — every candidate path was probed and returned HTTP 404, recorded
+verbatim in each policy. They stay registered as candidates with connectors off.
+Microsoft News returns HTTP 403 to a declared user agent; sending a browser user agent
+would likely work and was deliberately <em>not</em> done, so it is disabled with the
+reason recorded instead.
+</p>
+
+</div></body></html>

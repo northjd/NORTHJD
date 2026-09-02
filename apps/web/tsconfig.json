@@ -1,0 +1,35 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@mios/domain": ["../../packages/domain/src/index.ts"],
+      "@mios/domain/*": ["../../packages/domain/src/*"],
+      "@mios/database": ["../../packages/database/src/index.ts"],
+      "@mios/database/*": ["../../packages/database/src/*"],
+      "@mios/connectors": ["../../packages/connectors/src/index.ts"],
+      "@mios/connectors/*": ["../../packages/connectors/src/*"],
+      "@mios/intelligence": ["../../packages/intelligence/src/index.ts"],
+      "@mios/intelligence/*": ["../../packages/intelligence/src/*"],
+      "@mios/ai": ["../../packages/ai/src/index.ts"],
+      "@mios/ai/*": ["../../packages/ai/src/*"],
+      "@mios/search": ["../../packages/search/src/index.ts"],
+      "@mios/ranking": ["../../packages/ranking/src/index.ts"],
+      "@mios/learning": ["../../packages/learning/src/index.ts"],
+      "@mios/evaluation": ["../../packages/evaluation/src/index.ts"],
+      "@mios/ui": ["../../packages/ui/src/index.tsx"],
+      "@mios/ui/*": ["../../packages/ui/src/*"],
+      "@mios/config": ["../../packages/config/src/index.ts"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "../../packages/**/*.ts",
+    "../../packages/**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}
