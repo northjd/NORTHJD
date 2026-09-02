@@ -80,7 +80,7 @@ export default async function ExplorePage({
         <p className="t-lede mt-2 max-w-[64ch]">
           Every event was extracted from a monitored publisher source, clustered across
           reports, classified for implementation maturity, and linked to the exact passage it
-          came from. Filter on any dimension — then press ⌘K and ask.
+          came from. Filter on any dimension — press ⌘K to jump, ⌘J to ask.
         </p>
       </header>
 

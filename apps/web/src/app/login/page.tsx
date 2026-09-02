@@ -29,7 +29,7 @@ export default async function LoginPage({
         <div className="mb-6 text-center">
           <span
             aria-hidden
-            className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded bg-[var(--accent)] text-[16px] font-bold text-white"
+            className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded bg-[var(--accent)] text-[16px] font-bold text-[var(--surface)]"
           >
             M
           </span>
@@ -77,7 +77,7 @@ export default async function LoginPage({
 
           <button
             type="submit"
-            className="w-full rounded bg-[var(--accent)] px-3 py-2 text-[14px] font-medium text-white"
+            className="w-full rounded bg-[var(--accent)] px-3 py-2 text-[14px] font-medium text-[var(--surface)]"
           >
             Sign in
           </button>

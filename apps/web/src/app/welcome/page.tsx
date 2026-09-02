@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { Wordmark, CompassMark } from '@/components/wordmark';
+import { MakersMark } from '@/components/makers-mark';
 
 export const metadata: Metadata = {
   // `absolute` so the root template does not render this as "NORTH · NORTH".
@@ -76,7 +77,11 @@ export default function WelcomePage() {
       </div>
 
       <footer className="relative z-10 flex flex-wrap items-baseline justify-between gap-3 py-7">
-        <Wordmark size="sm" />
+        {/* The monogram here is a button. See MakersMark. */}
+        <span className="inline-flex items-baseline gap-1.5">
+          <Wordmark size="sm" monogram={false} />
+          <MakersMark className="text-[7px] font-semibold leading-none" />
+        </span>
         <p className="max-w-[52ch] text-[10.5px] leading-relaxed text-[var(--text-subtle)]">
           Every fact carries the passage it came from. Where the evidence is not there,
           NORTH says so rather than filling the gap.

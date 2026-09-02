@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   classifyCaseMaturity,
   queryTerms,
+  stemForMatch,
+  assessCoverage,
   classifyEventType,
   classifyValueLevers,
   deriveEvidenceStrength,
@@ -287,5 +289,57 @@ describe('question term extraction', () => {
       'rates',
       'Inditex',
     ]);
+  });
+});
+
+/**
+ * Regression: coverage matching must survive ordinary English morphology.
+ *
+ * "Which companies are scaling AI beyond pilots?" was refused although the corpus was
+ * full of relevant claims, because the stemmer sliced characters off the end rather than
+ * stripping suffixes: "scaling" became "scali" and matched neither "scale" nor "scaled".
+ */
+describe('stemForMatch', () => {
+  it('reduces inflections to a shared stem', () => {
+    expect(stemForMatch('scaling')).toBe('scal');
+    expect(stemForMatch('scaled')).toBe('scal');
+    // 'es' strips before 's', so this lands on the same stem as scaling/scaled.
+    expect(stemForMatch('scales')).toBe('scal');
+    expect(stemForMatch('companies')).toBe('compan');
+    expect(stemForMatch('pilots')).toBe('pilot');
+    expect(stemForMatch('matches')).toBe('match');
+  });
+
+  it('leaves short words and non-inflected words alone', () => {
+    expect(stemForMatch('AI')).toBe('ai');
+    expect(stemForMatch('retail')).toBe('retail');
+    // Stripping would leave less than four characters, so it does not.
+    expect(stemForMatch('bus')).toBe('bus');
+  });
+
+  it('matches a question term against the wording sources actually use', () => {
+    const corpus = 'The retailer scaled the deployment across every company store, past the pilot phase.';
+    for (const term of ['scaling', 'companies', 'pilots']) {
+      expect(corpus.toLowerCase().includes(stemForMatch(term))).toBe(true);
+    }
+  });
+});
+
+describe('assessCoverage', () => {
+  const corpus = [
+    'Inditex scaled its AI allocation deployment across every company in the group.',
+    'The pilot moved into production after a measured reduction in markdown rate.',
+  ];
+
+  it('accepts a question the sources genuinely cover', () => {
+    const terms = queryTerms('Which companies are scaling AI beyond pilots?');
+    expect(assessCoverage(terms, corpus).sufficient).toBe(true);
+  });
+
+  it('still refuses a question the sources do not cover', () => {
+    const terms = queryTerms('What is the population of Ulaanbaatar?');
+    const result = assessCoverage(terms, corpus);
+    expect(result.sufficient).toBe(false);
+    expect(result.missing.length).toBeGreaterThan(0);
   });
 });

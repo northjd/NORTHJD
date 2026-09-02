@@ -80,7 +80,7 @@ export default async function SearchPage({
           aria-label="Search"
           className="min-w-0 flex-1 rounded border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[14px]"
         />
-        <button type="submit" className="rounded bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-white">
+        <button type="submit" className="rounded bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-[var(--surface)]">
           Search
         </button>
       </form>

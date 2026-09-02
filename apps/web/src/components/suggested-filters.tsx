@@ -67,7 +67,7 @@ export function SuggestedFilters({
               <span
                 aria-hidden
                 className={`grid h-[26px] w-[26px] shrink-0 place-items-center rounded-lg text-[13px] ${
-                  on ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-inset)]'
+                  on ? 'bg-[var(--accent)] text-[var(--surface)]' : 'bg-[var(--surface-inset)]'
                 }`}
               >
                 {s.icon}

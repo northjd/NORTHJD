@@ -5,7 +5,11 @@ import { usePathname } from 'next/navigation';
 import { CompanionPanel } from './companion-panel';
 
 /**
- * Global Companion access: a floating button, and ⌘K / Ctrl-K.
+ * Global Companion access: a floating button, and ⌘J / Ctrl-J.
+ *
+ * ⌘K belongs to the command palette — navigation and filtering — and two features on one
+ * shortcut is worse than either having none. ⌘J keeps them adjacent on the keyboard while
+ * staying distinct: K to find something, J to ask about it.
  *
  * The panel passes the current route as page context so a question asked on a company
  * page is scoped to that company. Context may add to the question; it never silently
@@ -17,7 +21,7 @@ export function CompanionLauncher() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'j') {
         event.preventDefault();
         setOpen((v) => !v);
       }
@@ -38,9 +42,9 @@ export function CompanionLauncher() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="no-print fixed bottom-4 right-4 z-40 rounded-full bg-[var(--accent)] px-4 py-2.5 text-[13px] font-medium text-white shadow-lg"
+          className="no-print fixed bottom-4 right-4 z-40 rounded-full bg-[var(--accent)] px-4 py-2.5 text-[13px] font-medium text-[var(--surface)] shadow-lg"
         >
-          Ask the Companion <kbd className="ml-1 opacity-70">⌘K</kbd>
+          Ask the Companion <kbd className="ml-1 opacity-70">⌘J</kbd>
         </button>
       ) : null}
 

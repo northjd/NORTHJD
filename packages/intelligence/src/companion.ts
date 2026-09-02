@@ -99,6 +99,7 @@ const QUESTION_NOISE = new RegExp(
       'latest', 'recent', 'recently', 'current', 'currently', 'news', 'update',
       'updates', 'anything', 'something', 'everything', 'more', 'most', 'less',
       'any', 'all', 'some', 'new', 'now', 'today', 'next', 'about', 'around',
+      'beyond', 'across', 'within', 'between', 'against', 'towards', 'toward',
     ].join('|') +
     ')\\b',
   'gi',
@@ -180,6 +181,29 @@ export interface CoverageAssessment {
   sufficient: boolean;
 }
 
+/**
+ * Reduces a word to a form that matches its own inflections.
+ *
+ * The previous rule sliced a fixed number of characters off the end, which fails on
+ * ordinary English morphology: "scaling" became "scali" and so matched neither "scale"
+ * nor "scaled", and "companies" became "compani" and so missed "company". Questions were
+ * then refused for lacking evidence that was sitting right there.
+ *
+ * Stripping the suffix instead gives a stem that is a genuine prefix of every inflection:
+ * scaling/scaled/scales/scale all reduce to "scal", companies/company to "compan".
+ * Deliberately not a full Porter stemmer — these five rules cover what questions and
+ * headlines actually differ by, and each additional rule is another way to be wrong.
+ */
+export function stemForMatch(word: string): string {
+  const lower = word.toLowerCase();
+  const strip = (suffix: string, min = 4): string | null => {
+    if (!lower.endsWith(suffix)) return null;
+    const stem = lower.slice(0, -suffix.length);
+    return stem.length >= min ? stem : null;
+  };
+  return strip('ies') ?? strip('ing') ?? strip('ed') ?? strip('es') ?? strip('s') ?? lower;
+}
+
 export function assessCoverage(terms: string[], texts: string[]): CoverageAssessment {
   if (terms.length === 0) {
     return { covered: [], missing: [], ratio: 1, sufficient: true };
@@ -188,8 +212,7 @@ export function assessCoverage(terms: string[], texts: string[]): CoverageAssess
   const covered: string[] = [];
   const missing: string[] = [];
   for (const term of terms) {
-    const stem = term.toLowerCase().slice(0, Math.max(4, term.length - 2));
-    (haystack.includes(stem) ? covered : missing).push(term);
+    (haystack.includes(stemForMatch(term)) ? covered : missing).push(term);
   }
   const ratio = covered.length / terms.length;
   return { covered, missing, ratio, sufficient: ratio >= COVERAGE_THRESHOLD };

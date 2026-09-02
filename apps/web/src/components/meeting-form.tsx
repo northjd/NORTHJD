@@ -163,7 +163,7 @@ export function MeetingForm({ companies }: { companies: { id: string; name: stri
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded bg-[var(--accent)] px-3 py-2 text-[14px] font-medium text-white disabled:opacity-60"
+        className="w-full rounded bg-[var(--accent)] px-3 py-2 text-[14px] font-medium text-[var(--surface)] disabled:opacity-60"
       >
         {pending ? 'Building brief…' : 'Build brief'}
       </button>

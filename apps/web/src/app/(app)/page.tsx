@@ -42,7 +42,7 @@ export default async function TodayPage() {
   const readCount = items.filter((i) => i.readAt !== null).length;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="mx-auto max-w-[760px]">
       <div className="min-w-0">
         <header className="mb-6">
           <p className="text-[13px] text-[var(--text-subtle)]">
@@ -165,57 +165,76 @@ export default async function TodayPage() {
         ) : null}
       </div>
 
-      <aside className="no-print space-y-4 lg:sticky lg:top-20 lg:self-start">
-        <Card>
-          <SectionHeading>Coverage</SectionHeading>
-          <dl className="space-y-1.5 text-[13px]">
-            <div className="flex justify-between gap-2">
-              <dt className="text-[var(--text-muted)]">Active sources</dt>
-              <dd className="font-medium">{activeSources}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-[var(--text-muted)]">Awaiting rights review</dt>
-              <dd className="font-medium">{blockedSources}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-[var(--text-muted)]">Evidenced claims</dt>
-              <dd className="font-medium">{coverage.totals.claims}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-[var(--text-muted)]">Events tracked</dt>
-              <dd className="font-medium">{coverage.totals.events}</dd>
-            </div>
-          </dl>
-          <p className="mt-3 border-t border-[var(--border)] pt-2 text-[12px] leading-relaxed text-[var(--text-subtle)]">
-            This brief reflects the monitored sources only. It is not a claim about everything that
-            happened.
-          </p>
-          <Link
-            href="/admin/coverage"
-            className="mt-2 inline-block text-[12px] font-medium text-[var(--accent)] underline underline-offset-2"
-          >
-            Coverage detail
-          </Link>
-        </Card>
+      {/*
+        Coverage and composition were two cards of telemetry sitting beside the thing you
+        came to read, competing with it for attention. The corpus totals now live in the
+        status bar, and the assembly detail is here as a disclosure — available to anyone
+        who wants to audit how the brief was built, invisible to everyone else.
 
-        <Card>
-          <SectionHeading>Composition</SectionHeading>
-          <p className="mb-2 text-[12px] leading-relaxed text-[var(--text-subtle)]">
-            How the brief was assembled. One slot is reserved for a signal outside your stated
-            interests.
-          </p>
-          <ul className="space-y-1 text-[13px]">
-            {Object.entries(brief.compositionNote as Record<string, number>)
-              .filter(([, n]) => n > 0)
-              .map(([section, n]) => (
-                <li key={section} className="flex justify-between gap-2">
-                  <span className="text-[var(--text-muted)]">{SECTION_META[section]?.title ?? section}</span>
-                  <span className="font-medium">{n}</span>
-                </li>
-              ))}
-          </ul>
-        </Card>
-      </aside>
+        The caveat above it is not telemetry and stays visible: it is a claim about what
+        this brief does and does not represent.
+      */}
+      <div className="no-print mt-10 border-t border-[var(--border)] pt-5">
+        <p className="text-[12px] leading-relaxed text-[var(--text-subtle)]">
+          This brief reflects the monitored sources only. It is not a claim about everything
+          that happened.
+        </p>
+
+        <details className="group mt-3">
+          <summary className="cursor-pointer list-none text-[11.5px] text-[var(--text-subtle)] hover:text-[var(--text-muted)]">
+            <span className="underline underline-offset-2">How this brief was assembled</span>
+            <span aria-hidden className="ml-1.5 inline-block transition-transform group-open:rotate-90">
+              ›
+            </span>
+          </summary>
+
+          <div className="mt-3 grid gap-6 sm:grid-cols-2">
+            <div>
+              <p className="t-section mb-2">Composition</p>
+              <p className="mb-2 text-[11.5px] leading-relaxed text-[var(--text-subtle)]">
+                One slot is always reserved for a signal outside your stated interests.
+              </p>
+              <ul className="space-y-1 text-[12.5px]">
+                {Object.entries(brief.compositionNote as Record<string, number>)
+                  .filter(([, n]) => n > 0)
+                  .map(([section, n]) => (
+                    <li key={section} className="flex justify-between gap-2">
+                      <span className="text-[var(--text-muted)]">
+                        {SECTION_META[section]?.title ?? section}
+                      </span>
+                      <span className="tabular-nums">{n}</span>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+
+            <div>
+              <p className="t-section mb-2">Coverage</p>
+              <dl className="space-y-1 text-[12.5px]">
+                {(
+                  [
+                    ['Active sources', activeSources],
+                    ['Awaiting rights review', blockedSources],
+                    ['Evidenced claims', coverage.totals.claims],
+                    ['Events tracked', coverage.totals.events],
+                  ] as const
+                ).map(([label, value]) => (
+                  <div key={label} className="flex justify-between gap-2">
+                    <dt className="text-[var(--text-muted)]">{label}</dt>
+                    <dd className="tabular-nums">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <Link
+                href="/admin/coverage"
+                className="mt-2 inline-block text-[11.5px] underline underline-offset-2 hover:text-[var(--text)]"
+              >
+                Coverage detail
+              </Link>
+            </div>
+          </div>
+        </details>
+      </div>
     </div>
   );
 }

@@ -45,6 +45,7 @@ const NAV_GROUPS = [
       { href: '/learn', label: 'Learn', icon: '▤', hint: 'Industry fundamentals and learning paths' },
       { href: '/prepare', label: 'Prepare', icon: '◈', hint: 'Meeting preparation' },
       { href: '/library', label: 'Library', icon: '▢', hint: 'Saved insights, notes, collections' },
+      { href: '/you', label: 'Your numbers', icon: '◔', hint: 'What you have read, asked and learned' },
     ],
   },
 ];

@@ -182,7 +182,7 @@ export function CompanionPanel({
             onClick={() => setMode(m.mode)}
             className={`rounded border px-2.5 py-1 text-[12px] font-medium transition-colors ${
               mode === m.mode
-                ? 'border-transparent bg-[var(--accent)] text-white'
+                ? 'border-transparent bg-[var(--accent)] text-[var(--surface)]'
                 : 'border-[var(--border)] hover:bg-[var(--surface-inset)]'
             }`}
           >
@@ -257,7 +257,7 @@ export function CompanionPanel({
         <button
           type="submit"
           disabled={busy || question.trim().length === 0}
-          className="rounded bg-[var(--accent)] px-3 py-2 text-[13px] font-medium text-white disabled:opacity-60"
+          className="rounded bg-[var(--accent)] px-3 py-2 text-[13px] font-medium text-[var(--surface)] disabled:opacity-60"
         >
           {busy ? 'Thinking…' : 'Ask'}
         </button>

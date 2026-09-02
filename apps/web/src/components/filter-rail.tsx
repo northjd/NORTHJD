@@ -225,7 +225,7 @@ export function FilterRail({ facets, activeCount }: Props) {
                       aria-pressed={isOn(d.key, f.slug)}
                       className={`rounded-full border px-2.5 py-1 text-[12px] font-medium transition-all duration-150 ${
                         isOn(d.key, f.slug)
-                          ? 'border-transparent bg-[var(--accent)] text-white shadow-[0_2px_8px_-2px_var(--accent)]'
+                          ? 'border-transparent bg-[var(--accent)] text-[var(--surface)]'
                           : 'border-[var(--border-strong)] text-[var(--text-muted)] hover:-translate-y-px hover:border-[var(--accent)] hover:text-[var(--accent)]'
                       }`}
                     >
@@ -275,7 +275,7 @@ export function FilterRail({ facets, activeCount }: Props) {
                   aria-pressed={isOn(key, value)}
                   className={`rounded-full border px-2.5 py-1 text-[12px] font-medium transition-all duration-150 ${
                     isOn(key, value)
-                      ? 'border-transparent bg-[var(--accent)] text-white'
+                      ? 'border-transparent bg-[var(--accent)] text-[var(--surface)]'
                       : 'border-[var(--border-strong)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
                   }`}
                 >

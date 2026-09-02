@@ -44,7 +44,7 @@ export function FeedbackBar({ insightId }: { insightId: string }) {
             }
             className={`rounded border px-2.5 py-1 text-[12px] font-medium transition-colors disabled:opacity-50 ${
               chosen === option.kind
-                ? 'border-transparent bg-[var(--accent)] text-white'
+                ? 'border-transparent bg-[var(--accent)] text-[var(--surface)]'
                 : 'border-[var(--border)] hover:bg-[var(--surface-inset)]'
             }`}
           >

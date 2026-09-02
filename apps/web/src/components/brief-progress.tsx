@@ -41,7 +41,7 @@ export function BriefProgress({
           </a>
           <a
             href="/companion"
-            className="rounded bg-[var(--accent)] px-3 py-1.5 text-[13px] font-medium text-white"
+            className="rounded bg-[var(--accent)] px-3 py-1.5 text-[13px] font-medium text-[var(--surface)]"
           >
             Ask the Companion
           </a>
@@ -70,7 +70,7 @@ export function BriefProgress({
             setDone(true);
           })
         }
-        className="rounded bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-white disabled:opacity-60"
+        className="rounded bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-[var(--surface)] disabled:opacity-60"
       >
         {pending ? 'Saving…' : 'Mark brief as done'}
       </button>
