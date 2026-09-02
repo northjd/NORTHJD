@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   classifyCaseMaturity,
+  queryTerms,
   classifyEventType,
   classifyValueLevers,
   deriveEvidenceStrength,
@@ -243,5 +244,48 @@ describe('marketing neutralisation', () => {
   it('leaves independent reporting untouched', () => {
     const headline = 'Revolutionary platform launched, company says';
     expect(neutralizeMarketingHeadline(headline, false)).toBe(headline);
+  });
+});
+
+/**
+ * Regression: the retrieval query must keep content words and drop filler.
+ *
+ * "What is happening with AI in retail?" was refused because *happening* appears in no
+ * source — true, and completely beside the point — while "AI", the single most frequent
+ * meaningful term in the corpus, was dropped entirely by a length > 2 filter.
+ */
+describe('question term extraction', () => {
+  it('keeps two-letter acronyms that carry meaning', () => {
+    expect(queryTerms('What is happening with AI in retail?')).toEqual(['AI', 'retail']);
+    expect(queryTerms('How is the EU regulating AI?')).toContain('EU');
+    expect(queryTerms('What is the ROI on this?')).toContain('ROI');
+  });
+
+  it('drops filler verbs and nouns of enquiry', () => {
+    for (const filler of ['happening', 'latest', 'news', 'update', 'current', 'recently']) {
+      expect(queryTerms(`What is the ${filler} on markdown rates?`)).not.toContain(filler);
+    }
+  });
+
+  it('drops words addressed to the assistant rather than to the corpus', () => {
+    const terms = queryTerms('Challenge the claim that markdown rates are improving');
+    expect(terms).not.toContain('Challenge');
+    expect(terms).not.toContain('claim');
+    expect(terms.map((t) => t.toLowerCase())).toContain('markdown');
+  });
+
+  it('never emits tsquery operator keywords', () => {
+    const terms = queryTerms('pricing and promotions or markdown not discounts');
+    for (const op of ['and', 'or', 'not']) {
+      expect(terms.map((t) => t.toLowerCase())).not.toContain(op);
+    }
+  });
+
+  it('keeps the substantive words of a real question', () => {
+    expect(queryTerms('What is happening with markdown rates at Inditex?')).toEqual([
+      'markdown',
+      'rates',
+      'Inditex',
+    ]);
   });
 });

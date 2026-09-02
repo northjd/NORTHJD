@@ -6,6 +6,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { NavLink } from '@/components/nav-link';
 import { corpusStatus } from '@/lib/queries';
 import { CommandPalette } from '@/components/command-palette';
+import { Wordmark, CompassMark } from '@/components/wordmark';
 import { searchEntities } from '@/lib/entity-search';
 import { db, schema } from '@mios/database';
 import { asc } from 'drizzle-orm';
@@ -87,15 +88,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           href="/"
           className="flex h-[46px] shrink-0 items-center gap-2.5 border-b border-[var(--border)] px-3"
         >
-          <span
-            aria-hidden
-            className="grid h-5 w-5 place-items-center rounded bg-[var(--accent)] text-[10px] font-bold text-[var(--surface)]"
-          >
-            M
-          </span>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--text-muted)]">
-            Market Intelligence
-          </span>
+          <CompassMark size={18} className="text-[var(--text)]" />
+          <Wordmark size="sm" />
         </Link>
 
         <div className="flex-1 py-2">

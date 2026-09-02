@@ -59,7 +59,9 @@ export async function currentUser(): Promise<SessionUser | null> {
 /** Every authenticated page calls this. Redirects rather than returning null. */
 export async function requireUser(): Promise<SessionUser> {
   const user = await currentUser();
-  if (!user) redirect('/login');
+  // Unauthenticated visitors get the landing page rather than a bare password prompt —
+  // /login is reached from "Activate NORTH", so arriving there is always a choice.
+  if (!user) redirect('/welcome');
   return user;
 }
 

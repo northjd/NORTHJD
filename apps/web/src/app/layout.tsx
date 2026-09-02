@@ -2,20 +2,20 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Market Intelligence OS',
+  title: { default: 'NORTH', template: '%s · NORTH' },
   description:
-    'Know what changed, understand why it matters, and be ready to discuss it. Evidence-grounded market intelligence, learning and conversation for consultants.',
-  applicationName: 'Market Intelligence OS',
+    'Know what changed. Understand what matters. Be ready for what’s next. Evidence-grounded market intelligence, learning and conversation.',
+  applicationName: 'NORTH',
   manifest: '/manifest.webmanifest',
-  appleWebApp: { capable: true, title: 'MIOS', statusBarStyle: 'default' },
+  appleWebApp: { capable: true, title: 'NORTH', statusBarStyle: 'default' },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f7f8f9' },
-    { media: '(prefers-color-scheme: dark)', color: '#0d1017' },
+    { media: '(prefers-color-scheme: light)', color: '#fbfbfa' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0b' },
   ],
 };
 

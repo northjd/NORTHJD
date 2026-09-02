@@ -1,3 +1,4 @@
+import { Wordmark } from '@/components/wordmark';
 import { redirect } from 'next/navigation';
 import { currentUser, signIn } from '@/lib/session';
 import { config } from '@mios/config';
@@ -32,7 +33,8 @@ export default async function LoginPage({
           >
             M
           </span>
-          <h1 className="text-[20px] font-semibold tracking-tight">Market Intelligence OS</h1>
+          <h1 className="sr-only">NORTH</h1>
+          <Wordmark size="lg" />
           <p className="mt-1 text-[13px] text-[var(--text-muted)]">
             Know what changed, understand why it matters, and be ready to discuss it.
           </p>

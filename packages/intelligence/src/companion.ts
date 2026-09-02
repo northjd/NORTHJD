@@ -63,9 +63,61 @@ interface RetrievedClaim {
   rank: number;
 }
 
-/** Words that carry no retrieval signal but dominate a naive tsquery. */
-const QUESTION_NOISE =
-  /\b(what|which|who|when|where|why|how|is|are|was|were|do|does|did|tell|me|about|please|can|you|the|a|an|of|in|on|for|to|challenge|claim|claims|that|explain|brief|teach|prepare|should|know|next|give|show|say|said|think|need|want|would|could|there|this|these|those|it|its|my|our|their|and|but|with|from|into|over|under|more|most|less|any|all|some|new|now|today)\b/gi;
+/**
+ * Words that carry no retrieval signal but dominate a naive tsquery.
+ *
+ * Three groups, and all three matter:
+ *
+ *  - **Ordinary stopwords** — articles, prepositions, auxiliaries.
+ *  - **Words addressed to the assistant** — "challenge", "explain", "brief me",
+ *    "teach". These describe what the user wants *done*, not what they want it done
+ *    about, and counting them as content drags query coverage down until an answerable
+ *    question gets refused.
+ *  - **Filler verbs and nouns of enquiry** — "happening", "going on", "latest",
+ *    "update", "news". "What is happening with AI in retail?" was refused because
+ *    *happening* appears in no source, which is both true and completely beside the
+ *    point.
+ */
+const QUESTION_NOISE = new RegExp(
+  '\\b(' +
+    [
+      // articles, prepositions, auxiliaries, pronouns
+      'a', 'an', 'the', 'of', 'in', 'on', 'at', 'by', 'as', 'for', 'to', 'from', 'into',
+      'over', 'under', 'with', 'without', 'and', 'but', 'or', 'if', 'so', 'than', 'then',
+      'is', 'are', 'was', 'were', 'be', 'been', 'being', 'do', 'does', 'did', 'done',
+      'has', 'have', 'had', 'can', 'could', 'would', 'should', 'will', 'shall', 'may',
+      'might', 'must', 'it', 'its', 'this', 'that', 'these', 'those', 'there', 'here',
+      'they', 'them', 'their', 'we', 'us', 'our', 'you', 'your', 'me', 'my', 'i',
+      // question words
+      'what', 'which', 'who', 'whom', 'whose', 'when', 'where', 'why', 'how',
+      // addressed to the assistant, not to the corpus
+      'tell', 'explain', 'brief', 'teach', 'prepare', 'challenge', 'claim', 'claims',
+      'show', 'give', 'find', 'help', 'please', 'summarise', 'summarize', 'describe',
+      // filler verbs and nouns of enquiry
+      'happening', 'happened', 'happen', 'going', 'doing', 'saying', 'looking',
+      'know', 'knows', 'think', 'thinks', 'need', 'needs', 'want', 'wants',
+      'latest', 'recent', 'recently', 'current', 'currently', 'news', 'update',
+      'updates', 'anything', 'something', 'everything', 'more', 'most', 'less',
+      'any', 'all', 'some', 'new', 'now', 'today', 'next', 'about', 'around',
+    ].join('|') +
+    ')\\b',
+  'gi',
+);
+
+/**
+ * Terms shorter than the usual floor that are worth keeping.
+ *
+ * The length filter exists to drop noise, but it also silently removed "AI" — the single
+ * most frequent meaningful term in this corpus — so a question about AI retrieved on its
+ * other words only. Two-letter acronyms are content, not noise.
+ */
+const SHORT_TERMS_WORTH_KEEPING = new Set([
+  'ai', 'ml', 'ar', 'vr', 'xr', 'hr', 'eu', 'uk', 'ev', 'iot',
+  '5g', '6g', 'bi', 'ux', 'ui', 'kpi', 'roi', 'esg', 'llm', 'nlp', 'api', 'sku',
+]);
+// "IT" and "US" are deliberately absent: the noise filter strips them as pronouns before
+// they get here, and the pronoun reading is far commoner than the acronym one. Losing
+// "US" from "US retailers" costs less than admitting every "us" in every question.
 
 /**
  * Turns a question into a tsquery input.
@@ -76,14 +128,18 @@ const QUESTION_NOISE =
  * but uselessly, as "insufficient evidence". OR retrieves candidates and `ts_rank`
  * sorts them, so claims matching more terms still come first.
  */
-function queryTerms(question: string): string[] {
+export function queryTerms(question: string): string[] {
   return question
     .replace(QUESTION_NOISE, ' ')
     .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
     .split(/\s+/)
     .map((w) => w.trim())
-    // Drop the tsquery operator keywords, which would otherwise be parsed as syntax.
-    .filter((w) => w.length > 2 && !['and', 'not', 'or'].includes(w.toLowerCase()))
+    .filter((w) => {
+      const lower = w.toLowerCase();
+      // Drop the tsquery operator keywords, which would be parsed as syntax.
+      if (['and', 'not', 'or'].includes(lower)) return false;
+      return w.length > 2 || SHORT_TERMS_WORTH_KEEPING.has(lower);
+    })
     .slice(0, 12);
 }
 

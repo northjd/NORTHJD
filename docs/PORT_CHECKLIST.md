@@ -74,6 +74,15 @@ Last updated after the first commit (`e9f0634`). Status key: **done** = in the a
 | 34 | Keyboard: `⌘K` / `/` palette, `↑↓⏎` within it, `esc` close | partial — no `j`/`k` list nav yet |
 | 35 | Docked Companion pane with seven modes and voice | partial — `CompanionLauncher` exists |
 
+## Fixed after the first commit
+
+| Item | Status |
+|---|---|
+| **Companion 500** — `PGLiteSocketServer` defaulted to `maxConnections: 1`, so the API route's connection evicted the page renderer's | **done** |
+| Retrieval dropped two-letter acronyms: "AI" never reached the query | **done** — 5 tests |
+| Retrieval counted filler ("happening", "latest", "news") as content, refusing answerable questions | **done** |
+| Renamed to **NORTH**, with landing page and wordmark | **done** |
+
 ## Correctness fixes (not design)
 
 | # | Item | Status |

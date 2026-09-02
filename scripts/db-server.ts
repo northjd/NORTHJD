@@ -21,7 +21,21 @@ const host = process.env.PGLITE_HOST ?? '127.0.0.1';
 mkdirSync(dataDir, { recursive: true });
 
 const db = await PGlite.create({ dataDir });
-const server = new PGLiteSocketServer({ db, port, host });
+
+/**
+ * `maxConnections` defaults to 1, and that default caused every "Connection terminated
+ * unexpectedly" failure in this project.
+ *
+ * Next.js runs page renders and route handlers as separate module instances, so each
+ * gets its own `@mios/database` client and therefore its own connection. With a ceiling
+ * of one, the API route's connection displaced the page renderer's, which is why the
+ * Companion 500ed on its very first query while pages rendered fine moments earlier.
+ *
+ * The socket server queues at the query level, so several connections are safe: PGlite
+ * itself is still single-threaded, but callers no longer evict each other.
+ */
+const maxConnections = Number.parseInt(process.env.PGLITE_MAX_CONNECTIONS ?? '20', 10);
+const server = new PGLiteSocketServer({ db, port, host, maxConnections });
 
 await server.start();
 
@@ -29,7 +43,8 @@ const { rows } = await db.query<{ version: string }>('select version() as versio
 console.log(`\n  PostgreSQL ready  ${rows[0]?.version?.split(' on ')[0] ?? ''}`);
 console.log(`  listening         postgres://postgres@${host}:${port}/postgres`);
 console.log(`  data directory    ${dataDir}`);
-console.log(`\n  Single-connection WASM PostgreSQL for local development only.`);
+console.log(`  max connections   ${maxConnections}`);
+console.log(`\n  WASM PostgreSQL for local development only — single-threaded, no replication.`);
 console.log(`  Point DATABASE_URL at a managed PostgreSQL for anything else.\n`);
 
 let shuttingDown = false;

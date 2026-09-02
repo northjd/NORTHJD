@@ -1,7 +1,7 @@
 export function GET(): Response {
   return Response.json({
-    name: 'Market Intelligence OS',
-    short_name: 'MIOS',
+    name: 'NORTH',
+    short_name: 'NORTH',
     description: 'Know what changed, understand why it matters, and be ready to discuss it.',
     start_url: '/',
     display: 'standalone',

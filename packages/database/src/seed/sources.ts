@@ -328,7 +328,7 @@ export const SOURCES: SourceSeed[] = [
   {
     slug: 'demo-trade-press', name: 'Demo Trade Press (illustrative data)', officialDomain: 'demo.local',
     homepageUrl: '', sourceType: 'industry_publication', perspective: 'INDUSTRY_MEDIA',
-    sourceOwner: 'Market Intelligence OS demo data', language: 'en',
+    sourceOwner: 'NORTH demo data', language: 'en',
     geographySlugs: ['global'], industrySlugs: ['retail', 'fashion-apparel'],
     qualityScore: 30, isDemo: true,
     notes:
@@ -347,7 +347,7 @@ export const SOURCES: SourceSeed[] = [
   {
     slug: 'demo-fixtures', name: 'Demo Corporate Newsroom (illustrative data)', officialDomain: 'demo.local',
     homepageUrl: '', sourceType: 'user_upload', perspective: 'USER_PROVIDED',
-    sourceOwner: 'Market Intelligence OS demo data', language: 'en',
+    sourceOwner: 'NORTH demo data', language: 'en',
     geographySlugs: ['global'], industrySlugs: ['retail', 'fashion-apparel', 'technology-ai'],
     qualityScore: 30, isDemo: true,
     notes:
