@@ -6,10 +6,12 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { NavLink } from '@/components/nav-link';
 import { corpusStatus } from '@/lib/queries';
 import { CommandPalette } from '@/components/command-palette';
+import { FeedbackWidget } from '@/components/feedback-widget';
 import { Wordmark, CompassMark } from '@/components/wordmark';
 import { searchEntities } from '@/lib/entity-search';
 import { db, schema } from '@mios/database';
-import { asc } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
+import { redirect } from 'next/navigation';
 
 /**
  * Application shell — an operator console rather than a document.
@@ -52,6 +54,18 @@ const NAV_GROUPS = [
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
+
+  // First run: send a new account to set-up before it sees a brief assembled for nobody.
+  // Checked here rather than in middleware because the profile row is what decides it,
+  // and this is the first place with a database connection and a known user.
+  const profile = await db().query.userProfiles.findFirst({
+    where: and(
+      eq(schema.userProfiles.userId, user.userId),
+      eq(schema.userProfiles.workspaceId, user.workspaceId),
+    ),
+  });
+  if (!profile?.onboardingCompletedAt) redirect('/onboarding');
+
   const mode = generationMode();
   const isAdmin = user.role === 'owner' || user.role === 'admin';
   const corpus = await corpusStatus();
@@ -199,6 +213,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         industries={paletteIndustries}
         topics={paletteTopics}
       />
+      <FeedbackWidget />
       <CompanionLauncher />
     </div>
   );

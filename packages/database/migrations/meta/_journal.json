@@ -8,6 +8,13 @@
       "when": 1788253426581,
       "tag": "0000_fresh_greymalkin",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788379408207,
+      "tag": "0001_tough_zemo",
+      "breakpoints": true
     }
   ]
 }

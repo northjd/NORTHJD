@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+.next
+**/.next
+data
+.pgdata
+storage
+.git
+.env
+.env.local
+coverage
+playwright-report
+test-results
+blob-report
+*.tsbuildinfo
+.DS_Store

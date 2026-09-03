@@ -132,6 +132,12 @@ const EnvSchema = z.object({
 
   DATABASE_URL: str('postgres://postgres:postgres@127.0.0.1:55432/postgres'),
   PGLITE_DATA_DIR: str('./data/pglite'),
+  /**
+   * Enables account creation when set. Empty means sign-up is closed, which is the right
+   * default: an open form on a URL that gets forwarded is how strangers end up in the
+   * workspace. Rotate it by changing the deployment variable, not the database.
+   */
+  SIGNUP_INVITE_CODE: str(''),
   PGLITE_PORT: int(55432),
 
   SESSION_SECRET: optionalSecret,

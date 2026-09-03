@@ -487,6 +487,40 @@ export const notifications = pgTable(
   (t) => [index('notifications_user_idx').on(t.userId, t.createdAt)],
 );
 
+/**
+ * Feedback about the product itself, as opposed to feedback about an insight.
+ *
+ * A separate table from `user_feedback` on purpose. That one records reactions to
+ * *content* — "already knew this", "changed my view" — and is an input to ranking.
+ * Mixing "the filters are confusing" into the same rows would corrupt the ranking signal
+ * and lose the product feedback among thousands of content reactions.
+ *
+ * `route` and `userAgent` are captured because the single most common failure of a
+ * feedback box is a report nobody can reproduce.
+ */
+export const productFeedback = pgTable(
+  'product_feedback',
+  {
+    id: id(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    /** confusing | broken | idea | praise | other */
+    kind: varchar('kind', { length: 32 }).notNull().default('other'),
+    message: text('message').notNull(),
+    /** Where they were when they wrote it. */
+    route: varchar('route', { length: 300 }).notNull().default(''),
+    userAgent: varchar('user_agent', { length: 400 }).notNull().default(''),
+    /** Set once someone has read it, so the list is a queue rather than a pile. */
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('product_feedback_created_idx').on(t.createdAt)],
+);
+
 export const dailyBriefsRelations = relations(dailyBriefs, ({ many, one }) => ({
   items: many(briefItems),
   user: one(users, { fields: [dailyBriefs.userId], references: [users.id] }),

@@ -10,8 +10,14 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { and, eq, gt } from 'drizzle-orm';
 import { db, schema } from '@mios/database';
-import { SESSION_TTL_DAYS, createSessionToken, hashSessionToken, verifyPassword } from '@mios/database/auth';
-import { isProduction } from '@mios/config';
+import {
+  SESSION_TTL_DAYS,
+  createSessionToken,
+  hashPassword,
+  hashSessionToken,
+  verifyPassword,
+} from '@mios/database/auth';
+import { config, isProduction } from '@mios/config';
 
 const COOKIE = 'mios_session';
 
@@ -95,6 +101,83 @@ export async function signIn(email: string, password: string): Promise<{ ok: boo
     expires: expiresAt,
   });
   return { ok: true };
+}
+
+/**
+ * Creates an account against an invite code.
+ *
+ * Invite codes rather than open sign-up: this is a product being shown to named
+ * colleagues for feedback, not a public service, and an open form on a URL that gets
+ * forwarded is how you end up with strangers in your workspace. The code lives in
+ * `SIGNUP_INVITE_CODE`, so rotating it is a deployment setting rather than a migration.
+ *
+ * Each person gets their own user row, so their reading history, saved insights and
+ * knowledge state are genuinely theirs. They join the shared workspace as a member,
+ * which is what makes the corpus common and the experience individual.
+ */
+export async function signUp(input: {
+  email: string;
+  password: string;
+  name: string;
+  inviteCode: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const expected = config().SIGNUP_INVITE_CODE;
+  if (!expected) {
+    return { ok: false, error: 'Sign-up is not enabled on this deployment.' };
+  }
+  // Compared after trimming only: a code the user pasted with a trailing space should
+  // still work, but case and content must match.
+  if (input.inviteCode.trim() !== expected) {
+    return { ok: false, error: 'That invite code is not valid.' };
+  }
+
+  const email = input.email.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return { ok: false, error: 'That does not look like an email address.' };
+  }
+  if (input.password.length < 12) {
+    return { ok: false, error: 'Use at least 12 characters — this is a shared deployment.' };
+  }
+
+  const existing = await db().query.users.findFirst({ where: eq(schema.users.email, email) });
+  if (existing) return { ok: false, error: 'An account already exists for that address.' };
+
+  // Join the workspace that already holds the corpus. Creating a second workspace would
+  // give the new user an empty product and no way to see why.
+  const workspace = await db().query.workspaces.findFirst();
+  if (!workspace) return { ok: false, error: 'No workspace is configured. Run the seed first.' };
+
+  const [user] = await db()
+    .insert(schema.users)
+    .values({
+      email,
+      name: input.name.trim().slice(0, 120) || email.split('@')[0]!,
+      passwordHash: await hashPassword(input.password),
+      isDemo: false,
+    })
+    .returning();
+
+  await db()
+    .insert(schema.memberships)
+    .values({ userId: user!.id, workspaceId: workspace.id, role: 'member' })
+    .onConflictDoNothing();
+
+  // A profile with sensible defaults, so the product is usable before onboarding exists.
+  await db()
+    .insert(schema.userProfiles)
+    .values({
+      userId: user!.id,
+      workspaceId: workspace.id,
+      role: 'Consultant',
+      industrySlugs: [],
+      topicSlugs: [],
+      technologySlugs: [],
+      dailyReadingMinutes: 12,
+      preferredDepth: 'executive',
+    })
+    .onConflictDoNothing();
+
+  return signIn(email, input.password);
 }
 
 export async function signOut(): Promise<void> {

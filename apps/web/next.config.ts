@@ -2,6 +2,11 @@ import type { NextConfig } from 'next';
 
 const config: NextConfig = {
   reactStrictMode: true,
+  // A self-contained server bundle, so the image does not need node_modules and the app
+  // runs on any Node host — a container, a VM, or a platform that expects `node
+  // server.js`. Vercel ignores this and uses its own build, which is fine: the point is
+  // that nothing here is tied to one provider.
+  output: 'standalone',
   // Next 16 writes its own CLAUDE.md/AGENTS.md into the app directory. This project
   // documents its conventions in the repository root CLAUDE.md instead.
   agentRules: false,

@@ -1,0 +1,56 @@
+import { redirect } from 'next/navigation';
+import { PreferenceForm } from '@/components/preference-form';
+import { currentPreferences, preferenceOptions, savePreferences } from '@/lib/preferences';
+import { Wordmark } from '@/components/wordmark';
+
+export const dynamic = 'force-dynamic';
+export const metadata = { title: 'Set up' };
+
+/**
+ * First run.
+ *
+ * Deliberately outside the `(app)` route group: that layout redirects unonboarded users
+ * here, so living inside it would redirect this page to itself. It also has no business
+ * showing a sidebar — set-up is one task, and the chrome would invite you to skip it.
+ *
+ * Ranking has always consumed these fields; until now nothing could set them, so every
+ * new account got a brief assembled for somebody else's interests. Six questions, all
+ * optional, each stating what it actually changes.
+ */
+export default async function OnboardingPage() {
+  // Someone who has already been through this should not be able to go round again by
+  // typing the URL — the form is at /profile/preferences from then on.
+  const current = await currentPreferences();
+  if (current.onboarded) redirect('/profile/preferences');
+  const options = await preferenceOptions();
+
+  async function submit(formData: FormData) {
+    'use server';
+    await savePreferences(formData);
+    redirect('/');
+  }
+
+  return (
+    <main className="mx-auto min-h-dvh max-w-[760px] px-6 py-12">
+      <Wordmark size="md" />
+      <p className="t-eyebrow mt-8">Set up</p>
+      <h1 className="mt-2 text-[27px] font-semibold leading-[1.16] tracking-[-0.028em]">
+        What should NORTH be about, for you?
+      </h1>
+      <p className="mt-3 max-w-[64ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
+        Six questions. Every one is optional and every one is changeable later. What they
+        set is which developments reach your daily brief, how long that brief is, and how
+        much the Companion explains as it goes.
+      </p>
+
+      <div className="mt-10">
+        <PreferenceForm
+          options={options}
+          current={current}
+          action={submit}
+          submitLabel="Start reading"
+        />
+      </div>
+    </main>
+  );
+}
