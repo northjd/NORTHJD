@@ -235,7 +235,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {corpus.activeSources} active sources
         </span>
         <span className="ml-auto hidden md:inline">
-          This reflects the monitored sources only — not a claim about everything that happened.
+          Monitored sources only.
         </span>
       </footer>
 

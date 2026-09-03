@@ -116,9 +116,9 @@ covered by a test. Where something is partial, the gap is stated rather than rou
 | 60 | Migrations and seed data work | **Met** | 82 tables, 31 enums, 215 indexes; idempotent seed; `db:reset` rebuilds from empty |
 | 61 | At least one real permitted connector works | **Met** | Ten, verified fetching 191 documents |
 | 62 | Missing credentials produce controlled states | **Met** | No key at all was configured throughout; the extractive path ran and the UI reported *Extractive* / *not configured* rather than failing or pretending |
-| 63 | Core journeys have end-to-end tests | **Partially met** | 27 Playwright tests × 2 viewports are written and cover every core journey. Last full run was cut short by the `process.cwd()` defect in STATUS; the fix is staged but the green run is not yet on record. Prior desktop run: 20 passed, 7 failed — all failures from the dev-server hydration issue, not the application |
-| 64 | Production build, typecheck and tests pass | **Partially met** | Build clean (25 routes), typecheck clean, **94/94** unit and integration tests pass. E2E as above |
-| 65 | Works on desktop and mobile | **Partially met** | Responsive throughout, mobile navigation, print styles, PWA manifest. Verified by server-rendered assertions on a Pixel 7 viewport; the interactive mobile assertions share the e2e gap |
+| 63 | Core journeys have end-to-end tests | **Met** | 27 Playwright tests × 2 viewports, **54/54 green**. Four had been asserting superseded behaviour — the unauthenticated redirect now lands on /welcome by design, `role=alert` also matches Next's route announcer, and consulting is a filter chip rather than a heading since the Explore rewrite |
+| 64 | Production build, typecheck and tests pass | **Met** | Build clean, typecheck clean, **111/111** unit and integration, **54/54** end-to-end |
+| 65 | Works on desktop and mobile | **Met** | Responsive throughout, with the full journey suite green on a Pixel 7 viewport as well as desktop |
 | 66 | Admins can inspect source and pipeline status | **Met** | Source registry with verbatim rights notes and connector health, pipeline runs with per-stage records, coverage dashboard, capability page, live evaluation |
 | 67 | The first vertical slice works from source to citation to Companion answer | **Met** | Verified end to end on real feed data: NVIDIA/H&M/Retail Dive documents → evidence spans → claims → clustered events → insights → brief items → visible citations → grounded Companion answers |
 

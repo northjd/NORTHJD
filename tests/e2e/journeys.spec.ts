@@ -49,8 +49,11 @@ async function clickWhenHydrated(page: Page, name: string | RegExp, expected: st
 }
 
 test.describe('authentication', () => {
-  test('an unauthenticated visitor is sent to sign in', async ({ page }) => {
+  test('an unauthenticated visitor is sent to the landing page, not a bare password box', async ({ page }) => {
     await page.goto('/');
+    await expect(page).toHaveURL(/\/welcome/);
+    // And signing in is one deliberate step from there.
+    await page.getByRole('link', { name: /Activate NORTH/i }).click();
     await expect(page).toHaveURL(/\/login/);
   });
 
@@ -59,7 +62,10 @@ test.describe('authentication', () => {
     await page.getByLabel('Email').fill(EMAIL);
     await page.getByLabel('Password').fill('wrong-password');
     await page.getByRole('button', { name: 'Sign in' }).click();
-    await expect(page.getByRole('alert')).toContainText('Email or password is incorrect');
+    // Scoped to the form: Next's route announcer is also role="alert".
+    await expect(page.locator('form').getByRole('alert')).toContainText(
+      'Email or password is incorrect',
+    );
   });
 
   test('valid credentials reach the daily brief', async ({ page }) => {
@@ -207,7 +213,17 @@ test.describe('Explore', () => {
 
   test('consulting firms are a category, not a dedicated area', async ({ page }) => {
     await page.goto('/explore');
-    await expect(page.getByRole('heading', { name: /Consulting & professional services/ })).toBeVisible();
+
+    // On narrow viewports the rail is collapsed behind a toggle, which is the point of
+    // it — so open it before asserting what is inside.
+    const railToggle = page.getByRole('button', { name: /^Filters/ });
+    if (await railToggle.isVisible()) await railToggle.click();
+
+    // Consulting is one source perspective among several, reachable through the same
+    // filter as every other kind of source.
+    await expect(
+      page.getByRole('button', { name: 'Consulting', exact: true }),
+    ).toBeVisible();
     // And no top-level navigation entry for them.
     const nav = page.getByRole('navigation', { name: 'Main' }).first();
     await expect(nav).not.toContainText(/Accenture|Consulting|Competitors/);
