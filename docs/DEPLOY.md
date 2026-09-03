@@ -6,8 +6,15 @@ dashboard — there is no second service to manage.
 **What you end up with:** a real URL, your own accounts, hourly ingestion so the data is
 never more than an hour old, and feedback from colleagues landing in the database.
 
-**What it costs:** Vercel Pro at $20/month (~£16). The database runs on Neon's free tier,
-provisioned from inside Vercel and billed through the same account.
+**What it costs:** Vercel Pro at $20/month (~£16) for one seat. Your colleagues sign in to
+NORTH with their own accounts and cost nothing — the seat charge is for people who need
+the *Vercel dashboard*, not people who read the product.
+
+The database is Postgres from the Vercel Marketplace. Vercel does not run its own
+Postgres — it provides Blob and Global Config natively and everything relational comes
+from a marketplace provider — so the engine underneath is Neon. You never create a Neon
+account or visit their site: it is provisioned by one Vercel command, appears in your
+Vercel dashboard, and lands on your Vercel invoice.
 
 > **Why Pro and not the free Hobby plan.** Two reasons, both real. Hobby limits scheduled
 > jobs to **once per day**, which would make a product called "Today" a day behind. And
@@ -53,15 +60,23 @@ That must print `0`.
 
 ## 3. Add the database
 
-In the project → **Storage → Create Database → Neon (Postgres)**.
+One command, run from the repository:
 
-Accept the free tier. Vercel injects `DATABASE_URL` into the project automatically once
-it is connected, so there is nothing to copy.
+```bash
+npx vercel login
+npx vercel link          # pick the project you just created
+npx vercel install neon
+```
 
-**Use the pooled connection string.** Neon offers a direct and a pooled URL; serverless
-functions open many short-lived connections and the pooler is what stops that exhausting
-the database. Vercel selects the pooled one by default — if you ever set it by hand, it
-is the URL with `-pooler` in the host.
+That provisions the database, attaches it to the project, and injects `DATABASE_URL`
+automatically. There is nothing to copy and no second account to create.
+
+The dashboard route works too: project → **Storage → Create Database → Neon**.
+
+**Pooled, not direct.** Neon offers both; serverless functions open many short-lived
+connections and the pooler is what stops that exhausting the database. Vercel wires up
+the pooled URL by default — if you ever set it by hand, it is the one with `-pooler` in
+the hostname.
 
 ---
 
@@ -163,9 +178,28 @@ Feedback goes to the widget in the bottom-left of every page and lands in the
 
 ## What to watch
 
-**Database size.** Neon's free tier is 0.5 GB. The corpus is ~64 MB and grows with
-ingestion, so this is a long runway rather than an unlimited one. Check occasionally in
-Vercel → Storage.
+**Database compute — check this after a fortnight.** The free database tier includes
+**100 compute-hours a month**, and that, rather than storage, is the limit you might
+actually meet. The database sleeps when idle and stays warm about five minutes after each
+query, so hourly ingestion alone accounts for roughly 60 of those hours before anyone
+opens the app. A handful of colleagues browsing could take it to 80–90.
+
+Two weeks in, look at consumption in Vercel → Storage. If you are tracking above 100:
+
+```jsonc
+// vercel.json — every three hours instead of hourly.
+// Data is then never more than three hours old, which against sources publishing
+// 3–27 documents a day is indistinguishable from live.
+"schedule": "17 */3 * * *"
+```
+
+That drops it to roughly 20 compute-hours a month. Redeploy; no rebuild, no migration.
+
+Exceeding the free tier suspends compute until the next month rather than generating a
+surprise bill. Moving up is pay-as-you-go at about $0.11 per compute-hour.
+
+**Storage** is not the constraint: the corpus is ~64 MB against a 0.5 GB allowance and
+grows a megabyte or two a month.
 
 **Function duration.** The pipeline is 6–8 seconds against ~14 sources. Adding many more
 sources would grow it; the route allows 120 seconds and Pro permits up to 300.
