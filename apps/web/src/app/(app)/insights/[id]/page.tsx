@@ -18,19 +18,34 @@ import {
   VerificationBadge,
 } from '@mios/ui';
 import { formatAbsolute } from '@mios/domain';
+import { parseFilters, toSearchParams } from '@/lib/filters';
+import { insightNeighbours } from '@/lib/insight-navigation';
 import { FeedbackBar } from '@/components/feedback-bar';
 import { CopyButton } from '@/components/copy-button';
 import { AskAboutThis } from '@/components/ask-about-this';
 
 export const dynamic = 'force-dynamic';
 
-export default async function InsightPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function InsightPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await requireUser();
   const { id } = await params;
   const detail = await getInsightDetail(user.workspaceId, id);
   if (!detail) notFound();
 
   const { insight, event, claims, applications, connections, entities, taxonomy, contradictions } = detail;
+
+  // Reconstruct the list this was opened from, so previous/next walk the same sequence
+  // rather than an arbitrary one. Absent filters simply mean the whole corpus.
+  const sp = await searchParams;
+  const filters = parseFilters(sp);
+  const neighbours = await insightNeighbours(user.workspaceId, id, filters);
+  const backToResults = `/explore?${toSearchParams(filters).toString()}`;
 
   const facts = claims.filter((c) => c.claimType === 'FACT' && c.spanId);
   const otherClaims = claims.filter((c) => c.claimType !== 'FACT');
@@ -53,12 +68,50 @@ export default async function InsightPage({ params }: { params: Promise<{ id: st
 
   return (
     <article className="mx-auto max-w-[1100px]">
-      <nav className="no-print mb-4 text-[13px] text-[var(--text-subtle)]">
+      {/*
+        Where you are in the list you came from, and how to keep moving through it
+        without going back and finding your place again.
+      */}
+      <nav className="no-print mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-[var(--text-subtle)]">
         <Link href="/" className="hover:underline underline-offset-2">
           Today
         </Link>
-        <span className="mx-1.5">/</span>
-        <span>Insight</span>
+        <span aria-hidden>/</span>
+        {neighbours ? (
+          <Link href={backToResults} className="hover:underline underline-offset-2">
+            Results
+          </Link>
+        ) : (
+          <span>Insight</span>
+        )}
+
+        {neighbours ? (
+          <span className="ml-auto flex items-center gap-2">
+            <span className="tabular-nums">
+              {neighbours.position} of {neighbours.total}
+            </span>
+            <NeighbourLink
+              href={
+                neighbours.previous
+                  ? `/insights/${neighbours.previous.id}?${toSearchParams(filters).toString()}`
+                  : null
+              }
+              label="Previous"
+              title={neighbours.previous?.headline}
+              glyph="‹"
+            />
+            <NeighbourLink
+              href={
+                neighbours.next
+                  ? `/insights/${neighbours.next.id}?${toSearchParams(filters).toString()}`
+                  : null
+              }
+              label="Next"
+              title={neighbours.next?.headline}
+              glyph="›"
+            />
+          </span>
+        ) : null}
       </nav>
 
       <header className="mb-6">
@@ -365,5 +418,43 @@ export default async function InsightPage({ params }: { params: Promise<{ id: st
         </aside>
       </div>
     </article>
+  );
+}
+
+/** Previous / next through the filtered set. Disabled rather than hidden at the ends,
+ *  so the control does not move under the cursor as you walk the list. */
+function NeighbourLink({
+  href,
+  label,
+  title,
+  glyph,
+}: {
+  href: string | null;
+  label: string;
+  title?: string;
+  glyph: string;
+}) {
+  const shared =
+    'inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[12px] transition-colors';
+  if (!href) {
+    return (
+      <span
+        aria-disabled
+        className={`${shared} border-[var(--border)] text-[var(--text-subtle)] opacity-40`}
+      >
+        <span aria-hidden>{glyph}</span>
+        {label}
+      </span>
+    );
+  }
+  return (
+    <Link
+      href={href}
+      title={title}
+      className={`${shared} border-[var(--border-strong)] text-[var(--text-muted)] hover:border-[var(--accent-line)] hover:text-[var(--text)]`}
+    >
+      <span aria-hidden>{glyph}</span>
+      {label}
+    </Link>
   );
 }

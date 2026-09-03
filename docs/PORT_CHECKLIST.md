@@ -19,8 +19,8 @@ Last updated after the first commit (`e9f0634`). Status key: **done** = in the a
 | 4 | Sidebar console shell: sidebar, top bar, main, status bar | **done** |
 | 5 | Tracked uppercase micro-labels as the structural device | **done** |
 | 6 | Corpus stats demoted from header to status bar | **done** |
-| 7 | Numbered list rows (`01`, `02`, …) | **todo** |
-| 8 | Master–detail: list pane beside a detail pane | **todo** |
+| 7 | Numbered list rows (`01`, `02`, …) | **done** |
+| 8 | Master–detail | **done differently** — filters carry into the detail page, which shows "3 of 59" with previous/next through the same sequence. Delivers not-losing-your-place without restructuring a server-rendered page into a client one |
 | 9 | Larger display type, balanced wrap, generous seams | **todo** |
 
 ## Filtering
@@ -30,20 +30,20 @@ Last updated after the first commit (`e9f0634`). Status key: **done** = in the a
 | 10 | Filter bar as a primary, always-visible surface | **done** |
 | 11 | OR within a dimension, AND across dimensions | **done** — verified 184→65→1 |
 | 12 | Facet counts computed with that dimension's own selection removed | **done** |
-| 13 | Zero-count options shown but dimmed | **todo** |
-| 14 | Multi-select popovers stay open across picks | **todo** |
+| 13 | Zero-count options shown but dimmed | **done** |
+| 14 | Multi-select popovers stay open across picks | **not applicable** — the rail is inline and always open, so nothing closes on a pick |
 | 15 | Plain-language `Confidence` filter (measured / deployed / corroborated / announced / reversed) | **done** |
-| 16 | `More` overflow holding the precise taxonomy (maturity, evidence, type, impact, perspective, reading time) | **todo** |
-| 17 | Personalised saved views in the sidebar with live counts | **todo** |
+| 16 | `More` overflow for the precise taxonomy | **done differently** — plain-language Confidence leads the rail and the taxonomy sits below it, so nothing is hidden behind a disclosure |
+| 17 | Personalised saved views in the sidebar with live counts | **done** |
 | 18 | Active filters as removable chips | **done** |
-| 19 | Sort: date / impact / evidence / sources / reading time | **todo** |
-| 20 | List ↔ table toggle with sortable columns | **todo** |
+| 19 | Sort: date / impact / evidence / sources / reading time | **done** — in the URL, so a sorted view is shareable |
+| 20 | List ↔ table toggle with sortable columns | **not built** — sort covers the need it was for, and a second rendering of the same rows is upkeep without a matching gain |
 
 ## Search and coverage
 
 | # | Item | Status |
 |---|---|---|
-| 21 | Company typeahead inside the filter | **todo** — rail still uses a select |
+| 21 | Company typeahead inside the filter | **done** — and the facet now includes zero-coverage companies, which was the PMI bug at its source |
 | 22 | Alias matching — "Zara" → Inditex, "AWS" → Amazon | **done** |
 | 23 | Word-boundary matching for short terms, so "PMI" no longer returns Google via "Deep**Mi**nd" | **done** — 5 tests |
 | 24 | Zero-coverage companies listed and selectable | **done** |
@@ -71,7 +71,7 @@ Last updated after the first commit (`e9f0634`). Status key: **done** = in the a
 | # | Item | Status |
 |---|---|---|
 | 33 | Command palette (⌘K): navigation, companies, topics, confidence filters, coverage check | **done** |
-| 34 | Keyboard: `⌘K` / `/` palette, `↑↓⏎` within it, `esc` close | partial — no `j`/`k` list nav yet |
+| 34 | Keyboard | **done** — `⌘K` palette, `⌘J` Companion, `j`/`k`/`↑↓` through results, `⏎` opens, `esc` clears |
 | 35 | Docked Companion pane with seven modes and voice | partial — `CompanionLauncher` exists |
 
 ## Fixed after the first commit

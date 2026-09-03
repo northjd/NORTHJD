@@ -2,9 +2,16 @@ import Link from 'next/link';
 import { asc, eq, sql } from 'drizzle-orm';
 import { db, schema } from '@mios/database';
 import { requireUser } from '@/lib/session';
-import { parseFilters, activeFilterCount, type SearchParams, CONFIDENCE_LEVELS } from '@/lib/filters';
+import {
+  parseFilters,
+  toSearchParams,
+  activeFilterCount,
+  type SearchParams,
+  CONFIDENCE_LEVELS,
+} from '@/lib/filters';
 import { queryExploreWidening, queryFacets, querySuggestedFilters, humanise } from '@/lib/explore-queries';
 import { FilterRail, ActiveFilterChips } from '@/components/filter-rail';
+import { ListKeyboardNav } from '@/components/list-keyboard-nav';
 import { SuggestedFilters } from '@/components/suggested-filters';
 import {
   Badge,
@@ -40,6 +47,11 @@ export default async function ExplorePage({
   const user = await requireUser();
   const params = await searchParams;
   const filters = parseFilters(params);
+  // Carried on every result link so the detail page can rebuild this exact sequence and
+  // offer previous/next through it rather than through the unfiltered corpus.
+  const carry = toSearchParams(filters).toString();
+  const insightHref = (insightId: string) =>
+    carry ? `/insights/${insightId}?${carry}` : `/insights/${insightId}`;
   const activeCount = activeFilterCount(filters);
 
   const [{ rows, total, windowDays, requestedDays, widened }, facets, suggestions] = [
@@ -88,6 +100,7 @@ export default async function ExplorePage({
 
       <div className="grid gap-6 lg:grid-cols-[264px_minmax(0,1fr)]">
         <FilterRail facets={facets} activeCount={activeCount} />
+        <ListKeyboardNav />
 
         <main className="min-w-0">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
@@ -168,11 +181,12 @@ export default async function ExplorePage({
             )
           ) : (
             <ul className="grid gap-3">
+              {/* j / k / Enter over the rows below. */}
               {rows.map((r, i) => (
                 <Card
                   as="li"
                   key={r.insightId}
-                  className={`card-lift animate-rise relative pl-9`}
+                  className={`card-lift animate-rise relative pl-9 data-[active=true]:border-[var(--accent)]`}
                   data-evidence={
                     strongEvidence.has(r.evidenceStrength)
                       ? 'strong'
@@ -181,6 +195,8 @@ export default async function ExplorePage({
                         : undefined
                   }
                   style={{ animationDelay: `${Math.min(i, 12) * 26}ms` }}
+                  data-row-index={i}
+                  data-row-href={insightHref(r.insightId)}
                 >
                   {/* Orientation in a long list, and a stable thing to refer to when
                       two people are looking at the same filtered view. */}
@@ -203,7 +219,7 @@ export default async function ExplorePage({
                   </div>
 
                   <h3 className="t-heading">
-                    <Link href={`/insights/${r.insightId}`} className="hover:underline underline-offset-2">
+                    <Link href={insightHref(r.insightId)} className="hover:underline underline-offset-2">
                       {r.headline}
                     </Link>
                   </h3>

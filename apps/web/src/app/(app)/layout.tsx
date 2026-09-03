@@ -9,6 +9,7 @@ import { CommandPalette } from '@/components/command-palette';
 import { FeedbackWidget } from '@/components/feedback-widget';
 import { Wordmark, CompassMark } from '@/components/wordmark';
 import { searchEntities } from '@/lib/entity-search';
+import { querySuggestedFilters } from '@/lib/explore-queries';
 import { db, schema } from '@mios/database';
 import { and, asc, eq } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
@@ -88,6 +89,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .from(schema.topics)
     .orderBy(asc(schema.topics.name));
 
+  // Saved views in the sidebar rather than only on Explore: they are how someone gets to
+  // the slice they care about, and having to reach Explore first to find them made the
+  // most personalised thing in the product the least reachable. Counts are live, so a
+  // view that currently matches nothing says so before you click it.
+  const savedViews = (await querySuggestedFilters(user.workspaceId, user.userId))
+    .filter((v) => v.narrows)
+    .slice(0, 6);
+
   return (
     <div className="app-shell">
       <a
@@ -118,6 +127,28 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               ))}
             </div>
           ))}
+
+          {savedViews.length > 0 ? (
+            <div className="pb-1.5">
+              <div className="t-eyebrow px-3.5 pb-1.5 pt-2.5">Saved views</div>
+              {savedViews.map((v) => (
+                <Link
+                  key={v.id}
+                  href={`/explore?${new URLSearchParams(v.params).toString()}`}
+                  title={v.detail}
+                  className="mx-1.5 flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-inset)] hover:text-[var(--text)]"
+                >
+                  <span aria-hidden className="w-[15px] shrink-0 text-center text-[11px] opacity-70">
+                    {v.icon}
+                  </span>
+                  <span className="truncate">{v.name}</span>
+                  <span className="ml-auto shrink-0 text-[11px] tabular-nums opacity-55">
+                    {v.count}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : null}
 
           <div className="pb-1.5">
             <div className="t-eyebrow px-3.5 pb-1.5 pt-2.5">System</div>

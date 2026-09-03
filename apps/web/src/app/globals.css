@@ -480,3 +480,9 @@ mark.evidence-highlight {
   color: var(--text-subtle);
   user-select: none;
 }
+
+/* Keyboard highlight for j/k list navigation. A ring rather than a fill, so the row
+   still reads as a row and the evidence-strength edge stays visible. */
+[data-row-index][data-active='true'] {
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
