@@ -133,27 +133,56 @@ export default async function AccountPage({
       <section className="mt-8">
         <h2 className="t-rule">Industry</h2>
         <p className="mt-2 max-w-[70ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
-          {board.industryIsInferred
-            ? `No industry is recorded for ${board.entity.name}, so this uses the industries on your own profile. Pick a different one and every level below re-scopes.`
-            : `Recorded as ${board.industryNames}. Override it if the engagement sits elsewhere.`}
+          {industry
+            ? `Overridden to ${board.industryNames}. Click it again, or use Clear override, to go back to what is recorded against ${board.entity.name}.`
+            : board.industryIsInferred
+              ? `No industry is recorded for ${board.entity.name}, so this uses the industries on your own profile. Pick a different one and every level below re-scopes.`
+              : `Recorded as ${board.industryNames}. Override it if the engagement sits elsewhere.`}
         </p>
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
           {board.allIndustries.map((i) => {
-            const active = board.industrySlugs.includes(i.slug);
+            // Two different kinds of "on": this is the override you chose, or it is one
+            // of the industries recorded against the company. Only the first can be
+            // switched off, and clicking it must clear the override rather than
+            // re-apply it — which is what made the filter feel stuck.
+            const isOverride = industry === i.slug;
+            const isRecorded = !industry && board.industrySlugs.includes(i.slug);
+            const active = isOverride || isRecorded;
+
             return (
               <Link
                 key={i.slug}
-                href={`/account?slug=${board.entity.slug}&industry=${i.slug}`}
-                className={`rounded-md border px-2.5 py-1 text-[12px] ${
+                href={
+                  isOverride
+                    ? `/account?slug=${board.entity.slug}`
+                    : `/account?slug=${board.entity.slug}&industry=${i.slug}`
+                }
+                aria-pressed={active}
+                title={
+                  isOverride
+                    ? `Clear this override and go back to ${board.entity.name}'s recorded industries`
+                    : `Read ${board.entity.name} through ${i.name} instead`
+                }
+                className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[12px] transition-colors ${
                   active
                     ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--surface)]'
                     : 'border-[var(--border-strong)] hover:border-[var(--accent-line)]'
                 }`}
               >
                 {i.name}
+                {isOverride ? <span aria-hidden>✕</span> : null}
               </Link>
             );
           })}
+
+          {industry ? (
+            <Link
+              href={`/account?slug=${board.entity.slug}`}
+              className="ml-1 text-[12px] text-[var(--text-subtle)] underline underline-offset-2 hover:text-[var(--text)]"
+            >
+              Clear override
+            </Link>
+          ) : null}
         </div>
       </section>
 
