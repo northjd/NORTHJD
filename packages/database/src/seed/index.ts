@@ -459,6 +459,10 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
       dailyReadingMinutes: 12,
       preferredDepth: 'executive',
       responseLanguage: 'en',
+      // This profile already carries industries, topics and a reading budget, so it is
+      // onboarded by definition. Leaving it null sends the demo account through set-up
+      // to re-enter what the seed just wrote.
+      onboardingCompletedAt: new Date(),
     })
     .onConflictDoNothing();
 

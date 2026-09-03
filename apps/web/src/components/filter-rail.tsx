@@ -39,7 +39,7 @@ type Dimension = {
   key: string;
   label: string;
   facets: Facet[];
-  kind: 'chips' | 'select';
+  kind: 'chips' | 'select' | 'search';
   hint?: string;
 };
 
@@ -90,9 +90,18 @@ export function FilterRail({ facets, activeCount }: Props) {
 
   const clearAll = () => start(() => router.replace(pathname, { scroll: false }));
 
+  /** Typeahead text, per dimension. Not in the URL: it is how you find a value, not a filter. */
+  const [queries, setQueries] = useState<Record<string, string>>({});
+
   const dimensions: Dimension[] = [
     { key: 'industry', label: 'Industry', facets: facets.industries, kind: 'chips' },
-    { key: 'company', label: 'Company', facets: facets.companies, kind: 'select' },
+    {
+      key: 'company',
+      label: 'Company',
+      facets: facets.companies,
+      kind: 'search',
+      hint: 'Type a name. Companies with no coverage are listed too — selecting one tells you we are not monitoring them, which is different from nothing having happened.',
+    },
     { key: 'topic', label: 'Topic', facets: facets.topics, kind: 'chips' },
     { key: 'technology', label: 'Technology', facets: facets.technologies, kind: 'chips' },
     { key: 'eventType', label: 'Event type', facets: facets.eventTypes, kind: 'select' },
@@ -234,6 +243,14 @@ export function FilterRail({ facets, activeCount }: Props) {
                     </button>
                   ))}
                 </div>
+              ) : d.kind === 'search' ? (
+                <SearchableFacets
+                  dimension={d}
+                  query={queries[d.key] ?? ''}
+                  onQuery={(v) => setQueries((q) => ({ ...q, [d.key]: v }))}
+                  isOn={(slug) => isOn(d.key, slug)}
+                  onToggle={(slug) => toggleValue(d.key, slug)}
+                />
               ) : (
                 <select
                   value={[...(selected.get(d.key) ?? [])][0] ?? ''}
@@ -359,6 +376,105 @@ export function ActiveFilterChips() {
           </button>
         )),
       )}
+    </div>
+  );
+}
+
+/**
+ * A facet list you can type into.
+ *
+ * A dropdown of 36 companies is unusable the moment you are looking for one you cannot
+ * see — which is how a search for a specific client ends in "it is not there" when it
+ * simply was not visible. Typing filters the list; multi-select still ORs within the
+ * dimension.
+ *
+ * Zero-coverage companies stay in the list rather than being filtered out. A company you
+ * cannot select is a question you cannot ask; a company you select and find empty is an
+ * answer, and it points at a missing source rather than a missing event.
+ */
+function SearchableFacets({
+  dimension,
+  query,
+  onQuery,
+  isOn,
+  onToggle,
+}: {
+  dimension: Dimension;
+  query: string;
+  onQuery: (value: string) => void;
+  isOn: (slug: string) => boolean;
+  onToggle: (slug: string) => void;
+}) {
+  const term = query.trim().toLowerCase();
+  const matches = term
+    ? dimension.facets.filter((f) => f.label.toLowerCase().includes(term))
+    : dimension.facets;
+  // Selected values stay visible even when the current search would hide them, so you
+  // can always see and undo what is active.
+  const visible = [
+    ...matches,
+    ...dimension.facets.filter((f) => isOn(f.slug) && !matches.some((m) => m.slug === f.slug)),
+  ];
+
+  return (
+    <div>
+      <input
+        value={query}
+        onChange={(e) => onQuery(e.target.value)}
+        placeholder={`Search ${dimension.label.toLowerCase()}…`}
+        className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-2.5 py-1.5 text-[12.5px] outline-none focus:border-[var(--accent)]"
+      />
+
+      <div className="mt-2 max-h-[210px] overflow-y-auto">
+        {visible.length === 0 ? (
+          <p className="t-meta py-2">
+            No {dimension.label.toLowerCase()} matches “{query}”.{' '}
+            <a
+              href={`/coverage?q=${encodeURIComponent(query)}`}
+              className="underline underline-offset-2 hover:text-[var(--text)]"
+            >
+              Check coverage for it →
+            </a>
+          </p>
+        ) : (
+          <div className="flex flex-col gap-0.5">
+            {visible.map((f) => {
+              const on = isOn(f.slug);
+              return (
+                <button
+                  key={f.slug}
+                  type="button"
+                  onClick={() => onToggle(f.slug)}
+                  aria-pressed={on}
+                  // Dimmed rather than hidden: a dead end you can see beats one you find
+                  // by clicking.
+                  data-zero={f.count === 0}
+                  className={`flex items-center gap-2 rounded px-2 py-1 text-left text-[12.5px] transition-colors data-[zero=true]:opacity-45 ${
+                    on
+                      ? 'bg-[var(--surface-inset)] font-medium text-[var(--text)]'
+                      : 'text-[var(--text-muted)] hover:bg-[var(--surface-inset)] hover:text-[var(--text)]'
+                  }`}
+                >
+                  <span
+                    aria-hidden
+                    className={`grid h-3 w-3 shrink-0 place-items-center rounded-[3px] border text-[8px] ${
+                      on
+                        ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--surface)]'
+                        : 'border-[var(--border-strong)]'
+                    }`}
+                  >
+                    {on ? '✓' : ''}
+                  </span>
+                  <span className="truncate">{f.label}</span>
+                  <span className="ml-auto shrink-0 text-[11px] tabular-nums opacity-60">
+                    {f.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

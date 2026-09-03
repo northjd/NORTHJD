@@ -296,20 +296,40 @@ export async function queryFacets(
     ),
   );
 
+  /*
+   * Every entity, including those with no coverage.
+   *
+   * This used to start from `insights` and inner-join through to entities, which meant a
+   * company nothing had been published about was simply absent from the filter — so
+   * searching for a client returned "not found" when the honest answer is "we are not
+   * monitoring them". Starting from `entities` and left-joining the filtered set gives
+   * every company a row, with a count of zero where that is the truth.
+   *
+   * No limit: the entity table is reference data in the tens, and truncating it would
+   * reintroduce the same invisibility by a different route.
+   */
   const companies = await db()
     .select({
       slug: schema.entities.slug,
       label: schema.entities.name,
       count: sql<number>`count(distinct ${insights.id})::int`,
     })
-    .from(insights)
-    .innerJoin(events, eq(events.id, insights.eventId))
-    .innerJoin(eventEntities, eq(eventEntities.eventId, events.id))
-    .innerJoin(schema.entities, eq(schema.entities.id, eventEntities.entityId))
-    .where(and(...baseConditions(workspaceId), ...filterConditions(withoutDimension(f, 'entities'))))
+    .from(schema.entities)
+    .leftJoin(eventEntities, eq(eventEntities.entityId, schema.entities.id))
+    .leftJoin(
+      events,
+      and(eq(events.id, eventEntities.eventId), eq(events.isSuppressed, false)),
+    )
+    .leftJoin(
+      insights,
+      and(
+        eq(insights.eventId, events.id),
+        eq(insights.workspaceId, workspaceId),
+        ...filterConditions(withoutDimension(f, 'entities')),
+      ),
+    )
     .groupBy(schema.entities.slug, schema.entities.name)
-    .orderBy(desc(sql`count(distinct ${insights.id})`), asc(schema.entities.name))
-    .limit(30);
+    .orderBy(desc(sql`count(distinct ${insights.id})`), asc(schema.entities.name));
 
   return {
     industries: await taxonomyFacet(workspaceId, f, 'industry', 'industries', industryLabels),

@@ -35,6 +35,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# Produces the self-contained server bundle this image copies below. Off by default,
+# because `next start` cannot serve a standalone build.
+ENV BUILD_STANDALONE=1
 # A build-time placeholder: config is validated at boot, and nothing here connects.
 ENV DATABASE_URL=postgres://build:build@localhost:5432/build
 RUN npm run build
