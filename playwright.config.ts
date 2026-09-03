@@ -24,7 +24,16 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list']],
   use: {
-    baseURL: process.env.E2E_BASE_URL ?? 'http://127.0.0.1:3000',
+    /*
+     * `localhost`, not `127.0.0.1`.
+     *
+     * The application's own redirects resolve to `localhost`, and cookies are scoped by
+     * host: a cookie set while on `localhost` is never sent back to `127.0.0.1`. With
+     * the two mixed, the set-up flow stored its cookie on one host and was read on the
+     * other, so every visit looked like a first visit and the suite hung in a redirect
+     * loop it could not escape.
+     */
+    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     locale: 'en-GB',
@@ -35,7 +44,9 @@ export default defineConfig({
   ],
   webServer: {
     command: 'npm run build && npm run start',
-    url: 'http://127.0.0.1:3000/login',
+    // Health rather than /login: in open mode /login redirects, and a readiness probe
+    // should not depend on which auth mode the deployment happens to be in.
+    url: 'http://localhost:3000/api/health',
     reuseExistingServer: true,
     timeout: 300_000,
     stdout: 'ignore',

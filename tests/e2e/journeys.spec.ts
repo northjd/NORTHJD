@@ -14,11 +14,16 @@ const PASSWORD = 'demo-password-change-me';
 /**
  * Whether this deployment has passwords at all.
  *
- * `AUTH_MODE=open` removes sign-in entirely: the landing page is the door and everyone
- * shares one workspace account. The journeys below are identical either way, so rather
- * than maintaining two suites the helpers branch and the sign-in assertions skip.
+ * Detected by observing the application rather than by reading configuration: the test
+ * process does not load the server's `.env`, so an env var here reports the wrong thing
+ * and every sign-in test fails against a deployment that has no sign-in. Asking the
+ * running app where an anonymous visit lands is both simpler and correct by
+ * construction.
  */
-const OPEN_MODE = (process.env.AUTH_MODE ?? 'password') === 'open';
+async function isOpenMode(page: Page): Promise<boolean> {
+  await page.goto('/');
+  return !page.url().includes('/login');
+}
 
 /**
  * Gets into the application, whichever way this deployment is configured.
@@ -27,15 +32,29 @@ const OPEN_MODE = (process.env.AUTH_MODE ?? 'password') === 'open';
  * set-up, because a browser that has never been here is shown it — which is the point.
  */
 async function signIn(page: Page) {
-  if (OPEN_MODE) {
-    await page.goto('/');
-    // First visit lands on set-up; skipping is a supported answer and gets us to Today.
+  await page.goto('/');
+
+  // Open mode: no password step. A browser that has never been here is shown set-up
+  // first, and skipping it is a supported answer that lands on Today.
+  //
+  // Waits for the route to leave set-up rather than for "a heading", because the set-up
+  // page has one too and the weaker check passed while still sitting on it.
+  if (!page.url().includes('/login')) {
     if (page.url().includes('/onboarding')) {
-      await page.getByRole('link', { name: /Skip for now/i }).click();
+      const skip = page.getByRole('link', { name: /Skip for now/i });
+      await expect(skip).toBeVisible();
+      // Click and wait for the destination together. Awaiting the click first lets the
+      // navigation finish before `waitForURL` attaches, at which point it waits for a
+      // second navigation that never comes and times out on a page that already arrived.
+      await Promise.all([
+        page.waitForURL((url) => !url.pathname.startsWith('/onboarding'), { timeout: 30_000 }),
+        skip.click(),
+      ]);
     }
-    await page.waitForURL('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 30_000 });
     return;
   }
+
   await page.goto('/login');
   await page.getByLabel('Email').fill(EMAIL);
   await page.getByLabel('Password').fill(PASSWORD);
@@ -74,7 +93,7 @@ async function clickWhenHydrated(page: Page, name: string | RegExp, expected: st
 
 test.describe('authentication', () => {
   test('an unauthenticated visitor is sent to the landing page, not a bare password box', async ({ page }) => {
-    test.skip(OPEN_MODE, 'Open mode has no sign-in: the landing page leads straight in.');
+    test.skip(await isOpenMode(page), 'Open mode has no sign-in: the landing page leads straight in.');
     await page.goto('/');
     await expect(page).toHaveURL(/\/welcome/);
     // And signing in is one deliberate step from there.
@@ -83,7 +102,7 @@ test.describe('authentication', () => {
   });
 
   test('a wrong password is refused without revealing whether the account exists', async ({ page }) => {
-    test.skip(OPEN_MODE, 'Open mode has no passwords to refuse.');
+    test.skip(await isOpenMode(page), 'Open mode has no passwords to refuse.');
     await page.goto('/login');
     await page.getByLabel('Email').fill(EMAIL);
     await page.getByLabel('Password').fill('wrong-password');

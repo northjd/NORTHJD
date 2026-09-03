@@ -3,7 +3,6 @@ import { PreferenceForm } from '@/components/preference-form';
 import { currentPreferences, preferenceOptions, savePreferences } from '@/lib/preferences';
 import { Wordmark } from '@/components/wordmark';
 import { config } from '@mios/config';
-import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Set up' };
@@ -66,9 +65,12 @@ export default async function OnboardingPage() {
       </div>
 
       <p className="mt-6 text-[12.5px] text-[var(--text-subtle)]">
-        <Link href="/onboarding/skip" className="underline underline-offset-2 hover:text-[var(--text)]">
+        {/* A plain anchor, not a Link: the target is a route handler, and Next's client
+            router navigates to it without following the redirect or storing the cookie
+            it sets — which sent you straight back here. */}
+        <a href="/onboarding/skip" className="underline underline-offset-2 hover:text-[var(--text)]">
           Skip for now
-        </Link>{' '}
+        </a>{' '}
         — you will get a general brief, and can set this up later from your profile.
       </p>
     </main>
