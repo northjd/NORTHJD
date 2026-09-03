@@ -11,8 +11,15 @@ import { config } from '@mios/config';
  * measured, not assumed, because a cron that silently times out looks exactly like a
  * cron that found nothing.
  *
- * Hourly rather than nightly: the monitored sources publish 3–27 documents a day, and a
- * product whose first tab is called "Today" should not be a day behind.
+ * Every three hours rather than nightly: the monitored sources publish 3–27 documents a
+ * day, and a product whose first tab is called "Today" should not be a day behind. Three
+ * hours is indistinguishable from live at that publication rate.
+ *
+ * The interval is set by the database rather than by the sources. Neon sleeps when idle
+ * and stays warm about five minutes after each query, so every wake-up costs roughly five
+ * minutes of compute against a 100 compute-hour monthly allowance. Hourly would spend
+ * ~60 of those before anyone opened the app; three-hourly spends ~20 and leaves the rest
+ * for actual readers.
  */
 
 export const dynamic = 'force-dynamic';

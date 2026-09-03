@@ -3,24 +3,30 @@
 One platform, one bill, about twenty minutes. Everything below is done in the Vercel
 dashboard — there is no second service to manage.
 
-**What you end up with:** a real URL, your own accounts, hourly ingestion so the data is
-never more than an hour old, and feedback from colleagues landing in the database.
+**What you end up with:** a real URL, your own accounts, ingestion every three hours so
+the data is never stale, and feedback from colleagues landing in the database.
 
-**What it costs:** Vercel Pro at $20/month (~£16) for one seat. Your colleagues sign in to
-NORTH with their own accounts and cost nothing — the seat charge is for people who need
-the *Vercel dashboard*, not people who read the product.
+**What it costs: $20/month (~£16), all of it Vercel.**
 
-The database is Postgres from the Vercel Marketplace. Vercel does not run its own
-Postgres — it provides Blob and Global Config natively and everything relational comes
-from a marketplace provider — so the engine underneath is Neon. You never create a Neon
-account or visit their site: it is provisioned by one Vercel command, appears in your
-Vercel dashboard, and lands on your Vercel invoice.
+| | Plan | Cost |
+|---|---|---|
+| App + scheduled ingestion | Vercel Pro, one seat | $20/month |
+| Database | Neon Free | £0 |
+
+The seat is for *dashboard access*, which only you need. Colleagues sign in to NORTH
+itself with their own accounts and cost nothing, however many of them there are.
+
+The database is Neon, created directly at [neon.com](https://neon.com) rather than through
+Vercel's marketplace. Vercel has no first-party Postgres, so either route runs on Neon —
+going direct costs one extra signup and gives you Neon's own console, which has the SQL
+editor, branching and the usage graphs. Since the free tier is £0 there is no second
+invoice to consolidate, which was the only argument for the marketplace route.
 
 > **Why Pro and not the free Hobby plan.** Two reasons, both real. Hobby limits scheduled
 > jobs to **once per day**, which would make a product called "Today" a day behind. And
 > Hobby's terms forbid commercial use — showing an internal tool to colleagues is a
 > defensible personal project, an officially adopted one is not. If neither matters to
-> you, everything here works on Hobby with the cron schedule changed to daily.
+> you, everything here works on Hobby with the schedule changed to daily.
 
 ---
 
@@ -58,25 +64,24 @@ That must print `0`.
 
 ---
 
-## 3. Add the database
+## 3. Create the database
 
-One command, run from the repository:
+At [neon.com](https://neon.com): sign up, **Create project**, Postgres 17 or later, region
+closest to your Vercel region (`eu-central-1` if you are on Frankfurt).
 
-```bash
-npx vercel login
-npx vercel link          # pick the project you just created
-npx vercel install neon
+Copy the connection string from **Dashboard → Connect**.
+
+**Take the pooled one.** Neon offers a direct and a pooled URL. Serverless functions open
+many short-lived connections and the pooler is what stops that exhausting the database.
+The pooled URL has **`-pooler`** in the hostname:
+
+```
+postgres://user:pass@ep-something-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require
+                                    ^^^^^^^
 ```
 
-That provisions the database, attaches it to the project, and injects `DATABASE_URL`
-automatically. There is nothing to copy and no second account to create.
-
-The dashboard route works too: project → **Storage → Create Database → Neon**.
-
-**Pooled, not direct.** Neon offers both; serverless functions open many short-lived
-connections and the pooler is what stops that exhausting the database. Vercel wires up
-the pooled URL by default — if you ever set it by hand, it is the one with `-pooler` in
-the hostname.
+Getting this wrong does not fail immediately — it fails later, under concurrent use,
+which is the worst way for it to fail.
 
 ---
 
@@ -88,7 +93,8 @@ if you want deploy previews to work):
 | Variable | Value | Why |
 |---|---|---|
 | `NODE_ENV` | `production` | Enables secure cookies |
-| `DATABASE_POOL_MAX` | `5` | Real Postgres, so use a pool. Small per instance because many instances exist |
+| `DATABASE_URL` | the pooled Neon URL from step 3 | |
+| `DATABASE_POOL_MAX` | `5` | Real Postgres, so use a pool. Small per instance, because many instances exist |
 | `SIGNUP_INVITE_CODE` | something you invent | Colleagues need it to create an account. Rotate it any time |
 | `CRON_SECRET` | a long random string | Vercel sends this to the ingestion route. **Without it the route refuses every request**, which is deliberate |
 | `SESSION_SECRET` | a long random string | Signs session cookies |
@@ -99,7 +105,7 @@ Generate the two secrets:
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-`DATABASE_URL` is already there from step 3. Leave `ANTHROPIC_API_KEY` unset — NORTH runs
+Leave `ANTHROPIC_API_KEY` unset — NORTH runs
 extractive, calls no language model, and costs nothing per request. That is a deliberate
 design choice, not a limitation: nothing can be paraphrased into a claim the source did
 not make.
@@ -113,7 +119,7 @@ machine, pointing at the production database:
 
 ```bash
 cd ~/dev/ap-workspace/market-intelligence-os
-export DATABASE_URL="<the pooled URL from Vercel → Storage → .env.local>"
+export DATABASE_URL="<the pooled Neon URL>"
 export DATABASE_POOL_MAX=5
 
 npm run db:migrate     # tables, indexes, full-text search objects
@@ -149,11 +155,11 @@ delete from users where email = 'demo@market-intelligence-os.local';
 
 ## 7. Confirm ingestion is running
 
-`vercel.json` schedules `/api/cron/ingest` at **17 minutes past every hour** — off the
-hour deliberately, because scheduled jobs everywhere cluster on :00 and the sources are
-politer to a request that does not arrive with everyone else's.
+`vercel.json` schedules `/api/cron/ingest` at **17 minutes past, every three hours** — off
+the hour deliberately, because scheduled jobs everywhere cluster on :00 and the sources
+are politer to a request that does not arrive with everyone else's.
 
-Check it in Vercel → **Cron Jobs** after the first hour. To trigger one by hand:
+Check it in Vercel → **Cron Jobs** after the first run. To trigger one by hand:
 
 ```bash
 curl -H "Authorization: Bearer $CRON_SECRET" https://<your-app>.vercel.app/api/cron/ingest
@@ -178,24 +184,24 @@ Feedback goes to the widget in the bottom-left of every page and lands in the
 
 ## What to watch
 
-**Database compute — check this after a fortnight.** The free database tier includes
-**100 compute-hours a month**, and that, rather than storage, is the limit you might
-actually meet. The database sleeps when idle and stays warm about five minutes after each
-query, so hourly ingestion alone accounts for roughly 60 of those hours before anyone
-opens the app. A handful of colleagues browsing could take it to 80–90.
+**Database compute.** Neon's free tier includes **100 compute-hours a month**, and that,
+rather than storage, is the limit worth watching. The database sleeps when idle and stays
+warm about five minutes after each query, so every scheduled run costs roughly five
+minutes of compute.
 
-Two weeks in, look at consumption in Vercel → Storage. If you are tracking above 100:
+At three-hourly that is **~20 compute-hours a month**, leaving about 80 for actual
+reading. Comfortable rather than tight — which is exactly why the schedule is three-hourly
+rather than hourly, since hourly would spend ~60 before anyone opened the app.
+
+Neon's console shows consumption under **Monitoring**. If you ever want it fresher and
+have the headroom, change one line and redeploy — no rebuild, no migration:
 
 ```jsonc
-// vercel.json — every three hours instead of hourly.
-// Data is then never more than three hours old, which against sources publishing
-// 3–27 documents a day is indistinguishable from live.
-"schedule": "17 */3 * * *"
+// vercel.json
+"schedule": "17 * * * *"     // hourly
 ```
 
-That drops it to roughly 20 compute-hours a month. Redeploy; no rebuild, no migration.
-
-Exceeding the free tier suspends compute until the next month rather than generating a
+Exceeding the free tier suspends compute until the next month rather than producing a
 surprise bill. Moving up is pay-as-you-go at about $0.11 per compute-hour.
 
 **Storage** is not the constraint: the corpus is ~64 MB against a 0.5 GB allowance and
