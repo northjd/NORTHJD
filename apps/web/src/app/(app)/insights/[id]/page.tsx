@@ -20,6 +20,7 @@ import {
 import { formatAbsolute } from '@mios/domain';
 import { parseFilters, toSearchParams } from '@/lib/filters';
 import { insightNeighbours } from '@/lib/insight-navigation';
+import { sourcePassages, scopeLabel } from '@/lib/source-text';
 import { FeedbackBar } from '@/components/feedback-bar';
 import { CopyButton } from '@/components/copy-button';
 import { AskAboutThis } from '@/components/ask-about-this';
@@ -45,6 +46,7 @@ export default async function InsightPage({
   const sp = await searchParams;
   const filters = parseFilters(sp);
   const neighbours = await insightNeighbours(user.workspaceId, id, filters);
+  const passages = await sourcePassages(id);
   const backToResults = `/explore?${toSearchParams(filters).toString()}`;
 
   const facts = claims.filter((c) => c.claimType === 'FACT' && c.spanId);
@@ -198,6 +200,62 @@ export default async function InsightPage({
               </ol>
             )}
           </section>
+
+          {/* ── In the source's own words ────────────────────────────────
+              Everything above this point is our reading of the material. This is the
+              material. People reasonably want to see the text a summary was drawn from
+              and then go and read the thing itself, and burying the links at the foot of
+              the page made that harder than it needed to be.
+
+              What is stored is an excerpt, not the article — each source's rights policy
+              decides how much may be kept — so the link out is the way to the rest, and
+              the page says which it is showing. */}
+          {passages.length > 0 ? (
+            <section>
+              <SectionHeading hint="Verbatim from the source, before any interpretation.">
+                In the source&rsquo;s own words
+              </SectionHeading>
+
+              <div className="grid gap-4">
+                {passages.map((p) => (
+                  <div key={p.documentId} className="border-l border-[var(--border-strong)] pl-4">
+                    <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                      <PerspectiveBadge perspective={p.perspective as never} />
+                      <Badge tone="muted">{scopeLabel(p.storedScope)}</Badge>
+                    </div>
+
+                    {p.text ? (
+                      <blockquote className="prose-reading text-[14px] leading-[1.72]">
+                        {p.text}
+                      </blockquote>
+                    ) : (
+                      <p className="text-[13px] text-[var(--text-subtle)]">
+                        This source&rsquo;s rights policy permits the headline and link only,
+                        so there is no stored text to show.
+                      </p>
+                    )}
+
+                    <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[var(--text-subtle)]">
+                      <span>
+                        {p.sourceName} · {formatAbsolute(p.publishedAt)}
+                      </span>
+                      <a
+                        href={p.url}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        className="font-medium text-[var(--text-muted)] underline underline-offset-2 hover:text-[var(--text)]"
+                      >
+                        Read the full article at {p.sourceName} ↗
+                      </a>
+                    </div>
+                    {p.attribution ? (
+                      <p className="mt-1 text-[11px] text-[var(--text-subtle)]">© {p.attribution}</p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           {/* ── What changed ─────────────────────────────────────────────── */}
           {insight.whatChanged ? (

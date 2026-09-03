@@ -9,11 +9,11 @@
  *     the company → who it is compared against → its industry → its topics → the market
  *
  * and reports which rung produced the answer. The final rung carries no filter at all,
- * so the result is never empty. "Nothing on your client, but here is what moved in their
+ * so the result is never empty. "Nothing on the company itself, but here is what moved in its
  * market" is the whole point of a market-intelligence product; a blank page is not
  * something a consultant can take into a meeting.
  *
- * No client is hard-coded anywhere. The account comes from a configured mission where
+ * No company is hard-coded anywhere. The subject comes from a configured mission where
  * one exists, otherwise from the watchlist, otherwise from an explicit choice.
  */
 
@@ -34,7 +34,7 @@ export interface AccountEvent {
   entityNames: string | null;
 }
 
-export type ScopeLevel = 'company' | 'peers' | 'industry' | 'topics' | 'market';
+export type ScopeLevel = 'industry' | 'peers' | 'company' | 'regulatory' | 'topics' | 'market';
 
 export interface AccountRung {
   level: ScopeLevel;
@@ -44,6 +44,15 @@ export interface AccountRung {
   /** What this particular kind of empty means, and what would fix it. */
   emptyMeans: string;
   events: AccountEvent[];
+  /**
+   * Age of the newest item in this rung, in days.
+   *
+   * Rungs are never time-filtered: restricting them to "today" is how a market
+   * intelligence tool ends up showing nothing on a quiet Tuesday. They reach as far
+   * back as they need to and then say how far that was, so nothing is passed off as
+   * fresher than it is. Null when the rung is empty.
+   */
+  newestAgeDays: number | null;
 }
 
 export interface AccountBoard {
@@ -249,6 +258,32 @@ export async function queryAccount(
       )
     : [];
 
+  /*
+   * Regulatory and policy activity.
+   *
+   * Keyed on the *source's* perspective rather than a topic tag: nothing in this corpus
+   * is tagged `regulation` even though the European Commission, NIST and SEC EDGAR are
+   * all registered, because the classifier tags subject matter and not provenance. What
+   * a regulator publishes is regulatory by definition, which makes the source the more
+   * reliable signal.
+   */
+  const regulatory = rows<AccountEvent>(
+    await db().execute(sql`
+      select ${EVENT_COLUMNS}
+        from events e
+        left join insights i on i.event_id = e.id
+       where e.is_suppressed = false
+         and exists (
+               select 1 from event_documents ed
+                 join raw_documents rd on rd.id = ed.document_id
+                 join sources src on src.id = rd.source_id
+                where ed.event_id = e.id
+                  and src.perspective in ('REGULATOR', 'PUBLIC_INSTITUTION'))
+       order by coalesce(e.event_at, e.first_reported_at) desc
+       limit 12
+    `),
+  );
+
   // The final rung: no filter at all, ranked by impact then recency. This is what
   // guarantees the page is never empty.
   const market = rows<AccountEvent>(
@@ -274,50 +309,94 @@ export async function queryAccount(
   );
 
   const industryLabel = industryNames ?? 'their industry';
+
+  /*
+   * Market first, client second.
+   *
+   * The earlier order started with the company and widened outward, which reads as "here
+   * is your company, and failing that, here is everything else" — and on an account with
+   * no coverage it opened on an apology. Leading with the market matches what the tool
+   * is for: a consultant walking into a meeting needs what is moving in the sector before
+   * they need the four press releases their client happened to issue.
+   *
+   * The client's own events keep their own rung and are never folded into the market
+   * ones, because "your client did this" and "this happened in your client's market" are
+   * different claims and must not be blurred.
+   */
   const rungs: AccountRung[] = [
     {
-      level: 'company',
+      level: 'industry',
       index: '01',
-      title: `On ${entity.name}`,
-      why: 'Events naming the client directly.',
-      emptyMeans: sources.length
-        ? `${sources.length} source${sources.length > 1 ? 's are' : ' is'} registered for ${entity.name}, but ${sources.length > 1 ? 'they have' : 'it has'} produced nothing yet.`
-        : `No source is registered for ${entity.name}. This silence is about our monitoring, not about the company — the fix is a source, not a better query.`,
-      events: direct,
+      title: industryNames ? `What moved in ${industryNames}` : 'What moved in the market',
+      why: `Events in ${industryLabel}, with ${entity.name}'s own removed so this reads as context rather than repetition.`,
+      emptyMeans: industrySlugs.length
+        ? `No event is classified under ${industryLabel}. No source in the registry covers this sector yet — that is a gap in our monitoring, not quiet in the market.`
+        : `${entity.name} carries no industry classification, so there is no sector to report on.`,
+      events: industryEvents,
+      newestAgeDays: null,
     },
     {
       level: 'peers',
       index: '02',
-      title: 'Companies it is compared against',
-      why: `Companies sharing ${industryLabel}. A shared industry is what the taxonomy records — not a competitive relationship, which nobody has asserted.`,
-      emptyMeans: 'No other company shares this industry in the taxonomy.',
+      title: 'Who is moving in it',
+      why: `Companies sharing ${industryLabel}, and what they have been doing. A shared industry is what the taxonomy records — not a competitive relationship, which nobody has asserted.`,
+      emptyMeans:
+        'No other company in this industry has produced an event. Either the sector is unmonitored, or the companies in it are the only ones we track and none has published.',
       events: peerEvents,
+      newestAgeDays: null,
     },
     {
-      level: 'industry',
+      level: 'company',
       index: '03',
-      title: industryNames ?? 'Industry',
-      why: `What moved in ${industryLabel}, with the client's own events removed so it reads as context rather than repetition.`,
-      emptyMeans: `No events are classified under ${industryLabel}.`,
-      events: industryEvents,
+      title: `On ${entity.name}`,
+      why: 'Events naming this company directly.',
+      emptyMeans: sources.length
+        ? `${sources.length} source${sources.length > 1 ? 's are' : ' is'} registered for ${entity.name}, but ${sources.length > 1 ? 'they have' : 'it has'} produced nothing yet.`
+        : `No source is registered for ${entity.name}. This silence is about our monitoring, not about the company — the fix is a source, not a better query.`,
+      events: direct,
+      newestAgeDays: null,
+    },
+    {
+      level: 'regulatory',
+      index: '04',
+      title: 'Regulatory and policy',
+      why: 'Published by regulators and public institutions. What a regulator publishes is regulatory by definition, so this is keyed on the source rather than on subject tags.',
+      emptyMeans:
+        'No regulator or public institution in the registry has published anything ingested so far.',
+      events: regulatory,
+      newestAgeDays: null,
     },
     {
       level: 'topics',
-      index: '04',
+      index: '05',
       title: 'Cross-industry forces',
-      why: 'Regulation, pricing, supply chain, workforce and technology cut across sectors. These keep working when an industry has no coverage of its own.',
+      why: 'Pricing, supply chain, workforce, regulation and technology cut across sectors. These keep working when an industry itself has no coverage — they bear on a tobacco client as readily as on a retailer.',
       emptyMeans: 'No topic-classified events.',
       events: topicEvents,
+      newestAgeDays: null,
     },
     {
       level: 'market',
-      index: '05',
-      title: 'The wider market',
-      why: 'Highest strategic impact across everything monitored, regardless of sector.',
-      emptyMeans: 'The corpus is empty.',
+      index: '06',
+      title: 'Everything monitored',
+      why: 'Highest strategic impact across every source, regardless of sector. The floor that stops this page ever being blank.',
+      emptyMeans: 'The corpus is empty. Run the ingestion pipeline.',
       events: market,
+      newestAgeDays: null,
     },
   ];
+
+  // Stamp each rung with how old its freshest item is, so the surface can say "nothing
+  // this week; the most recent is from three weeks ago" instead of implying currency.
+  const now = Date.now();
+  for (const rung of rungs) {
+    const newest = rung.events
+      .map((e) => e.eventAt ?? e.firstReportedAt)
+      .filter((d): d is Date => d != null)
+      .map((d) => new Date(d).getTime())
+      .sort((a, b) => b - a)[0];
+    rung.newestAgeDays = newest ? Math.max(0, Math.floor((now - newest) / 86_400_000)) : null;
+  }
 
   const leadIndex = rungs.findIndex((r) => r.events.length > 0);
   const resolvedLead = leadIndex === -1 ? rungs.length - 1 : leadIndex;

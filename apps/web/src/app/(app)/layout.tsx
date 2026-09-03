@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { requireUser } from '@/lib/session';
 import { generationMode } from '@mios/ai';
-import { CompanionLauncher } from '@/components/companion-launcher';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { NavLink } from '@/components/nav-link';
 import { corpusStatus } from '@/lib/queries';
@@ -13,6 +12,8 @@ import { querySuggestedFilters } from '@/lib/explore-queries';
 import { db, schema } from '@mios/database';
 import { and, asc, eq } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { config } from '@mios/config';
 
 /**
  * Application shell — an operator console rather than a document.
@@ -29,6 +30,13 @@ import { redirect } from 'next/navigation';
  *
  * Corpus statistics live in the status bar, not the header. They describe our
  * monitoring, not the market, and they were competing with the content for attention.
+ *
+ * The Companion is deliberately absent from this navigation. Without a language model it
+ * can only return sentences that already exist in the corpus, which makes it a slower
+ * search with a chat box around it — and an "ask anything" affordance that mostly refuses
+ * is worse than no affordance, because it promises reasoning it cannot do. The route and
+ * the engine remain: configure ANTHROPIC_API_KEY and it is worth surfacing again. See
+ * docs/COMPANION_MODEL.md.
  */
 
 const NAV_GROUPS = [
@@ -37,14 +45,14 @@ const NAV_GROUPS = [
     items: [
       { href: '/', label: 'Today', icon: '◎', hint: 'Your finite daily brief' },
       { href: '/watch', label: 'Watch', icon: '◇', hint: 'What is unresolved, and what would settle it' },
+      { href: '/deals', label: 'Key deals', icon: '⇄', hint: 'Publicly announced acquisitions, investments, partnerships and market entries' },
       { href: '/explore', label: 'Explore', icon: '⊞', hint: 'Companies, industries, technologies' },
     ],
   },
   {
     label: 'Practice',
     items: [
-      { href: '/account', label: 'My client', icon: '◆', hint: 'Everything relevant to one account, widened until it has something' },
-      { href: '/companion', label: 'Companion', icon: '◧', hint: 'Ask, research, prepare, be challenged' },
+      { href: '/account', label: 'Companies', icon: '◆', hint: 'One company read through its market — what moved, who moved it, and what the company itself has said' },
       { href: '/learn', label: 'Learn', icon: '▤', hint: 'Industry fundamentals and learning paths' },
       { href: '/prepare', label: 'Prepare', icon: '◈', hint: 'Meeting preparation' },
       { href: '/library', label: 'Library', icon: '▢', hint: 'Saved insights, notes, collections' },
@@ -56,16 +64,30 @@ const NAV_GROUPS = [
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
 
-  // First run: send a new account to set-up before it sees a brief assembled for nobody.
-  // Checked here rather than in middleware because the profile row is what decides it,
-  // and this is the first place with a database connection and a known user.
+  /*
+   * First run.
+   *
+   * With passwords, "first run" is a property of the account and the profile row decides
+   * it. In open mode everyone shares one account, so that test never fires again after
+   * the first visitor — which is why a second person would land straight in a brief
+   * assembled for someone else's interests.
+   *
+   * So in open mode first-run is a property of the *browser*: a cookie set when set-up is
+   * completed or skipped. The honest consequence is that preferences are still shared —
+   * the last person through overwrites the previous one — and the set-up page says so.
+   * That is the cost of having no accounts, and it is reversible by turning passwords on.
+   */
   const profile = await db().query.userProfiles.findFirst({
     where: and(
       eq(schema.userProfiles.userId, user.userId),
       eq(schema.userProfiles.workspaceId, user.workspaceId),
     ),
   });
-  if (!profile?.onboardingCompletedAt) redirect('/onboarding');
+
+  const openMode = config().AUTH_MODE === 'open';
+  const seenSetup = openMode ? Boolean((await cookies()).get('north_setup_seen')) : false;
+  const needsSetup = openMode ? !seenSetup : !profile?.onboardingCompletedAt;
+  if (needsSetup) redirect('/onboarding');
 
   const mode = generationMode();
   const isAdmin = user.role === 'owner' || user.role === 'admin';
@@ -93,9 +115,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // the slice they care about, and having to reach Explore first to find them made the
   // most personalised thing in the product the least reachable. Counts are live, so a
   // view that currently matches nothing says so before you click it.
+  const PERSONAL_VIEWS = new Set(['my-industries', 'my-watchlist', 'my-topics', 'this-week']);
   const savedViews = (await querySuggestedFilters(user.workspaceId, user.userId))
-    .filter((v) => v.narrows)
-    .slice(0, 6);
+    .filter((v) => v.narrows && PERSONAL_VIEWS.has(v.id))
+    .slice(0, 4);
 
   return (
     <div className="app-shell">
@@ -107,7 +130,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </a>
 
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
-      <nav aria-label="Main" className="shell-side no-print flex flex-col">
+      <nav aria-label="Main" className="shell-side no-print">
         <Link
           href="/"
           className="flex h-[46px] shrink-0 items-center gap-2.5 border-b border-[var(--border)] px-3"
@@ -129,7 +152,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           ))}
 
           {savedViews.length > 0 ? (
-            <div className="pb-1.5">
+            <div className="pb-1.5" data-shell-secondary>
               <div className="t-eyebrow px-3.5 pb-1.5 pt-2.5">Saved views</div>
               {savedViews.map((v) => (
                 <Link
@@ -166,7 +189,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-[var(--border)] p-2">
+        <div className="shrink-0 border-t border-[var(--border)] p-2" data-shell-secondary>
           <Link
             href="/profile"
             className="flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[12.5px] text-[var(--text-muted)] hover:bg-[var(--surface-inset)] hover:text-[var(--text)]"
@@ -245,7 +268,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         topics={paletteTopics}
       />
       <FeedbackWidget />
-      <CompanionLauncher />
     </div>
   );
 }

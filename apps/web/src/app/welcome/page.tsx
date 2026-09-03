@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { Wordmark, CompassMark } from '@/components/wordmark';
 import { MakersMark } from '@/components/makers-mark';
+import { config } from '@mios/config';
 
 export const metadata: Metadata = {
   // `absolute` so the root template does not render this as "NORTH · NORTH".
@@ -24,6 +25,9 @@ export const metadata: Metadata = {
  * page serves at least one of them.
  */
 export default function WelcomePage() {
+  // Open mode has no sign-in step: this page is the door, and the button is the handle.
+  const enter = config().AUTH_MODE === 'open' ? '/' : '/login';
+
   return (
     <main className="relative flex min-h-dvh flex-col overflow-hidden bg-[var(--surface)] px-6">
       {/* A single hairline horizon. The only ornament on the page, and it is a rule. */}
@@ -63,7 +67,7 @@ export default function WelcomePage() {
         </div>
 
         <Link
-          href="/login"
+          href={enter}
           className="group mt-16 inline-flex items-center gap-3 border border-[var(--border-strong)] px-8 py-3.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--text)] transition-colors hover:border-[var(--text)]"
         >
           Activate NORTH

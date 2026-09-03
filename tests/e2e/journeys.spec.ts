@@ -11,7 +11,31 @@ import { expect, test, type Page } from '@playwright/test';
 const EMAIL = 'demo@market-intelligence-os.local';
 const PASSWORD = 'demo-password-change-me';
 
+/**
+ * Whether this deployment has passwords at all.
+ *
+ * `AUTH_MODE=open` removes sign-in entirely: the landing page is the door and everyone
+ * shares one workspace account. The journeys below are identical either way, so rather
+ * than maintaining two suites the helpers branch and the sign-in assertions skip.
+ */
+const OPEN_MODE = (process.env.AUTH_MODE ?? 'password') === 'open';
+
+/**
+ * Gets into the application, whichever way this deployment is configured.
+ *
+ * In open mode that means clearing the first-run cookie decision and walking through
+ * set-up, because a browser that has never been here is shown it — which is the point.
+ */
 async function signIn(page: Page) {
+  if (OPEN_MODE) {
+    await page.goto('/');
+    // First visit lands on set-up; skipping is a supported answer and gets us to Today.
+    if (page.url().includes('/onboarding')) {
+      await page.getByRole('link', { name: /Skip for now/i }).click();
+    }
+    await page.waitForURL('/');
+    return;
+  }
   await page.goto('/login');
   await page.getByLabel('Email').fill(EMAIL);
   await page.getByLabel('Password').fill(PASSWORD);
@@ -50,6 +74,7 @@ async function clickWhenHydrated(page: Page, name: string | RegExp, expected: st
 
 test.describe('authentication', () => {
   test('an unauthenticated visitor is sent to the landing page, not a bare password box', async ({ page }) => {
+    test.skip(OPEN_MODE, 'Open mode has no sign-in: the landing page leads straight in.');
     await page.goto('/');
     await expect(page).toHaveURL(/\/welcome/);
     // And signing in is one deliberate step from there.
@@ -58,6 +83,7 @@ test.describe('authentication', () => {
   });
 
   test('a wrong password is refused without revealing whether the account exists', async ({ page }) => {
+    test.skip(OPEN_MODE, 'Open mode has no passwords to refuse.');
     await page.goto('/login');
     await page.getByLabel('Email').fill(EMAIL);
     await page.getByLabel('Password').fill('wrong-password');
@@ -68,7 +94,7 @@ test.describe('authentication', () => {
     );
   });
 
-  test('valid credentials reach the daily brief', async ({ page }) => {
+  test('reaching the daily brief', async ({ page }) => {
     await signIn(page);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
@@ -144,6 +170,15 @@ test.describe('evidence chain', () => {
   });
 });
 
+/*
+ * The Companion is no longer in the navigation.
+ *
+ * Without a language model it can only return sentences already in the corpus, which
+ * makes an "ask anything" box a slower search that mostly refuses — worse than no box,
+ * because it promises reasoning it cannot do. The route and the engine remain, so these
+ * tests still run against it directly and will matter again the moment a model is
+ * configured.
+ */
 test.describe('Companion', () => {
   test.beforeEach(async ({ page }) => signIn(page));
 

@@ -40,10 +40,10 @@ export function BriefProgress({
             Explore a market
           </a>
           <a
-            href="/companion"
+            href="/deals"
             className="rounded bg-[var(--accent)] px-3 py-1.5 text-[13px] font-medium text-[var(--surface)]"
           >
-            Ask the Companion
+            Key deals
           </a>
           <a
             href="/learn"

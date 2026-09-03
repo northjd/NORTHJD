@@ -59,16 +59,16 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
       .insert(industries)
       .values({
         slug: ind.slug, name: ind.name, definition: ind.definition,
-        marketStructure: ind.marketStructure, regulatoryEnvironment: ind.regulatoryEnvironment,
-        transformationAgenda: ind.transformationAgenda, openQuestions: ind.openQuestions,
-        sourceRefs: ind.sourceRefs, lastReviewedAt: new Date(),
+        marketStructure: ind.marketStructure ?? '', regulatoryEnvironment: ind.regulatoryEnvironment ?? '',
+        transformationAgenda: ind.transformationAgenda ?? '', openQuestions: ind.openQuestions ?? [],
+        sourceRefs: ind.sourceRefs ?? [], lastReviewedAt: new Date(),
       })
       .onConflictDoUpdate({
         target: industries.slug,
         set: {
-          name: ind.name, definition: ind.definition, marketStructure: ind.marketStructure,
-          regulatoryEnvironment: ind.regulatoryEnvironment, transformationAgenda: ind.transformationAgenda,
-          openQuestions: ind.openQuestions, sourceRefs: ind.sourceRefs,
+          name: ind.name, definition: ind.definition, marketStructure: ind.marketStructure ?? '',
+          regulatoryEnvironment: ind.regulatoryEnvironment ?? '', transformationAgenda: ind.transformationAgenda,
+          openQuestions: ind.openQuestions ?? [], sourceRefs: ind.sourceRefs ?? [],
           lastReviewedAt: new Date(), updatedAt: new Date(),
         },
       })
@@ -94,7 +94,7 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
   for (const ind of INDUSTRIES) {
     const industryId = industryIdBySlug.get(ind.slug)!;
 
-    for (const [position, stage] of ind.valueChainStages.entries()) {
+    for (const [position, stage] of (ind.valueChainStages ?? []).entries()) {
       const [row] = await d
         .insert(valueChainStages)
         .values({
@@ -110,7 +110,7 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
       stageCount++;
     }
 
-    for (const kpi of ind.kpis) {
+    for (const kpi of ind.kpis ?? []) {
       const [row] = await d
         .insert(kpis)
         .values({
@@ -126,13 +126,13 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
       kpiIdBySlug.set(kpi.slug, row!.id);
       kpiCount++;
     }
-    for (const kpi of ind.kpis) {
+    for (const kpi of ind.kpis ?? []) {
       if (!kpi.parentSlug || kpi.parentSlug === kpi.slug) continue;
       const parentId = kpiIdBySlug.get(kpi.parentSlug);
       if (parentId) await d.update(kpis).set({ parentId }).where(eq(kpis.slug, kpi.slug));
     }
 
-    for (const cap of ind.capabilities) {
+    for (const cap of ind.capabilities ?? []) {
       await d
         .insert(capabilities)
         .values({
@@ -147,7 +147,7 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
       capCount++;
     }
 
-    for (const bm of ind.businessModels) {
+    for (const bm of ind.businessModels ?? []) {
       await d
         .insert(businessModels)
         .values({
@@ -199,9 +199,9 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
     ...INDUSTRIES.map((i) => ({ slug: `concept-${i.slug}`, name: i.name, kind: 'industry_concept', summary: i.definition, industrySlug: i.slug, refSlug: i.slug })),
     ...TOPICS.map((t) => ({ slug: `concept-${t.slug}`, name: t.name, kind: 'industry_concept', summary: t.description, industrySlug: 'technology-ai', refSlug: t.slug })),
     ...INDUSTRIES.flatMap((ind) => [
-      ...ind.kpis.map((k) => ({ slug: `concept-${k.slug}`, name: k.name, kind: 'kpi', summary: k.whyItMatters, industrySlug: ind.slug, refSlug: k.slug })),
-      ...ind.capabilities.map((c) => ({ slug: `concept-${c.slug}`, name: c.name, kind: 'capability', summary: c.description, industrySlug: ind.slug, refSlug: c.slug })),
-      ...ind.valueChainStages.map((s) => ({ slug: `concept-${s.slug}`, name: s.name, kind: 'value_chain_stage', summary: s.description, industrySlug: ind.slug, refSlug: s.slug })),
+      ...(ind.kpis ?? []).map((k) => ({ slug: `concept-${k.slug}`, name: k.name, kind: 'kpi', summary: k.whyItMatters, industrySlug: ind.slug, refSlug: k.slug })),
+      ...(ind.capabilities ?? []).map((c) => ({ slug: `concept-${c.slug}`, name: c.name, kind: 'capability', summary: c.description, industrySlug: ind.slug, refSlug: c.slug })),
+      ...(ind.valueChainStages ?? []).map((s) => ({ slug: `concept-${s.slug}`, name: s.name, kind: 'value_chain_stage', summary: s.description, industrySlug: ind.slug, refSlug: s.slug })),
     ]),
     ...TECHNOLOGIES.map((t) => ({ slug: `concept-${t.slug}`, name: t.name, kind: 'technology', summary: t.description, industrySlug: 'technology-ai', refSlug: t.slug })),
   ];

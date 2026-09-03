@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { PreferenceForm } from '@/components/preference-form';
 import { currentPreferences, preferenceOptions, savePreferences } from '@/lib/preferences';
 import { Wordmark } from '@/components/wordmark';
+import { config } from '@mios/config';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Set up' };
@@ -21,7 +23,10 @@ export default async function OnboardingPage() {
   // Someone who has already been through this should not be able to go round again by
   // typing the URL — the form is at /profile/preferences from then on.
   const current = await currentPreferences();
-  if (current.onboarded) redirect('/profile/preferences');
+  // In open mode the shared profile is always "onboarded", so the browser cookie decides
+  // whether this page is shown — see the note in the (app) layout.
+  const openMode = config().AUTH_MODE === 'open';
+  if (!openMode && current.onboarded) redirect('/profile/preferences');
   const options = await preferenceOptions();
 
   async function submit(formData: FormData) {
@@ -43,6 +48,14 @@ export default async function OnboardingPage() {
         much the Companion explains as it goes.
       </p>
 
+      {config().AUTH_MODE === 'open' ? (
+        <p className="mt-4 max-w-[64ch] border-l border-caution-500/50 pl-4 text-[12.5px] leading-relaxed text-[var(--text-muted)]">
+          This deployment has no accounts, so preferences are shared: whatever you set here
+          replaces what the last person set. Fine while a few people are looking at it,
+          and the reason accounts exist.
+        </p>
+      ) : null}
+
       <div className="mt-10">
         <PreferenceForm
           options={options}
@@ -51,6 +64,13 @@ export default async function OnboardingPage() {
           submitLabel="Start reading"
         />
       </div>
+
+      <p className="mt-6 text-[12.5px] text-[var(--text-subtle)]">
+        <Link href="/onboarding/skip" className="underline underline-offset-2 hover:text-[var(--text)]">
+          Skip for now
+        </Link>{' '}
+        — you will get a general brief, and can set this up later from your profile.
+      </p>
     </main>
   );
 }

@@ -19,6 +19,8 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  // In open mode there is nothing to sign in to; the landing page leads straight in.
+  if (config().AUTH_MODE === 'open') redirect('/');
   if (await currentUser()) redirect('/');
   const { error } = await searchParams;
   const isDev = config().NODE_ENV !== 'production';

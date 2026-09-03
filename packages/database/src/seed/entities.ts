@@ -233,4 +233,411 @@ export const ENTITIES: EntitySeed[] = [
   // ── Institutions ──────────────────────────────────────────────────────────
   { slug: 'european-commission', kind: 'institution', name: 'European Commission', description: 'Executive branch of the European Union; originator of most EU regulation affecting these industries.', officialDomain: 'ec.europa.eu', hq: 'europe', aliases: [{ alias: 'European Commission' }, { alias: 'EU Commission' }] },
   { slug: 'nist', kind: 'institution', name: 'NIST', legalName: 'National Institute of Standards and Technology', description: 'US standards body; publisher of the AI Risk Management Framework.', officialDomain: 'nist.gov', hq: 'united-states', aliases: [{ alias: 'NIST' }, { alias: 'National Institute of Standards and Technology', type: 'legal' }] },
+
+  /*
+   * Accounts a consumer-goods, retail and travel practice actually works with.
+   *
+   * Reference data, not intelligence. Each row is a public company with its public
+   * name, domain, ticker and industry — the sort of thing any market-monitoring tool
+   * needs in order to recognise what it is being asked about. Nothing here records a
+   * relationship, an assessment or a maturity judgement about any of them: that would be
+   * client analysis rather than a company list, and it has no business in a tool that
+   * gets shared.
+   *
+   * Most have no source registered, so they will show no coverage. That is the honest
+   * state and the product says so, naming the source that would change it. Being able to
+   * ask about a company and be told "we are not monitoring them" is the point; returning
+   * nothing at all was the bug.
+   */
+
+  // ── Tobacco & nicotine ────────────────────────────────────────────────────
+  {
+    slug: 'philip-morris-international', kind: 'company', name: 'Philip Morris International',
+    legalName: 'Philip Morris International Inc.',
+    description: 'Tobacco and nicotine company, transitioning from combustible cigarettes towards heated-tobacco and vapour products.',
+    officialDomain: 'pmi.com', ticker: 'PM', hq: 'switzerland',
+    primaryIndustrySlug: 'tobacco', industrySlugs: ['tobacco', 'consumer-goods'],
+    aliases: [
+      { alias: 'Philip Morris International' }, { alias: 'Philip Morris' },
+      { alias: 'PMI', type: 'abbreviation', requiresContext: true },
+      { alias: 'Philip Morris International Inc.', type: 'legal' },
+      { alias: 'IQOS', type: 'brand' }, { alias: 'PM', type: 'ticker', requiresContext: true },
+    ],
+  },
+  {
+    slug: 'japan-tobacco-international', kind: 'company', name: 'Japan Tobacco International',
+    legalName: 'JT International SA',
+    description: 'International tobacco business of Japan Tobacco, operating outside Japan.',
+    officialDomain: 'jti.com', hq: 'switzerland',
+    primaryIndustrySlug: 'tobacco', industrySlugs: ['tobacco', 'consumer-goods'],
+    aliases: [
+      { alias: 'Japan Tobacco International' }, { alias: 'JTI', type: 'abbreviation' },
+      { alias: 'Japan Tobacco' }, { alias: 'JT International', type: 'legal' },
+    ],
+  },
+  {
+    slug: 'british-american-tobacco', kind: 'company', name: 'British American Tobacco',
+    legalName: 'British American Tobacco p.l.c.',
+    description: 'Multinational tobacco and nicotine company with a portfolio spanning combustibles, vapour and modern oral products.',
+    officialDomain: 'bat.com', ticker: 'BATS', hq: 'united-kingdom',
+    primaryIndustrySlug: 'tobacco', industrySlugs: ['tobacco', 'consumer-goods'],
+    aliases: [
+      { alias: 'British American Tobacco' }, { alias: 'BAT', type: 'abbreviation', requiresContext: true },
+      { alias: 'Vuse', type: 'brand' }, { alias: 'Glo', type: 'brand', requiresContext: true },
+    ],
+  },
+  {
+    slug: 'imperial-brands', kind: 'company', name: 'Imperial Brands',
+    description: 'Tobacco and nicotine company with cigarette, vapour and oral nicotine brands.',
+    officialDomain: 'imperialbrandsplc.com', ticker: 'IMB', hq: 'united-kingdom',
+    primaryIndustrySlug: 'tobacco', industrySlugs: ['tobacco', 'consumer-goods'],
+    aliases: [{ alias: 'Imperial Brands' }, { alias: 'Imperial Tobacco' }],
+  },
+  {
+    slug: 'altria', kind: 'company', name: 'Altria Group',
+    description: 'United States tobacco and nicotine group.',
+    officialDomain: 'altria.com', ticker: 'MO', hq: 'united-states',
+    primaryIndustrySlug: 'tobacco', industrySlugs: ['tobacco', 'consumer-goods'],
+    aliases: [{ alias: 'Altria' }, { alias: 'Altria Group' }],
+  },
+
+  // ── Grocery, discount and specialist retail ───────────────────────────────
+  {
+    slug: 'migros', kind: 'company', name: 'Migros',
+    description: 'Swiss retail group and cooperative, the country’s largest grocer, with own-brand manufacturing and adjacent retail formats.',
+    officialDomain: 'migros.ch', hq: 'switzerland',
+    primaryIndustrySlug: 'retail', industrySlugs: ['retail', 'consumer-goods'],
+    aliases: [{ alias: 'Migros' }, { alias: 'Migros-Genossenschafts-Bund', type: 'legal' }],
+  },
+  {
+    slug: 'coop-switzerland', kind: 'company', name: 'Coop (Switzerland)',
+    description: 'Swiss retail and wholesale cooperative operating grocery, convenience and specialist formats.',
+    officialDomain: 'coop.ch', hq: 'switzerland',
+    primaryIndustrySlug: 'retail', industrySlugs: ['retail', 'consumer-goods'],
+    aliases: [{ alias: 'Coop Schweiz' }, { alias: 'Coop Genossenschaft', type: 'legal' }],
+  },
+  {
+    slug: 'aldi-sued', kind: 'company', name: 'Aldi Süd',
+    description: 'German discount grocery group operating in southern Germany and internationally, including as Aldi in several markets.',
+    officialDomain: 'aldi-sued.de', hq: 'germany',
+    primaryIndustrySlug: 'retail', industrySlugs: ['retail'],
+    aliases: [{ alias: 'Aldi Süd' }, { alias: 'Aldi Sud' }, { alias: 'Aldi South' }],
+  },
+  {
+    slug: 'aldi-nord', kind: 'company', name: 'Aldi Nord',
+    description: 'German discount grocery group operating in northern Germany and across Europe, including the Trader Joe’s business in the United States.',
+    officialDomain: 'aldi-nord.de', hq: 'germany',
+    primaryIndustrySlug: 'retail', industrySlugs: ['retail'],
+    aliases: [{ alias: 'Aldi Nord' }, { alias: 'Aldi North' }, { alias: 'Trader Joe’s', type: 'brand' }],
+  },
+  {
+    slug: 'schwarz-gruppe', kind: 'company', name: 'Schwarz Gruppe',
+    description: 'German retail group behind Lidl and Kaufland, with recycling and IT services businesses alongside the stores.',
+    officialDomain: 'gruppe.schwarz', hq: 'germany',
+    primaryIndustrySlug: 'retail', industrySlugs: ['retail'],
+    aliases: [
+      { alias: 'Schwarz Gruppe' }, { alias: 'Schwarz Group' },
+      { alias: 'Lidl', type: 'brand' }, { alias: 'Kaufland', type: 'brand' },
+      { alias: 'Schwarz Digits', type: 'brand' },
+    ],
+  },
+  {
+    slug: 'rewe-group', kind: 'company', name: 'REWE Group',
+    description: 'German retail and tourism cooperative operating supermarkets, discount and travel businesses.',
+    officialDomain: 'rewe-group.com', hq: 'germany',
+    primaryIndustrySlug: 'retail', industrySlugs: ['retail', 'travel'],
+    aliases: [
+      { alias: 'REWE Group' }, { alias: 'Rewe' },
+      { alias: 'Penny', type: 'brand', requiresContext: true }, { alias: 'DER Touristik', type: 'brand' },
+    ],
+  },
+  {
+    slug: 'mediamarktsaturn', kind: 'company', name: 'MediaMarktSaturn',
+    description: 'European consumer electronics retail group operating the MediaMarkt and Saturn formats.',
+    officialDomain: 'mediamarktsaturn.com', hq: 'germany',
+    primaryIndustrySlug: 'retail', industrySlugs: ['retail'],
+    aliases: [
+      { alias: 'MediaMarktSaturn' }, { alias: 'Media Markt' }, { alias: 'MediaMarkt' },
+      { alias: 'Saturn', type: 'brand', requiresContext: true }, { alias: 'Ceconomy' },
+    ],
+  },
+  {
+    slug: 'mcdonalds', kind: 'company', name: "McDonald's",
+    description: 'Global quick-service restaurant franchisor and operator.',
+    officialDomain: 'mcdonalds.com', ticker: 'MCD', hq: 'united-states',
+    primaryIndustrySlug: 'retail', industrySlugs: ['retail', 'food-beverage'],
+    aliases: [{ alias: "McDonald's" }, { alias: 'McDonalds' }, { alias: 'MCD', type: 'ticker', requiresContext: true }],
+  },
+
+  // ── Sportswear and apparel ────────────────────────────────────────────────
+  {
+    slug: 'adidas', kind: 'company', name: 'adidas',
+    legalName: 'adidas AG',
+    description: 'German sportswear and footwear group selling through wholesale, owned retail and direct digital channels.',
+    officialDomain: 'adidas-group.com', ticker: 'ADS', hq: 'germany',
+    primaryIndustrySlug: 'fashion-apparel', industrySlugs: ['fashion-apparel', 'consumer-goods', 'retail'],
+    aliases: [{ alias: 'adidas' }, { alias: 'adidas AG', type: 'legal' }, { alias: 'ADS', type: 'ticker', requiresContext: true }],
+  },
+  {
+    slug: 'on-running', kind: 'company', name: 'On',
+    legalName: 'On Holding AG',
+    description: 'Swiss performance running and sportswear brand, direct-to-consumer led.',
+    officialDomain: 'on-running.com', ticker: 'ONON', hq: 'switzerland',
+    primaryIndustrySlug: 'fashion-apparel', industrySlugs: ['fashion-apparel', 'consumer-goods'],
+    aliases: [{ alias: 'On Running' }, { alias: 'On Holding', type: 'legal' }, { alias: 'ONON', type: 'ticker', requiresContext: true }],
+  },
+  {
+    slug: 'triumph', kind: 'company', name: 'Triumph International',
+    description: 'Swiss-headquartered lingerie and intimate apparel group.',
+    officialDomain: 'triumph.com', hq: 'switzerland',
+    primaryIndustrySlug: 'fashion-apparel', industrySlugs: ['fashion-apparel', 'consumer-goods'],
+    aliases: [{ alias: 'Triumph International' }, { alias: 'Triumph', requiresContext: true }],
+  },
+
+  // ── Food, beverage and packaged goods ─────────────────────────────────────
+  {
+    slug: 'nestle', kind: 'company', name: 'Nestlé',
+    description: 'Swiss food and beverage group, the largest by revenue worldwide.',
+    officialDomain: 'nestle.com', ticker: 'NESN', hq: 'switzerland',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Nestlé' }, { alias: 'Nestle' }, { alias: 'Nestlé S.A.', type: 'legal' }],
+  },
+  {
+    slug: 'unilever', kind: 'company', name: 'Unilever',
+    description: 'Consumer goods group spanning beauty, personal care, home care, nutrition and ice cream.',
+    officialDomain: 'unilever.com', ticker: 'ULVR', hq: 'united-kingdom',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods'],
+    aliases: [{ alias: 'Unilever' }, { alias: 'Unilever PLC', type: 'legal' }],
+  },
+  {
+    slug: 'procter-and-gamble', kind: 'company', name: 'Procter & Gamble',
+    description: 'United States consumer goods group across fabric, home, baby, beauty and grooming categories.',
+    officialDomain: 'pg.com', ticker: 'PG', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods'],
+    aliases: [{ alias: 'Procter & Gamble' }, { alias: 'P&G', type: 'abbreviation' }, { alias: 'Procter and Gamble' }],
+  },
+  {
+    slug: 'pepsico', kind: 'company', name: 'PepsiCo',
+    description: 'Beverages and convenient foods group.',
+    officialDomain: 'pepsico.com', ticker: 'PEP', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'PepsiCo' }, { alias: 'Pepsi', type: 'brand' }, { alias: 'Frito-Lay', type: 'brand' }],
+  },
+  {
+    slug: 'coca-cola-company', kind: 'company', name: 'The Coca-Cola Company',
+    description: 'Beverage concentrate and brand owner operating through a franchised bottling system.',
+    officialDomain: 'coca-colacompany.com', ticker: 'KO', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'The Coca-Cola Company' }, { alias: 'Coca-Cola' }, { alias: 'Coke', requiresContext: true }],
+  },
+  {
+    slug: 'coca-cola-hbc', kind: 'company', name: 'Coca-Cola HBC',
+    description: 'Bottler of Coca-Cola brands across Europe, Africa and adjacent markets.',
+    officialDomain: 'coca-colahellenic.com', ticker: 'CCH', hq: 'switzerland',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Coca-Cola HBC' }, { alias: 'Coca-Cola Hellenic' }, { alias: 'CCH', type: 'ticker', requiresContext: true }],
+  },
+  {
+    slug: 'danone', kind: 'company', name: 'Danone',
+    description: 'Food group focused on dairy, plant-based, waters and specialised nutrition.',
+    officialDomain: 'danone.com', ticker: 'BN', hq: 'france',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Danone' }, { alias: 'Groupe Danone', type: 'legal' }],
+  },
+  {
+    slug: 'mondelez', kind: 'company', name: 'Mondelēz International',
+    description: 'Snacking group across chocolate, biscuits and confectionery.',
+    officialDomain: 'mondelezinternational.com', ticker: 'MDLZ', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Mondelēz International' }, { alias: 'Mondelez' }, { alias: 'MDLZ', type: 'ticker', requiresContext: true }],
+  },
+  {
+    slug: 'kraft-heinz', kind: 'company', name: 'The Kraft Heinz Company',
+    description: 'Packaged food group across condiments, cheese, meals and snacks.',
+    officialDomain: 'kraftheinzcompany.com', ticker: 'KHC', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Kraft Heinz' }, { alias: 'The Kraft Heinz Company', type: 'legal' }],
+  },
+  {
+    slug: 'general-mills', kind: 'company', name: 'General Mills',
+    description: 'Packaged food group across cereal, snacks, meals and pet food.',
+    officialDomain: 'generalmills.com', ticker: 'GIS', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'General Mills' }],
+  },
+  {
+    slug: 'mars', kind: 'company', name: 'Mars, Incorporated',
+    description: 'Privately held group across confectionery, pet care and food.',
+    officialDomain: 'mars.com', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Mars, Incorporated' }, { alias: 'Mars', requiresContext: true }, { alias: 'Mars Wrigley', type: 'brand' }],
+  },
+  {
+    slug: 'ferrero', kind: 'company', name: 'Ferrero',
+    description: 'Italian confectionery group.',
+    officialDomain: 'ferrero.com', hq: 'italy',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Ferrero' }, { alias: 'Ferrero Group', type: 'legal' }, { alias: 'Nutella', type: 'brand' }],
+  },
+  {
+    slug: 'hormel-foods', kind: 'company', name: 'Hormel Foods',
+    description: 'United States packaged and protein food company.',
+    officialDomain: 'hormelfoods.com', ticker: 'HRL', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Hormel Foods' }, { alias: 'Hormel' }],
+  },
+  {
+    slug: 'cargill', kind: 'company', name: 'Cargill',
+    description: 'Privately held agricultural commodities, food ingredients and trading group.',
+    officialDomain: 'cargill.com', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage', 'logistics'],
+    aliases: [{ alias: 'Cargill' }, { alias: 'Cargill, Incorporated', type: 'legal' }],
+  },
+  {
+    slug: 'sysco', kind: 'company', name: 'Sysco',
+    description: 'Foodservice distribution group supplying restaurants and institutional kitchens.',
+    officialDomain: 'sysco.com', ticker: 'SYY', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage', 'logistics'],
+    aliases: [{ alias: 'Sysco' }],
+  },
+  {
+    slug: 'lavazza', kind: 'company', name: 'Lavazza',
+    description: 'Italian coffee roaster and beverage group.',
+    officialDomain: 'lavazzagroup.com', hq: 'italy',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Lavazza' }, { alias: 'Luigi Lavazza S.p.A.', type: 'legal' }],
+  },
+  {
+    slug: 'keurig-dr-pepper', kind: 'company', name: 'Keurig Dr Pepper',
+    description: 'Beverage group across coffee systems and carbonated soft drinks.',
+    officialDomain: 'keurigdrpepper.com', ticker: 'KDP', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Keurig Dr Pepper' }, { alias: 'KDP', type: 'abbreviation', requiresContext: true }],
+  },
+  {
+    slug: 'tetra-pak', kind: 'company', name: 'Tetra Pak',
+    description: 'Food processing and packaging systems supplier.',
+    officialDomain: 'tetrapak.com', hq: 'switzerland',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'industrial-manufacturing'],
+    aliases: [{ alias: 'Tetra Pak' }, { alias: 'Tetra Laval' }],
+  },
+  {
+    slug: 'valio', kind: 'company', name: 'Valio',
+    description: 'Finnish dairy cooperative and food company.',
+    officialDomain: 'valio.com', hq: 'finland',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Valio' }],
+  },
+
+  // ── Beer, wine and spirits ────────────────────────────────────────────────
+  {
+    slug: 'diageo', kind: 'company', name: 'Diageo',
+    description: 'Premium drinks group across spirits and beer.',
+    officialDomain: 'diageo.com', ticker: 'DGE', hq: 'united-kingdom',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Diageo' }, { alias: 'Guinness', type: 'brand' }],
+  },
+  {
+    slug: 'heineken', kind: 'company', name: 'Heineken',
+    description: 'Dutch brewing group operating internationally.',
+    officialDomain: 'theheinekencompany.com', ticker: 'HEIA', hq: 'netherlands',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Heineken' }, { alias: 'Heineken N.V.', type: 'legal' }],
+  },
+  {
+    slug: 'carlsberg', kind: 'company', name: 'Carlsberg Group',
+    description: 'Danish brewing group.',
+    officialDomain: 'carlsberggroup.com', ticker: 'CARL-B', hq: 'denmark',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Carlsberg Group' }, { alias: 'Carlsberg' }],
+  },
+  {
+    slug: 'molson-coors', kind: 'company', name: 'Molson Coors',
+    description: 'North American and European brewing group.',
+    officialDomain: 'molsoncoors.com', ticker: 'TAP', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Molson Coors' }, { alias: 'Molson Coors Beverage Company', type: 'legal' }],
+  },
+  {
+    slug: 'pernod-ricard', kind: 'company', name: 'Pernod Ricard',
+    description: 'French wines and spirits group.',
+    officialDomain: 'pernod-ricard.com', ticker: 'RI', hq: 'france',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Pernod Ricard' }],
+  },
+  {
+    slug: 'campari-group', kind: 'company', name: 'Campari Group',
+    description: 'Italian spirits and aperitif group.',
+    officialDomain: 'camparigroup.com', ticker: 'CPR', hq: 'italy',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'food-beverage'],
+    aliases: [{ alias: 'Campari Group' }, { alias: 'Davide Campari-Milano', type: 'legal' }],
+  },
+
+  // ── Beauty, personal and home care ────────────────────────────────────────
+  {
+    slug: 'loreal', kind: 'company', name: "L'Oréal",
+    description: 'French beauty group across consumer, luxury, professional and dermatological divisions.',
+    officialDomain: 'loreal.com', ticker: 'OR', hq: 'france',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods'],
+    aliases: [{ alias: "L'Oréal" }, { alias: 'LOreal' }, { alias: 'Loreal' }],
+  },
+  {
+    slug: 'estee-lauder', kind: 'company', name: 'The Estée Lauder Companies',
+    description: 'Prestige beauty group across skincare, makeup, fragrance and hair care.',
+    officialDomain: 'elcompanies.com', ticker: 'EL', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods'],
+    aliases: [{ alias: 'Estée Lauder' }, { alias: 'Estee Lauder' }, { alias: 'The Estée Lauder Companies', type: 'legal' }],
+  },
+  {
+    slug: 'coty', kind: 'company', name: 'Coty',
+    description: 'Beauty group across fragrance and cosmetics, largely licence-based.',
+    officialDomain: 'coty.com', ticker: 'COTY', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods'],
+    aliases: [{ alias: 'Coty' }, { alias: 'Coty Inc.', type: 'legal' }],
+  },
+  {
+    slug: 'henkel', kind: 'company', name: 'Henkel',
+    description: 'German group across adhesive technologies and consumer brands in laundry, home and beauty care.',
+    officialDomain: 'henkel.com', ticker: 'HEN3', hq: 'germany',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'industrial-manufacturing'],
+    aliases: [{ alias: 'Henkel' }, { alias: 'Henkel AG & Co. KGaA', type: 'legal' }],
+  },
+  {
+    slug: 'clorox', kind: 'company', name: 'The Clorox Company',
+    description: 'Household cleaning and consumer products group.',
+    officialDomain: 'thecloroxcompany.com', ticker: 'CLX', hq: 'united-states',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods'],
+    aliases: [{ alias: 'Clorox' }, { alias: 'The Clorox Company', type: 'legal' }],
+  },
+  {
+    slug: 'ecolab', kind: 'company', name: 'Ecolab',
+    description: 'Water, hygiene and infection-prevention products and services for industry and hospitality.',
+    officialDomain: 'ecolab.com', ticker: 'ECL', hq: 'united-states',
+    primaryIndustrySlug: 'industrial-manufacturing', industrySlugs: ['industrial-manufacturing', 'consumer-goods', 'travel'],
+    aliases: [{ alias: 'Ecolab' }, { alias: 'Ecolab Inc.', type: 'legal' }],
+  },
+
+  // ── Adjacent accounts ─────────────────────────────────────────────────────
+  {
+    slug: 'telstra', kind: 'company', name: 'Telstra',
+    description: 'Australian telecommunications and technology group.',
+    officialDomain: 'telstra.com.au', ticker: 'TLS', hq: 'australia',
+    primaryIndustrySlug: 'telecommunications', industrySlugs: ['telecommunications'],
+    aliases: [{ alias: 'Telstra' }, { alias: 'Telstra Group', type: 'legal' }],
+  },
+  {
+    slug: 'stellantis', kind: 'company', name: 'Stellantis',
+    description: 'Multinational automotive manufacturer formed from the FCA and PSA merger.',
+    officialDomain: 'stellantis.com', ticker: 'STLA', hq: 'netherlands',
+    primaryIndustrySlug: 'automotive', industrySlugs: ['automotive'],
+    aliases: [{ alias: 'Stellantis' }, { alias: 'Stellantis N.V.', type: 'legal' }],
+  },
+  {
+    slug: 'jab-holding', kind: 'company', name: 'JAB Holding Company',
+    description: 'Investment group with consumer, coffee and pet-care holdings.',
+    officialDomain: 'jabholco.com', hq: 'luxembourg',
+    primaryIndustrySlug: 'consumer-goods', industrySlugs: ['consumer-goods', 'financial-services'],
+    aliases: [{ alias: 'JAB Holding Company' }, { alias: 'JAB Holding' }, { alias: 'JAB', type: 'abbreviation', requiresContext: true }],
+  },
+
 ];

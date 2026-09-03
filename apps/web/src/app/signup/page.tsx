@@ -37,6 +37,7 @@ export default async function SignUpPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  if (config().AUTH_MODE === 'open') redirect('/');
   if (await currentUser()) redirect('/');
   const { error } = await searchParams;
   const enabled = Boolean(config().SIGNUP_INVITE_CODE);

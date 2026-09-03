@@ -12,9 +12,13 @@ import { EvidenceBadge } from '@mios/ui';
 export const dynamic = 'force-dynamic';
 
 /**
- * My client — everything relevant to one account.
+ * Companies — one company read through its market.
  *
- * If there is nothing on the client, this shows who they are compared against; failing
+ * Deliberately not called Accounts: naming it that would assert a client relationship
+ * the data does not record, and would turn a company list into a client list for anyone
+ * reading over a shoulder.
+ *
+ * If there is nothing on the company, this shows who it is compared against; failing
  * that, their industry; failing that, the cross-industry forces; failing that, the
  * market. There is always something worth walking into a meeting with, and the page
  * always states which level it is speaking at, so market context is never mistaken for
@@ -48,13 +52,14 @@ export default async function AccountPage({
   if (!slug) {
     return (
       <div className="mx-auto max-w-[820px]">
-        <p className="t-eyebrow">My client</p>
+        <p className="t-eyebrow">Company</p>
         <h1 className="mt-2 text-[27px] font-semibold leading-[1.16] tracking-[-0.028em]">
-          Pick an account
+          Pick a company
         </h1>
         <p className="mt-3 max-w-[62ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
-          Everything relevant to one client: what changed for them, what changed for the
-          companies they are compared against, and what moved in their market.
+          One company read through its market. What moved in the sector, who moved it, and
+          then what the company itself has said — in that order, because a conversation
+          needs the market before it needs four press releases.
         </p>
         <AccountChooser choices={choices} active={null} />
       </div>
@@ -79,13 +84,19 @@ export default async function AccountPage({
 
   return (
     <div className="mx-auto max-w-[900px]">
-      <p className="t-eyebrow">My client</p>
+      <p className="t-eyebrow">Company</p>
       <h1 className="mt-2 text-[27px] font-semibold leading-[1.16] tracking-[-0.028em]">
         {board.entity.name}
       </h1>
       <p className="mt-3 max-w-[62ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
         {board.entity.description ?? 'No description stored for this entity.'}
       </p>
+
+      {board.entity.aliases ? (
+        <p className="mt-1.5 text-[12px] text-[var(--text-subtle)]">
+          Also known as: {board.entity.aliases}
+        </p>
+      ) : null}
 
       {board.skipped.length > 0 ? (
         <div className="mt-6 border-l border-caution-500/50 pl-4">
@@ -173,7 +184,7 @@ export default async function AccountPage({
       <div className="mt-8">
         <InterpretationBlock label="What this view cannot do">
           <p>
-            It cannot tell you the client&rsquo;s internal position, their financials beyond
+            It cannot tell you a company&rsquo;s internal position, its financials beyond
             what is published, or what they think. It reports what monitored public sources
             have said, widens its scope until it has something, and names the level it is
             speaking at so you never mistake market context for news about your client.
@@ -231,6 +242,23 @@ function RungSection({ rung }: { rung: AccountRung }) {
       <p className="mt-2 max-w-[72ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
         {rung.why}
       </p>
+
+      {/*
+        How old the freshest item is. Rungs are never time-filtered — restricting them to
+        "today" is how a market-intelligence tool shows nothing on a quiet Tuesday — so
+        they reach back as far as they need to and then say how far that was. Stale is
+        fine; stale presented as current is not.
+      */}
+      {rung.newestAgeDays != null && rung.newestAgeDays > 7 ? (
+        <p className="mt-1.5 text-[11.5px] text-caution-700 dark:text-caution-100">
+          Nothing in the last week — the most recent here is{' '}
+          {rung.newestAgeDays < 31
+            ? `${rung.newestAgeDays} days old`
+            : `about ${Math.round(rung.newestAgeDays / 30)} months old`}
+          .
+        </p>
+      ) : null}
+
       {rung.events.length === 0 ? (
         <p className="mt-3 max-w-[72ch] text-[13px] leading-[1.65] text-[var(--text-subtle)]">
           {rung.emptyMeans}

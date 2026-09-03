@@ -32,7 +32,37 @@ export interface SessionUser {
   role: string;
 }
 
+/**
+ * The shared account used when `AUTH_MODE=open`.
+ *
+ * Everyone who walks in past the landing page is this user. Preferences, reading state
+ * and saved insights therefore belong to the workspace rather than to an individual —
+ * which is the trade open mode makes, and the reason it is not the default.
+ */
+async function sharedWorkspaceUser(): Promise<SessionUser | null> {
+  const rows = await db()
+    .select({
+      userId: schema.users.id,
+      email: schema.users.email,
+      name: schema.users.name,
+      isDemo: schema.users.isDemo,
+      workspaceId: schema.workspaces.id,
+      workspaceName: schema.workspaces.name,
+      organizationId: schema.workspaces.organizationId,
+      role: schema.memberships.role,
+    })
+    .from(schema.users)
+    .innerJoin(schema.memberships, eq(schema.memberships.userId, schema.users.id))
+    .innerJoin(schema.workspaces, eq(schema.workspaces.id, schema.memberships.workspaceId))
+    .orderBy(schema.users.createdAt)
+    .limit(1);
+  return rows[0] ?? null;
+}
+
 export async function currentUser(): Promise<SessionUser | null> {
+  // Open mode: no cookie, no session, no password. The landing page is the door.
+  if (config().AUTH_MODE === 'open') return sharedWorkspaceUser();
+
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token) return null;
 

@@ -144,6 +144,17 @@ const EnvSchema = z.object({
    * must not mean an open endpoint.
    */
   CRON_SECRET: str(''),
+  /**
+   * `password` (default) requires sign-in. `open` signs every visitor in as the shared
+   * workspace account, with no password and no sign-up.
+   *
+   * Open mode exists so the product can be handed round for reactions without everyone
+   * needing an account first. It has a real consequence: anyone with the URL is inside,
+   * and everything typed into the Companion or the feedback box belongs to one shared
+   * identity. Fine for public-source market intelligence being reviewed by colleagues;
+   * not fine the moment anything private is entered.
+   */
+  AUTH_MODE: z.enum(['password', 'open']).default('password'),
   PGLITE_PORT: int(55432),
 
   SESSION_SECRET: optionalSecret,

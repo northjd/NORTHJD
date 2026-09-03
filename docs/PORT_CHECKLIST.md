@@ -118,3 +118,21 @@ this corpus the emptiness usually *is* the finding:
   refuses to answer from general knowledge.
 - **My client with no direct coverage.** Widens to peers, industry, topics and finally the
   market, and states which level it is speaking at.
+
+---
+
+## Later session — restructure, open access, deals
+
+| Change | Why |
+|---|---|
+| **85 entities, 17 industries, 215 aliases** | Searching a real company returned nothing because it was not in the entity table. PMI, JTI, BAT, Migros, Coop, Aldi (both), Schwarz Gruppe, Rewe, MediaMarktSaturn, adidas, On, Triumph, McDonald's and the consumer-goods majors now resolve — `PMI` → Philip Morris International, `Lidl` → Schwarz Gruppe, `Estee` → Estée Lauder |
+| **Travel & Hospitality modelled** | One of the practice's three core industries did not exist. Full value chain, KPI tree and business models, like Retail and Fashion |
+| **Twelve recognised-but-unmodelled industries** | Tobacco, automotive, pharma, financial services and others exist for classification and search only. `IndustrySeed` made its heavy fields optional so an industry can be recognised without a market model being invented for it |
+| **Companies tab, industry-first** | Was "My client", led with the client, and opened on an apology when there was no coverage. Now leads with the market, then who is moving in it, then the company itself, then regulatory, cross-industry forces and the wider market. Renamed because "Accounts" asserts a client relationship the data does not record |
+| **Regulatory ring** | Keyed on source perspective rather than topic tags: nothing in the corpus is tagged `regulation`, but what a regulator publishes is regulatory by definition. Twelve events where there had been none |
+| **Rung freshness** | Rungs are never time-filtered — restricting to "today" is how a market-intelligence tool shows nothing on a quiet Tuesday. They reach back as far as needed and say how far that was |
+| **Key deals** | Acquisitions, divestitures, investments, partnerships, market entries. 37 tracked, 32 announced only, 10 independently reported, 5 with a stated figure. Leads with "announced is not completed" |
+| **Source text on insights** | The page showed evidence spans but none of the article. "In the source's own words" now carries the stored excerpt verbatim with a link out, and a badge saying which rights scope applies |
+| **Open access** | `AUTH_MODE=open`: landing page → Activate NORTH → in. No passwords, no sign-up. First run is per browser rather than per account, and set-up says plainly that preferences are shared |
+| **Companion removed from navigation** | Without a language model it returns only sentences already in the corpus, which makes an "ask anything" box a slower search that mostly refuses. Route and engine remain for when a model is configured |
+| **Narrow-viewport shell** | The sidebar kept its column layout and pushed results 761px down the page. Below 900px it is a 44px scrolling strip and content starts at 90px |

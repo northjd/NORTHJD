@@ -44,7 +44,6 @@ const AREAS: Item[] = [
   { group: 'Go to', icon: '◇', label: 'Watch', href: '/watch' },
   { group: 'Go to', icon: '⊞', label: 'Explore', href: '/explore' },
   { group: 'Go to', icon: '◆', label: 'My client', href: '/account' },
-  { group: 'Go to', icon: '◧', label: 'Companion', href: '/companion' },
   { group: 'Go to', icon: '▤', label: 'Learn', href: '/learn' },
   { group: 'Go to', icon: '◈', label: 'Prepare', href: '/prepare' },
   { group: 'Go to', icon: '▢', label: 'Library', href: '/library' },

@@ -421,23 +421,85 @@ mark.evidence-highlight {
   grid-template-rows: 46px minmax(0, 1fr) 26px;
   grid-template-areas: 'side bar' 'side main' 'side status';
 }
+/*
+ * Narrow viewports.
+ *
+ * The sidebar used to keep its vertical layout and simply move above the content, which
+ * turned twelve navigation items into a tall block that pushed the results off the
+ * screen entirely. Below 900px it becomes a single scrolling strip instead: icons and
+ * labels in a row, group headings dropped, saved views and the profile link tucked away.
+ * The content then starts where it should — just under the bar.
+ */
 @media (max-width: 900px) {
   .app-shell {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 46px auto minmax(0, 1fr) 26px;
     grid-template-areas: 'bar' 'side' 'main' 'status';
-    height: auto;
-    min-height: 100dvh;
+    height: 100dvh;
   }
 }
 
-.shell-side { grid-area: side; background: var(--surface-raised); border-right: 1px solid var(--border); overflow-y: auto; }
+.shell-side {
+  grid-area: side;
+  background: var(--surface-raised);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  /* Direction lives here rather than as a utility class, so the narrow-viewport rule
+     below can flip it without fighting Tailwind's source order. */
+  display: flex;
+  flex-direction: column;
+}
 .shell-bar { grid-area: bar; background: var(--surface-sunken); border-bottom: 1px solid var(--border); }
 .shell-main { grid-area: main; overflow-y: auto; background: var(--surface-sunken); }
 .shell-status { grid-area: status; background: var(--surface-raised); border-top: 1px solid var(--border); }
 @media (max-width: 900px) {
-  .shell-side { border-right: 0; border-bottom: 1px solid var(--border); }
-  .shell-main { overflow: visible; }
+  .shell-side {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    /* One scrolling row rather than a stacked column. `nowrap` is the load-bearing
+       part: without it the items wrap into four rows and the strip is as tall as the
+       column it replaced. */
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 2px;
+    height: 44px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    padding: 0 8px;
+  }
+  .shell-side::-webkit-scrollbar { display: none; }
+
+  /* Group headings, saved views and the profile row are all vertical-list furniture. */
+  .shell-side .t-eyebrow,
+  .shell-side [data-shell-secondary] { display: none; }
+
+  .shell-side > a:first-child {
+    height: auto;
+    border-bottom: 0;
+    padding: 0 10px 0 2px;
+    flex: 0 0 auto;
+  }
+  /* Two levels of wrapper: the scroll container and the group inside it. Flattening
+     only one leaves the groups as flex items, which is why the strip still wrapped. */
+  .shell-side > div,
+  .shell-side > div > div { display: contents; }
+
+  .nav-item {
+    flex: 0 0 auto;
+    margin: 6px 0;
+    white-space: nowrap;
+  }
+  .nav-item[data-active='true']::before {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: -6px;
+    width: auto;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+  }
 }
 
 /* Uppercase micro-labels are the structural device: wide tracking, small size,

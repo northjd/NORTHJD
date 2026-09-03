@@ -9,18 +9,31 @@
  * is, and `sourceRefs` pointing at public material a reader can check.
  */
 
+/**
+ * An industry, either modelled or merely recognised.
+ *
+ * The four seeded market models carry a full value chain, KPI tree and business-model
+ * set. Most industries here are not modelled: they exist so that a company can be
+ * classified, found by search and reasoned about — "Philip Morris International,
+ * tobacco, no source registered" is a far better answer than silence, and it names the
+ * thing that would fix it.
+ *
+ * Everything below `sourceRefs` is therefore optional. Inventing a value chain for an
+ * industry nobody has researched would be exactly the kind of confident fabrication this
+ * product exists to avoid, so an unmodelled industry says so instead.
+ */
 export interface IndustrySeed {
   slug: string;
   name: string;
   parentSlug?: string;
   definition: string;
-  marketStructure: string;
-  regulatoryEnvironment: string;
-  transformationAgenda: string;
-  openQuestions: string[];
-  sourceRefs: { label: string; url: string }[];
-  valueChainStages: { slug: string; name: string; description: string; profitPoolNote: string }[];
-  kpis: {
+  marketStructure?: string;
+  regulatoryEnvironment?: string;
+  transformationAgenda?: string;
+  openQuestions?: string[];
+  sourceRefs?: { label: string; url: string }[];
+  valueChainStages?: { slug: string; name: string; description: string; profitPoolNote: string }[];
+  kpis?: {
     slug: string;
     name: string;
     definition: string;
@@ -30,8 +43,10 @@ export interface IndustrySeed {
     valueLever?: string;
     typicalRange?: string;
   }[];
-  businessModels: { slug: string; name: string; description: string; economics: string; examples: string[] }[];
-  capabilities: { slug: string; name: string; description: string; stageSlug?: string; dimensions: string[] }[];
+  businessModels?: { slug: string; name: string; description: string; economics: string; examples: string[] }[];
+  capabilities?: { slug: string; name: string; description: string; stageSlug?: string; dimensions: string[] }[];
+  /** False when the industry exists only for classification and search. */
+  isModelled?: boolean;
 }
 
 export const INDUSTRIES: IndustrySeed[] = [
@@ -228,6 +243,79 @@ export const INDUSTRIES: IndustrySeed[] = [
       { slug: 'agentic-orchestration', name: 'Agentic orchestration', description: 'Multi-step tool-using systems with evaluation and human oversight.', stageSlug: 'tech-platform', dimensions: ['technology', 'process', 'change_adoption'] },
     ],
   },
+
+  /*
+   * Recognised, not modelled.
+   *
+   * These exist so a company can be classified, found by search, and reasoned about.
+   * "Philip Morris International, tobacco, no source registered" is a far better answer
+   * than silence, and it names the thing that would change it.
+   *
+   * They carry no value chain, KPI tree or business models, and the industry page says
+   * so plainly. Inventing a market model for a sector nobody has researched would be
+   * precisely the confident fabrication this product exists to prevent.
+   */
+  { slug: 'tobacco', name: 'Tobacco & Nicotine', definition: 'Combustible tobacco, heated-tobacco and vapour products, and the regulatory transition between them.' },
+  { slug: 'automotive', name: 'Automotive & Mobility', definition: 'Vehicle manufacture, suppliers, dealer networks and mobility services.' },
+  { slug: 'pharmaceuticals', name: 'Pharmaceuticals & Life Sciences', definition: 'Drug discovery, trials, manufacture and commercialisation, and medical devices.' },
+  { slug: 'financial-services', name: 'Financial Services', definition: 'Banking, insurance, payments, asset management and market infrastructure.' },
+  { slug: 'energy-utilities', name: 'Energy & Utilities', definition: 'Generation, networks, retail supply, and the transition away from hydrocarbons.' },
+  { slug: 'telecommunications', name: 'Telecommunications', definition: 'Fixed and mobile network operators, infrastructure and connectivity services.' },
+  { slug: 'healthcare', name: 'Healthcare Providers & Payers', definition: 'Hospital groups, care providers, insurers and health systems.' },
+  { slug: 'food-beverage', name: 'Food & Beverage', definition: 'Packaged food, drinks, brewing and food service.' },
+  { slug: 'logistics', name: 'Transport & Logistics', definition: 'Freight forwarding, parcel, contract logistics and shipping.' },
+  { slug: 'industrial-manufacturing', name: 'Industrial Manufacturing', definition: 'Capital goods, components, process industries and industrial automation.' },
+  { slug: 'media-entertainment', name: 'Media & Entertainment', definition: 'Streaming, broadcast, publishing, gaming and live entertainment.' },
+  { slug: 'public-sector', name: 'Public Sector', definition: 'Government departments, agencies and publicly funded services.' },
+
+  // ── Travel ────────────────────────────────────────────────────────────────
+  {
+    slug: 'travel',
+    name: 'Travel & Hospitality',
+    definition:
+      'Airlines, hotels, cruise lines, online travel agencies and the distribution technology between them. A capacity business: the inventory is perishable, the unit is a seat or a room-night, and an unsold one is worth nothing the moment it expires.',
+    marketStructure:
+      'Fragmented supply and concentrated distribution. A handful of global distribution systems and online travel agencies sit between thousands of operators and their customers, taking commission on bookings the operator could not otherwise fill. Loyalty programmes and direct booking are the operators’ counter-move, and in several airline groups the loyalty programme is worth more than the flying operation.',
+    regulatoryEnvironment:
+      'Slot allocation, consumer compensation regimes such as EU261, package-travel liability, safety oversight, and increasingly emissions rules — SAF mandates, corporate reporting, and the pass-through of carbon costs into fares.',
+    transformationAgenda:
+      'Dynamic pricing beyond the legacy fare-class ladder, retailing offers rather than fares, direct-booking economics against distribution commission, and demand forecasting after several years in which historical patterns stopped predicting anything.',
+    openQuestions: [
+      'Does an AI pricing system beat the revenue-management systems already in place, or does it mostly replace their interface?',
+      'Where does loyalty-programme value actually sit once the financing structures are unwound?',
+      'How much direct-booking share is genuinely recoverable from the intermediaries, and at what marketing cost?',
+    ],
+    sourceRefs: [],
+    valueChainStages: [
+      { slug: 'travel-inventory', name: 'Inventory & capacity', description: 'Fleet, route, room and sailing capacity, and how far ahead it is committed.', profitPoolNote: 'Fixed cost is committed long before demand is known; everything downstream is an attempt to fill it.' },
+      { slug: 'travel-revenue-management', name: 'Revenue management & pricing', description: 'Fare and rate setting, overbooking, and how price moves as departure approaches.', profitPoolNote: 'The single largest margin lever in the sector, and the one most often mistaken for a technology problem.' },
+      { slug: 'travel-distribution', name: 'Distribution & channel mix', description: 'Direct, agency, global distribution systems, metasearch and online travel agencies.', profitPoolNote: 'Commission transfers margin to intermediaries; direct share is worth several points of it.' },
+      { slug: 'travel-loyalty', name: 'Loyalty & customer value', description: 'Programme economics, point liability, partner earning and co-brand cards.', profitPoolNote: 'Frequently a higher-margin business than the operation it was created to support.' },
+      { slug: 'travel-operations', name: 'Operations & disruption', description: 'Turnarounds, crew and staff rostering, and recovery when the day goes wrong.', profitPoolNote: 'Disruption cost is largely invisible in the accounts and enormous in the aggregate.' },
+      { slug: 'travel-ancillary', name: 'Ancillary & retailing', description: 'Bags, seats, upgrades, packages and everything sold alongside the core unit.', profitPoolNote: 'High margin and growing; increasingly the difference between profit and loss on a fare.' },
+    ],
+    kpis: [
+      { slug: 'travel-rasm', name: 'Revenue per available seat or room', definition: 'Revenue divided by capacity offered, sold or not.', formula: 'total revenue ÷ available seat-kilometres or room-nights', whyItMatters: 'The sector’s core efficiency measure, because it charges you for capacity you failed to sell.', valueLever: 'revenue_growth' },
+      { slug: 'travel-load-factor', name: 'Load factor / occupancy', definition: 'Share of available capacity actually sold.', formula: 'units sold ÷ units available', whyItMatters: 'High occupancy at a low rate can be worse than the reverse, which is why it is never read alone.', valueLever: 'revenue_growth' },
+      { slug: 'travel-adr', name: 'Average daily rate / average fare', definition: 'Mean realised price per unit sold.', formula: 'room or fare revenue ÷ units sold', whyItMatters: 'Reads against occupancy: the trade between them is the whole of revenue management.', valueLever: 'margin_improvement' },
+      { slug: 'travel-direct-share', name: 'Direct booking share', definition: 'Share of bookings made through owned channels.', formula: 'direct bookings ÷ total bookings', whyItMatters: 'Each point moved from intermediary to direct retains the commission, less the cost of winning it.', valueLever: 'margin_improvement' },
+      { slug: 'travel-ancillary-per-unit', name: 'Ancillary revenue per unit', definition: 'Non-core revenue per passenger or stay.', formula: 'ancillary revenue ÷ units sold', whyItMatters: 'Usually the highest-margin revenue in the business.', valueLever: 'revenue_growth' },
+    ],
+    businessModels: [
+      { slug: 'travel-full-service', name: 'Full-service carrier or hotel group', description: 'Broad network, multiple classes, loyalty programme, owned distribution.', economics: 'High fixed cost, premium and loyalty revenue carry the network.', examples: [] },
+      { slug: 'travel-low-cost', name: 'Low-cost operator', description: 'Point-to-point, single class, unbundled fares, ancillary-led.', economics: 'Cost per unit is the strategy; ancillary revenue converts a thin fare into a margin.', examples: [] },
+      { slug: 'travel-ota', name: 'Online travel agency / marketplace', description: 'Aggregates third-party inventory and sells it on commission.', economics: 'Asset-light and marketing-heavy; economics are decided by acquisition cost against take rate.', examples: [] },
+      { slug: 'travel-asset-light-hotel', name: 'Franchise and management model', description: 'Brand, distribution and standards supplied to owners who hold the property.', economics: 'Fee income on someone else’s capital; scales without the balance sheet.', examples: [] },
+    ],
+    capabilities: [
+      { slug: 'travel-dynamic-pricing', name: 'Dynamic pricing & offer construction', description: 'Setting and re-setting price as demand and time to departure change.', stageSlug: 'travel-revenue-management', dimensions: ['data_and_technology', 'decision_rights'] },
+      { slug: 'travel-demand-forecasting', name: 'Demand forecasting', description: 'Predicting bookings by route, property, segment and season.', stageSlug: 'travel-revenue-management', dimensions: ['data_and_technology'] },
+      { slug: 'travel-disruption-recovery', name: 'Disruption recovery', description: 'Re-accommodating passengers and crew when the operation breaks.', stageSlug: 'travel-operations', dimensions: ['process_design', 'decision_rights'] },
+      { slug: 'travel-personalisation', name: 'Offer personalisation', description: 'Matching ancillaries and upgrades to the traveller and the trip.', stageSlug: 'travel-ancillary', dimensions: ['data_and_technology', 'customer_experience'] },
+    ],
+    isModelled: true,
+  },
+
 ];
 
 export const TOPICS = [

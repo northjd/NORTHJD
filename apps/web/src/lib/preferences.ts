@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 import { and, asc, eq, inArray } from 'drizzle-orm';
 import { db, schema } from '@mios/database';
 import { requireUser } from '@/lib/session';
@@ -148,6 +149,16 @@ export async function savePreferences(formData: FormData): Promise<void> {
     });
 
   await saveWatchlist(user.userId, user.workspaceId, list('entities'));
+
+  // Marks this browser as having been through set-up. In open mode that is what stops
+  // the page reappearing on every visit, since there is no per-person account to record
+  // it against.
+  (await cookies()).set('north_setup_seen', '1', {
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 365,
+  });
 
   revalidatePath('/');
   revalidatePath('/explore');
