@@ -124,6 +124,30 @@ export interface ExploreFilters {
   excludeDemo: boolean;
   /** Free-text search across the event's title and summary. */
   query: string;
+  /** How the results are ordered. In the URL like every other filter, so a sorted view
+   *  is shareable and survives a reload. */
+  sort: SortOrder;
+}
+
+/**
+ * The orderings worth offering.
+ *
+ * Deliberately short. Each answers a question someone actually asks — "what is newest",
+ * "what matters most", "what can I trust", "what is corroborated", "what fits in the
+ * time I have" — rather than exposing every column the table happens to have.
+ */
+export const SORT_ORDERS = {
+  recent: 'Newest first',
+  impact: 'Strategic impact',
+  evidence: 'Evidence strength',
+  sources: 'Most sources',
+  shortest: 'Shortest first',
+} as const;
+
+export type SortOrder = keyof typeof SORT_ORDERS;
+
+export function isSortOrder(v: string): v is SortOrder {
+  return Object.prototype.hasOwnProperty.call(SORT_ORDERS, v);
 }
 
 export const EMPTY_FILTERS: ExploreFilters = {
@@ -143,6 +167,7 @@ export const EMPTY_FILTERS: ExploreFilters = {
   maxMinutes: null,
   independentOnly: false,
   excludeDemo: false,
+  sort: 'recent',
   query: '',
 };
 
@@ -222,6 +247,10 @@ export function parseFilters(params: SearchParams): ExploreFilters {
     independentOnly: preset?.independentOnly || truthy(params.independent),
     excludeDemo: truthy(params.hideDemo),
     query: first(params.q).slice(0, 200).trim(),
+    sort: (() => {
+      const raw = first(params.sort);
+      return isSortOrder(raw) ? raw : 'recent';
+    })(),
   };
 }
 
@@ -243,6 +272,8 @@ export function toSearchParams(f: ExploreFilters): URLSearchParams {
   put('impact', f.impacts);
   put('novelty', f.novelties);
   if (f.perspectiveGroup) p.set('perspective', f.perspectiveGroup);
+  // 'recent' is the default, so it stays out of the URL and links look clean.
+  if (f.sort !== 'recent') p.set('sort', f.sort);
   if (f.withinDays) p.set('within', String(f.withinDays));
   if (f.maxMinutes) p.set('minutes', String(f.maxMinutes));
   if (f.independentOnly) p.set('independent', '1');

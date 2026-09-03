@@ -138,6 +138,12 @@ const EnvSchema = z.object({
    * workspace. Rotate it by changing the deployment variable, not the database.
    */
   SIGNUP_INVITE_CODE: str(''),
+  /**
+   * Shared secret for the scheduled ingestion route. Vercel sends it as a bearer token
+   * on cron invocations. Empty means the route refuses every request — an unset secret
+   * must not mean an open endpoint.
+   */
+  CRON_SECRET: str(''),
   PGLITE_PORT: int(55432),
 
   SESSION_SECRET: optionalSecret,

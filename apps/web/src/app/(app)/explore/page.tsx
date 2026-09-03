@@ -172,7 +172,7 @@ export default async function ExplorePage({
                 <Card
                   as="li"
                   key={r.insightId}
-                  className={`card-lift animate-rise pl-5`}
+                  className={`card-lift animate-rise relative pl-9`}
                   data-evidence={
                     strongEvidence.has(r.evidenceStrength)
                       ? 'strong'
@@ -182,6 +182,11 @@ export default async function ExplorePage({
                   }
                   style={{ animationDelay: `${Math.min(i, 12) * 26}ms` }}
                 >
+                  {/* Orientation in a long list, and a stable thing to refer to when
+                      two people are looking at the same filtered view. */}
+                  <span className="row-index absolute left-1.5 top-4" aria-hidden>
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
                   <div className="mb-2 flex flex-wrap items-center gap-1.5">
                     <NoveltyBadge novelty={r.novelty as never} />
                     <MaturityBadge maturity={r.caseMaturity} />

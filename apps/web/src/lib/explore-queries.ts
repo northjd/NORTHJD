@@ -100,6 +100,43 @@ const baseConditions = (workspaceId: string) => [
   eq(events.isSuppressed, false),
 ];
 
+/**
+ * Ordering, expressed in SQL rather than sorted in memory.
+ *
+ * Every option falls back to recency, so ties never come back in an arbitrary order —
+ * two loads of the same filtered view produce the same list, which matters when someone
+ * refers to "the third one down".
+ */
+function orderFor(sort: ExploreFilters['sort']) {
+  const recency = desc(sql`coalesce(${events.eventAt}, ${events.firstReportedAt})`);
+  switch (sort) {
+    case 'impact':
+      return [
+        sql`case ${events.strategicImpact}
+              when 'very_high' then 0 when 'high' then 1
+              when 'moderate' then 2 else 3 end`,
+        recency,
+      ];
+    case 'evidence':
+      return [
+        sql`case ${events.evidenceStrength}
+              when 'QUANTIFIED_PRIMARY_EVIDENCE' then 0
+              when 'UNQUANTIFIED_PRIMARY_EVIDENCE' then 1
+              when 'MULTIPLE_CREDIBLE_SECONDARY_SOURCES' then 2
+              when 'SINGLE_CREDIBLE_SECONDARY_SOURCE' then 3
+              when 'COMPANY_SELF_REPORTING' then 4 else 5 end`,
+        recency,
+      ];
+    case 'sources':
+      return [desc(events.sourceCount), desc(events.independentSourceCount), recency];
+    case 'shortest':
+      return [asc(insights.estimatedReadingMinutes), recency];
+    case 'recent':
+    default:
+      return [recency];
+  }
+}
+
 export async function queryExplore(
   workspaceId: string,
   f: ExploreFilters,
@@ -136,7 +173,7 @@ export async function queryExplore(
     .from(insights)
     .innerJoin(events, eq(events.id, insights.eventId))
     .where(where)
-    .orderBy(desc(sql`coalesce(${events.eventAt}, ${events.firstReportedAt})`))
+    .orderBy(...orderFor(f.sort))
     .limit(PAGE_SIZE)
     .offset(page * PAGE_SIZE);
 
