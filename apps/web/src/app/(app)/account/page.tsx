@@ -12,7 +12,7 @@ import { EvidenceBadge } from '@mios/ui';
 export const dynamic = 'force-dynamic';
 
 /**
- * Companies — one company read through its market.
+ * Market search — look up a company, read it through its market.
  *
  * Deliberately not called Accounts: naming it that would assert a client relationship
  * the data does not record, and would turn a company list into a client list for anyone
@@ -52,9 +52,9 @@ export default async function AccountPage({
   if (!slug) {
     return (
       <div className="mx-auto max-w-[820px]">
-        <p className="t-eyebrow">Company</p>
+        <p className="t-eyebrow">Market search</p>
         <h1 className="mt-2 text-[27px] font-semibold leading-[1.16] tracking-[-0.028em]">
-          Pick a company
+          Look up a company
         </h1>
         <p className="mt-3 max-w-[62ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
           One company read through its market. What moved in the sector, who moved it, and
@@ -84,7 +84,7 @@ export default async function AccountPage({
 
   return (
     <div className="mx-auto max-w-[900px]">
-      <p className="t-eyebrow">Company</p>
+      <p className="t-eyebrow">Market search</p>
       <h1 className="mt-2 text-[27px] font-semibold leading-[1.16] tracking-[-0.028em]">
         {board.entity.name}
       </h1>

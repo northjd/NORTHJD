@@ -44,6 +44,7 @@ const NAV_GROUPS = [
     label: 'Intelligence',
     items: [
       { href: '/', label: 'Today', icon: '◎', hint: 'Your finite daily brief' },
+      { href: '/account', label: 'Market search', icon: '◆', hint: 'Look up a company and read it through its market — what moved, who moved it, and what the company itself has said' },
       { href: '/watch', label: 'Watch', icon: '◇', hint: 'What is unresolved, and what would settle it' },
       { href: '/deals', label: 'Key deals', icon: '⇄', hint: 'Publicly announced acquisitions, investments, partnerships and market entries' },
       { href: '/explore', label: 'Explore', icon: '⊞', hint: 'Companies, industries, technologies' },
@@ -52,7 +53,6 @@ const NAV_GROUPS = [
   {
     label: 'Practice',
     items: [
-      { href: '/account', label: 'Companies', icon: '◆', hint: 'One company read through its market — what moved, who moved it, and what the company itself has said' },
       { href: '/learn', label: 'Learn', icon: '▤', hint: 'Industry fundamentals and learning paths' },
       { href: '/prepare', label: 'Prepare', icon: '◈', hint: 'Meeting preparation' },
       { href: '/library', label: 'Library', icon: '▢', hint: 'Saved insights, notes, collections' },
