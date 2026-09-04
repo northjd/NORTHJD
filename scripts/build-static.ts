@@ -300,5 +300,19 @@ try {
   // Always restore, including after a failed build — otherwise a broken export leaves
   // the repository missing a third of its routes.
   restoreExcluded();
-  console.log('  Excluded routes restored.\n');
+  console.log('  Excluded routes restored.');
+
+  /*
+   * And throw away `.next`.
+   *
+   * Restoring the source files is not enough: the build directory left behind is an
+   * export of a deliberately incomplete app, with `/onboarding`, `/login` and every other
+   * server-only route missing. `next start` will happily serve it, and what you get is a
+   * 404 on the set-up page and no clue why — which is exactly how a green end-to-end
+   * suite reported 50 failures against code that was fine.
+   *
+   * Deleting it costs one rebuild and removes a whole category of confusion.
+   */
+  rmSync(resolve(root, 'apps/web/.next'), { recursive: true, force: true });
+  console.log('  Build cache cleared — `npm run build` rebuilds the server app.\n');
 }
