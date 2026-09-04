@@ -140,9 +140,26 @@ export function SetupGate() {
       [key]: p[key].includes(slug) ? p[key].filter((s) => s !== slug) : [...p[key], slug],
     }));
 
+  /*
+   * Always hands over to Today, never to whatever was underneath.
+   *
+   * The gate is an overlay, so it opens on top of whatever route the browser happened to
+   * restore. Closing it without navigating drops a first-time visitor onto Ask or
+   * Explore — a page that assumes you already know what you are looking for — when the
+   * brief is the thing set-up was configuring.
+   */
   const finish = (saveChoices: boolean) => {
     writePreferences(saveChoices ? prefs : {});
     setNeeded(false);
+    /*
+     * A full load, not router.push.
+     *
+     * Today reads these preferences once, when it mounts, and a client-side navigation
+     * does not remount a component that is already on screen — so the brief you were
+     * just handed stayed the generic one until you happened to reload. Reloading once at
+     * the end of set-up is a fair price for the first thing you see being yours.
+     */
+    window.location.assign(assetPath('/'));
   };
 
   const companyMatches = companyQuery.trim()
@@ -232,23 +249,40 @@ export function SetupGate() {
           why="Sets the register of what you read."
         >
           <div className="grid gap-2 sm:grid-cols-3">
-            {DEPTHS.map((d) => (
-              <button
-                key={d.value}
-                type="button"
-                onClick={() => setPrefs((p) => ({ ...p, preferredDepth: d.value }))}
-                className={`rounded-md border p-3 text-left transition-colors ${
-                  prefs.preferredDepth === d.value
-                    ? 'border-[var(--accent)]'
-                    : 'border-[var(--border-strong)]'
-                }`}
-              >
-                <span className="block text-[13px] font-medium">{d.label}</span>
-                <span className="mt-1 block text-[11.5px] leading-relaxed text-[var(--text-subtle)]">
-                  {d.hint}
-                </span>
-              </button>
-            ))}
+            {DEPTHS.map((d) => {
+              const on = prefs.preferredDepth === d.value;
+              return (
+                <button
+                  key={d.value}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setPrefs((p) => ({ ...p, preferredDepth: d.value }))}
+                  /*
+                   * Selected state carries on more than a border colour. One of these is
+                   * always chosen, so the difference between the picked card and the
+                   * other two is the only thing telling you the click landed.
+                   */
+                  className={`rounded-md border p-3 text-left transition-colors ${
+                    on
+                      ? 'border-[var(--accent)] bg-[var(--surface-raised)] ring-1 ring-[var(--accent)]'
+                      : 'border-[var(--border-strong)] hover:border-[var(--accent-line)]'
+                  }`}
+                >
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="text-[13px] font-medium">{d.label}</span>
+                    <span
+                      aria-hidden
+                      className={`text-[11px] leading-none ${on ? 'text-[var(--accent)]' : 'text-transparent'}`}
+                    >
+                      ✓
+                    </span>
+                  </span>
+                  <span className="mt-1 block text-[11.5px] leading-relaxed text-[var(--text-subtle)]">
+                    {d.hint}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </Section>
 

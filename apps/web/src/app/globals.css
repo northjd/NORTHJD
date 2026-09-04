@@ -108,8 +108,19 @@
   --shadow-3: 0 12px 48px -12px rgb(0 0 0 / 0.8);
 }
 
-* {
-  border-color: var(--border);
+/*
+ * A sane default border colour, so `border` on its own is never the browser's black.
+ *
+ * It has to live in `@layer base`. Unlayered CSS beats every layered rule no matter how
+ * specific the layered one is, and Tailwind puts its utilities in `@layer utilities` —
+ * so as a bare `* { }` this quietly overrode every `border-[var(--…)]` in the codebase.
+ * Selected chips, active filters and the depth cards all set an accent border, all had
+ * the class applied, and all rendered identically to their unselected state.
+ */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
 }
 
 /* The hidden attribute must beat any explicit display rule. A section with
