@@ -200,13 +200,28 @@ function load(): Env {
   }
   const env = parsed.data;
 
-  if (env.NODE_ENV === 'production') {
+  /*
+   * A static export signs nothing, so it needs no signing key.
+   *
+   * `next build` runs as NODE_ENV=production, which made this demand a SESSION_SECRET
+   * from a build that has no server, no cookies and no sessions to protect. It passed on
+   * any machine with a local .env and failed on every clean checkout — which is to say,
+   * on CI, on the first run, after everything else had already been verified.
+   *
+   * The check is right for a deployment that serves requests and wrong for a folder of
+   * HTML. Kept in full force for the former.
+   */
+  const staticExport = process.env.STATIC_EXPORT === '1';
+
+  if (env.NODE_ENV === 'production' && !staticExport) {
     if (!env.SESSION_SECRET || env.SESSION_SECRET.length < 32) {
       throw new Error('SESSION_SECRET must be set to at least 32 characters in production');
     }
-    if (env.AI_PROVIDER === 'anthropic' && !env.ANTHROPIC_API_KEY) {
-      throw new Error('AI_PROVIDER=anthropic requires ANTHROPIC_API_KEY');
-    }
+  }
+  // Not exempt: asking for a model with no key gives silent, unevidenced output whether
+  // or not there is a server.
+  if (env.NODE_ENV === 'production' && env.AI_PROVIDER === 'anthropic' && !env.ANTHROPIC_API_KEY) {
+    throw new Error('AI_PROVIDER=anthropic requires ANTHROPIC_API_KEY');
   }
   return Object.freeze(env);
 }

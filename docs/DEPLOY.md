@@ -104,11 +104,11 @@ worked on every local check got caught before it reached production.
 | Thing                    | Limit                   | Where we are    |
 | ------------------------ | ----------------------- | --------------- |
 | Actions minutes (public) | unlimited               | ~10 min × 8/day |
-| Published site size      | 1 GB soft limit         | ~200 MB         |
+| Published site size      | 1 GB soft limit         | ~290 MB         |
 | Pages bandwidth          | 100 GB/month soft limit | far below       |
 | Builds per hour          | 10                      | 1 every 3 hours |
 
-The site is uploaded as a build artifact rather than committed. The output is ~200 MB and
+The site is uploaded as a build artifact rather than committed. The output is ~290 MB and
 changes substantially every three hours; committing it would make the repository unusable
 inside a week.
 
