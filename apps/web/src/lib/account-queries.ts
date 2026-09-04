@@ -64,6 +64,8 @@ export interface AccountBoard {
     aliases: string | null;
   };
   industryNames: string | null;
+  /** Recorded against the company, excluding any override. */
+  recordedIndustryNames: string | null;
   industrySlugs: string[];
   industryIsInferred: boolean;
   allIndustries: { slug: string; name: string }[];
@@ -141,14 +143,35 @@ export async function queryAccount(
   const profileIndustries = profileRows[0]?.industrySlugs ?? [];
   const profileTopics = profileRows[0]?.topicSlugs ?? [];
 
-  const own = [
-    ...(industryOverride ? [industryOverride] : []),
+  /*
+   * An override replaces; it does not add.
+   *
+   * Merging the two meant that reading Inditex through Tobacco still scoped every rung
+   * to retail and fashion as well, so "who else is in this market" answered Amazon and
+   * Walmart. That is the opposite of what choosing an industry is for.
+   */
+  const recorded = [
     ...(entity.primaryIndustry ? [entity.primaryIndustry] : []),
     ...linked,
   ].filter((v, i, a) => a.indexOf(v) === i);
 
+  const own = industryOverride ? [industryOverride] : recorded;
+
   const industrySlugs = own.length ? own : profileIndustries;
   const industryIsInferred = own.length === 0 && profileIndustries.length > 0;
+
+  // Kept separate so the surface can say "instead of …" and name what was replaced.
+  const recordedSlugs = recorded;
+
+  const recordedIndustryNames =
+    recordedSlugs.length > 0
+      ? (rows<{ names: string | null }>(
+          await db().execute(sql`
+            select string_agg(name, ', ') as names from industries
+             where slug = any(${sql.param(recordedSlugs)}::text[])
+          `),
+        )[0]?.names ?? null)
+      : null;
 
   const industryNames =
     industrySlugs.length > 0
@@ -410,6 +433,7 @@ export async function queryAccount(
       aliases: entity.aliases,
     },
     industryNames,
+    recordedIndustryNames,
     industrySlugs,
     industryIsInferred,
     allIndustries,

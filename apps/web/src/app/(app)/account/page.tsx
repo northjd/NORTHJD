@@ -4,6 +4,7 @@ import { db, schema } from '@mios/database';
 import { requireUser } from '@/lib/session';
 import { queryAccount, type AccountEvent, type AccountRung } from '@/lib/account-queries';
 import { searchEntities } from '@/lib/entity-search';
+import { MarketSearchControls } from '@/components/market-search-controls';
 import { Badge, Card, InterpretationBlock, MaturityBadge } from '@mios/ui';
 import { formatAbsolute } from '@mios/domain';
 import type { CaseMaturity, EvidenceStrength } from '@mios/domain';
@@ -47,7 +48,22 @@ export default async function AccountPage({
     .limit(1);
 
   const slug = requested ?? watchlistEntity[0]?.slug ?? null;
-  const choices = (await searchEntities('', 14)).filter((e) => e.events > 0).slice(0, 10);
+  // Every entity, including those with no coverage: a company you cannot search for is
+  // a question you cannot ask, and the page has an honest answer for an empty one.
+  const allCompanies = (await searchEntities('', 200)).map((e) => ({
+    slug: e.slug,
+    name: e.name,
+    events: e.events,
+  }));
+
+  const watchlistShortcuts = (
+    await db()
+      .select({ slug: schema.entities.slug, name: schema.entities.name })
+      .from(schema.watchlistItems)
+      .innerJoin(schema.watchlists, eq(schema.watchlists.id, schema.watchlistItems.watchlistId))
+      .innerJoin(schema.entities, eq(schema.entities.id, schema.watchlistItems.entityId))
+      .where(eq(schema.watchlists.workspaceId, user.workspaceId))
+  ).slice(0, 6);
 
   if (!slug) {
     return (
@@ -61,7 +77,15 @@ export default async function AccountPage({
           then what the company itself has said — in that order, because a conversation
           needs the market before it needs four press releases.
         </p>
-        <AccountChooser choices={choices} active={null} />
+        <MarketSearchControls
+          companies={allCompanies}
+          industries={[]}
+          activeCompany={null}
+          activeCompanyName={null}
+          recordedIndustries={null}
+          overrideIndustry={null}
+          shortcuts={watchlistShortcuts}
+        />
       </div>
     );
   }
@@ -113,78 +137,38 @@ export default async function AccountPage({
         </div>
       ) : null}
 
-      <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 border-y border-[var(--border)] py-5 sm:grid-cols-5">
+      {/* Counts as one quiet line of jump links rather than five large numerals. They
+          describe how much there is, which matters far less than the material itself —
+          the same reason the corpus totals moved off Today. */}
+      <nav className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-[var(--text-subtle)]">
         {board.rungs.map((r) => (
-          <div key={r.level}>
-            <dd
-              className={`text-[22px] font-semibold leading-none tabular-nums tracking-tight ${
-                r.level === board.leadWith ? '' : 'text-[var(--text-subtle)]'
-              }`}
-            >
-              {r.events.length}
-            </dd>
-            <dt className="t-section mt-1.5">{r.title.replace(/^On /, '')}</dt>
-          </div>
+          <a
+            key={r.level}
+            href={`#rung-${r.level}`}
+            className={`hover:text-[var(--text)] ${
+              r.level === board.leadWith ? 'text-[var(--text-muted)]' : ''
+            }`}
+          >
+            {r.title.replace(/^On /, '')}{' '}
+            <span className="tabular-nums opacity-70">{r.events.length}</span>
+          </a>
         ))}
-      </dl>
+      </nav>
 
-      <AccountChooser choices={choices} active={board.entity.slug} />
-
-      <section className="mt-8">
-        <h2 className="t-rule">Industry</h2>
-        <p className="mt-2 max-w-[70ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
-          {industry
-            ? `Overridden to ${board.industryNames}. Click it again, or use Clear override, to go back to what is recorded against ${board.entity.name}.`
-            : board.industryIsInferred
-              ? `No industry is recorded for ${board.entity.name}, so this uses the industries on your own profile. Pick a different one and every level below re-scopes.`
-              : `Recorded as ${board.industryNames}. Override it if the engagement sits elsewhere.`}
-        </p>
-        <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          {board.allIndustries.map((i) => {
-            // Two different kinds of "on": this is the override you chose, or it is one
-            // of the industries recorded against the company. Only the first can be
-            // switched off, and clicking it must clear the override rather than
-            // re-apply it — which is what made the filter feel stuck.
-            const isOverride = industry === i.slug;
-            const isRecorded = !industry && board.industrySlugs.includes(i.slug);
-            const active = isOverride || isRecorded;
-
-            return (
-              <Link
-                key={i.slug}
-                href={
-                  isOverride
-                    ? `/account?slug=${board.entity.slug}`
-                    : `/account?slug=${board.entity.slug}&industry=${i.slug}`
-                }
-                aria-pressed={active}
-                title={
-                  isOverride
-                    ? `Clear this override and go back to ${board.entity.name}'s recorded industries`
-                    : `Read ${board.entity.name} through ${i.name} instead`
-                }
-                className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[12px] transition-colors ${
-                  active
-                    ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--surface)]'
-                    : 'border-[var(--border-strong)] hover:border-[var(--accent-line)]'
-                }`}
-              >
-                {i.name}
-                {isOverride ? <span aria-hidden>✕</span> : null}
-              </Link>
-            );
-          })}
-
-          {industry ? (
-            <Link
-              href={`/account?slug=${board.entity.slug}`}
-              className="ml-1 text-[12px] text-[var(--text-subtle)] underline underline-offset-2 hover:text-[var(--text)]"
-            >
-              Clear override
-            </Link>
-          ) : null}
-        </div>
-      </section>
+      <MarketSearchControls
+        companies={allCompanies}
+        industries={board.allIndustries}
+        activeCompany={board.entity.slug}
+        activeCompanyName={board.entity.name}
+        recordedIndustries={board.recordedIndustryNames ?? board.industryNames}
+        overrideIndustry={industry ?? null}
+        shortcuts={
+          board.peers.length > 0
+            ? board.peers.slice(0, 6).map((p) => ({ slug: p.slug, name: p.name }))
+            : watchlistShortcuts
+        }
+        shortcutsLabel={board.peers.length > 0 ? 'Also in this market' : 'Your watchlist'}
+      />
 
       {board.rungs.map((rung) => (
         <RungSection key={rung.level} rung={rung} />
@@ -224,45 +208,10 @@ export default async function AccountPage({
   );
 }
 
-function AccountChooser({
-  choices,
-  active,
-}: {
-  choices: { slug: string; name: string; events: number }[];
-  active: string | null;
-}) {
-  return (
-    <section className="mt-8">
-      <h2 className="t-rule">Account</h2>
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {choices.map((c) => (
-          <Link
-            key={c.slug}
-            href={`/account?slug=${c.slug}`}
-            className={`rounded-md border px-2.5 py-1 text-[12px] ${
-              c.slug === active
-                ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--surface)]'
-                : 'border-[var(--border-strong)] hover:border-[var(--accent-line)]'
-            }`}
-          >
-            {c.name}
-            <span className="ml-1.5 opacity-60 tabular-nums">{c.events}</span>
-          </Link>
-        ))}
-        <Link
-          href="/coverage"
-          className="rounded-md border border-[var(--border-strong)] px-2.5 py-1 text-[12px] hover:border-[var(--accent-line)]"
-        >
-          Search all companies…
-        </Link>
-      </div>
-    </section>
-  );
-}
 
 function RungSection({ rung }: { rung: AccountRung }) {
   return (
-    <section className="mt-9">
+    <section id={`rung-${rung.level}`} className="mt-9 scroll-mt-4">
       <h2 className="t-rule">
         <span className="row-index mr-1">{rung.index}</span>
         {rung.title}
