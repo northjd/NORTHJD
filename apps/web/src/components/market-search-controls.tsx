@@ -117,8 +117,9 @@ export function MarketSearchControls({
         </div>
       ) : null}
 
-      {/* The override: one line when off, one line when on, and never seventeen buttons. */}
-      <div className="mt-3.5 text-[12px] text-[var(--text-subtle)]">
+      {/* The override: one line when off, one line when on, and never seventeen buttons.
+          Hidden entirely with no company chosen — there is nothing yet to scope. */}
+      <div className="mt-3.5 text-[12px] text-[var(--text-subtle)]" hidden={!activeCompany}>
         {overrideIndustry ? (
           <span className="inline-flex flex-wrap items-center gap-1.5">
             <span>

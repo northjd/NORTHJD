@@ -33,21 +33,18 @@ export default async function AccountPage({
   const user = await requireUser();
   const { slug: requested, industry } = await searchParams;
 
-  // Account resolution: an explicit choice, then a configured mission, then the
-  // watchlist. Nothing about any particular company is hard-coded.
-  const mission = await db().query.userMissions.findFirst({
-    where: eq(schema.userMissions.userId, user.userId),
-  });
-
-  const watchlistEntity = await db()
-    .select({ slug: schema.entities.slug })
-    .from(schema.watchlistItems)
-    .innerJoin(schema.watchlists, eq(schema.watchlists.id, schema.watchlistItems.watchlistId))
-    .innerJoin(schema.entities, eq(schema.entities.id, schema.watchlistItems.entityId))
-    .where(eq(schema.watchlists.workspaceId, user.workspaceId))
-    .limit(1);
-
-  const slug = requested ?? watchlistEntity[0]?.slug ?? null;
+  /*
+   * Nothing is selected until you select it.
+   *
+   * This used to fall back to the watchlist, so the page always opened on some company
+   * and its industries — which reads as an assertion that this is the one you care about,
+   * and made the first thing you saw a market you had not asked for.
+   *
+   * "Never show nothing" earns its keep once a company is chosen: from there the rungs
+   * widen until they have something. Before that, an empty search page is not a failure
+   * state, it is the question.
+   */
+  const slug = requested ?? null;
   // Every entity, including those with no coverage: a company you cannot search for is
   // a question you cannot ask, and the page has an honest answer for an empty one.
   const allCompanies = (await searchEntities('', 200)).map((e) => ({
