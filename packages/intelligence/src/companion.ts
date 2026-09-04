@@ -117,6 +117,7 @@ export async function retrieveClaims(
 ): Promise<RetrievedClaim[]> {
   const d = db();
   const query = toSearchQuery(question);
+  const terms = queryTerms(question);
   const pageContext = ctx.request.pageContext;
 
   // Entity scoping: a question asked on a company page is about that company.
@@ -132,6 +133,29 @@ export async function retrieveClaims(
   }
 
   const hasQuery = query.length > 0;
+
+  /**
+   * How many of the question's distinct terms this claim matches.
+   *
+   * Postgres full-text ranking has no notion of term rarity, so a corpus full of retail
+   * news makes "retail" outrank "markdown" purely on frequency. Counting distinct terms
+   * matched restores the thing a reader actually cares about: a claim that speaks to more
+   * of the question.
+   */
+  const termHits = hasQuery
+    ? sql<number>`(${sql.join(
+        terms.map(
+          (t) =>
+            sql`(case when ${claims.searchVector} @@ plainto_tsquery('english', ${t}) then 1 else 0 end)`,
+        ),
+        sql` + `,
+      )})`
+    : sql<number>`0`;
+
+  const rankExpr = hasQuery
+    ? sql<number>`ts_rank(${claims.searchVector}, websearch_to_tsquery('english', ${query}))`
+    : sql<number>`0`;
+
   const conditions = [sql`1 = 1`];
   if (hasQuery) {
     conditions.push(sql`${claims.searchVector} @@ websearch_to_tsquery('english', ${query})`);
@@ -165,9 +189,8 @@ export async function retrieveClaims(
       perspective: sources.perspective,
       publishedAt: rawDocuments.publishedAt,
       eventAt: claims.eventAt,
-      rank: hasQuery
-        ? sql<number>`ts_rank(${claims.searchVector}, websearch_to_tsquery('english', ${query}))`
-        : sql<number>`0`,
+      rank: rankExpr,
+      termHits,
     })
     .from(claims)
     .innerJoin(documentVersions, eq(documentVersions.id, claims.documentVersionId))
@@ -176,8 +199,25 @@ export async function retrieveClaims(
     .leftJoin(claimEvidence, eq(claimEvidence.claimId, claims.id))
     .leftJoin(evidenceSpans, eq(evidenceSpans.id, claimEvidence.evidenceSpanId))
     .where(and(...conditions))
-    .orderBy(desc(rawDocuments.publishedAt))
-    .limit(limit * 2);
+    /*
+     * Relevance first, recency last — and this order is the whole ball game.
+     *
+     * This used to be `orderBy(desc(publishedAt)).limit(limit * 2)`: the database was
+     * asked for the *newest* two dozen claims matching any query word, and ts_rank was
+     * then applied to that handful in memory. With a small, mostly static corpus the two
+     * orderings looked the same. The moment daily news feeds were added, the newest two
+     * dozen became today's headlines and nothing else could ever be retrieved — a
+     * question about markdowns returned the last twenty-four hours of anything mentioning
+     * retail, then reported "insufficient evidence" about a corpus that held the answer.
+     *
+     * `termHits` leads because coverage is what the answer is judged on: a claim matching
+     * two of the question's terms is worth more than a fresher one matching a single
+     * common word. ts_rank breaks ties on density, recency breaks the rest.
+     */
+    // Only when there is a query: a bare `0` in ORDER BY is read by Postgres as an
+    // ordinal column reference, and position zero does not exist.
+    .orderBy(...(hasQuery ? [desc(termHits), desc(rankExpr)] : []), desc(rawDocuments.publishedAt))
+    .limit(limit * 4);
 
   // Prefer FACT claims, then strongest evidence, then most recent.
   const priority: Record<string, number> = {
@@ -190,16 +230,62 @@ export async function retrieveClaims(
   const seen = new Set<string>();
   // No per-claim floor: the relevant claims each match only one term, so filtering
   // claim-by-claim discards them. Relevance is judged on the set, in assessCoverage.
-  return rows
+  const ordered = rows
     .filter((r) => (seen.has(r.claimId) ? false : (seen.add(r.claimId), true)))
+    // Term coverage outranks claim type. Preferring a FACT that matches one common word
+    // over an INTERPRETATION matching three of the question's terms is how a relevant
+    // answer gets sorted out of the result set after the database found it.
     .sort(
       (a, b) =>
+        (b.termHits ?? 0) - (a.termHits ?? 0) ||
         (priority[a.claimType] ?? 9) - (priority[b.claimType] ?? 9) ||
         b.rank - a.rank ||
         (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0),
-    )
-    .slice(0, limit)
-    .map((r) => ({ ...r, eventId: null }));
+    );
+
+  return selectForCoverage(ordered, terms, limit).map((r) => ({ ...r, eventId: null }));
+}
+
+/**
+ * Chooses the final set so that as many of the question's terms are represented as the
+ * corpus allows.
+ *
+ * Taking the top N by rank looks right and quietly loses the answer. A question about
+ * markdowns and allocation in retail retrieves hundreds of claims containing "retail" and
+ * three containing "markdown"; rank order fills every slot with the common word, and the
+ * coverage check then refuses the question for lacking the very evidence that was
+ * retrieved and thrown away.
+ *
+ * So each term gets its best-ranked claim first — one pass, in order — and only then are
+ * the remaining slots filled by rank. The set the answer is judged against is the set
+ * that was optimised for, which is the whole point of judging on coverage.
+ */
+function selectForCoverage<T extends { text: string }>(
+  ordered: T[],
+  terms: string[],
+  limit: number,
+): T[] {
+  if (terms.length === 0) return ordered.slice(0, limit);
+
+  const chosen: T[] = [];
+  const taken = new Set<T>();
+
+  for (const term of terms) {
+    if (chosen.length >= limit) break;
+    const stem = stemForMatch(term);
+    const best = ordered.find((r) => !taken.has(r) && r.text.toLowerCase().includes(stem));
+    if (best) {
+      chosen.push(best);
+      taken.add(best);
+    }
+  }
+  for (const r of ordered) {
+    if (chosen.length >= limit) break;
+    if (taken.has(r)) continue;
+    chosen.push(r);
+    taken.add(r);
+  }
+  return chosen;
 }
 
 /** Resolves company names inside a free-text question to entity ids. */
