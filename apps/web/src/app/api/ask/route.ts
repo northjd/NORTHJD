@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { retrieveClaims, assessCoverage, queryTerms } from '@mios/intelligence';
 import { requireUser } from '@/lib/session';
-import { buildPrompt } from '@/lib/prompt-builder';
+import { buildPrompt, isWorthAnswering } from '@/lib/prompt-builder';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,16 +50,18 @@ export async function POST(request: Request) {
   const coverage = assessCoverage(queryTerms(question), claims.map((c) => c.text));
   const prompt = buildPrompt(question, claims, mode);
 
+  const worthAnswering = isWorthAnswering(claims.length, coverage.ratio);
+
   return NextResponse.json({
     question,
     mode,
+    empty: !worthAnswering,
     coverage: {
       ratio: coverage.ratio,
       missing: coverage.missing,
       sufficient: coverage.sufficient,
     },
-    evidence: prompt.evidence,
-    prompt: prompt.text,
-    empty: prompt.empty,
+    evidence: worthAnswering ? prompt.evidence : [],
+    prompt: worthAnswering ? prompt.text : '',
   });
 }

@@ -59,7 +59,18 @@ async function sharedWorkspaceUser(): Promise<SessionUser | null> {
   return rows[0] ?? null;
 }
 
+/**
+ * True while building the static export.
+ *
+ * `cookies()` cannot be called during a static build — there is no request — so every
+ * path that touches one has to be skipped. The static build is open-access by
+ * construction: there is no server to check a session against.
+ */
+export const IS_STATIC_EXPORT = process.env.STATIC_EXPORT === '1';
+
 export async function currentUser(): Promise<SessionUser | null> {
+  // No request, no cookie to read. The static build has one shared identity.
+  if (IS_STATIC_EXPORT) return sharedWorkspaceUser();
   // Open mode: no cookie, no session, no password. The landing page is the door.
   if (config().AUTH_MODE === 'open') return sharedWorkspaceUser();
 

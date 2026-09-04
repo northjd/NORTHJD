@@ -1,11 +1,12 @@
 import Link from 'next/link';
-import { requireUser } from '@/lib/session';
+import { requireUser, IS_STATIC_EXPORT } from '@/lib/session';
 import { generationMode } from '@mios/ai';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { NavLink } from '@/components/nav-link';
 import { corpusStatus } from '@/lib/queries';
 import { CommandPalette } from '@/components/command-palette';
 import { FeedbackWidget } from '@/components/feedback-widget';
+import { SetupGate } from '@/components/static-variants/setup-gate';
 import { Wordmark, CompassMark } from '@/components/wordmark';
 import { searchEntities } from '@/lib/entity-search';
 import { querySuggestedFilters } from '@/lib/explore-queries';
@@ -61,6 +62,15 @@ const NAV_GROUPS = [
   },
 ];
 
+/**
+ * Routes the static build does not contain.
+ *
+ * Each needs a server — a query string read at request time, or a server action — so the
+ * export leaves them out. Linking to them anyway would produce a sidebar of 404s, which
+ * is a worse experience than a shorter sidebar.
+ */
+const NOT_IN_STATIC_BUILD = new Set(['/search', '/coverage', '/prepare', '/companion']);
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
 
@@ -84,32 +94,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ),
   });
 
+  // The static build has no request and therefore no cookie, so set-up cannot be gated
+  // on one. It is reachable from the profile instead.
   const openMode = config().AUTH_MODE === 'open';
-  const seenSetup = openMode ? Boolean((await cookies()).get('north_setup_seen')) : false;
-  const needsSetup = openMode ? !seenSetup : !profile?.onboardingCompletedAt;
+  const seenSetup =
+    IS_STATIC_EXPORT || (openMode ? Boolean((await cookies()).get('north_setup_seen')) : false);
+  const needsSetup = IS_STATIC_EXPORT
+    ? false
+    : openMode
+      ? !seenSetup
+      : !profile?.onboardingCompletedAt;
   if (needsSetup) redirect('/onboarding');
 
   const mode = generationMode();
   const isAdmin = user.role === 'owner' || user.role === 'admin';
   const corpus = await corpusStatus();
 
-  // Palette contents are loaded once with the shell rather than fetched on open, so ⌘K
-  // is instant. Entities include those with no coverage — selecting one routes to the
-  // coverage check, which is the honest answer rather than an empty result.
-  const paletteEntities = (await searchEntities('', 60)).map((e) => ({
-    slug: e.slug,
-    name: e.name,
-    events: e.events,
-    aliases: e.aliases,
-  }));
-  const paletteIndustries = await db()
-    .select({ slug: schema.industries.slug, name: schema.industries.name })
-    .from(schema.industries)
-    .orderBy(asc(schema.industries.name));
-  const paletteTopics = await db()
-    .select({ slug: schema.topics.slug, name: schema.topics.name })
-    .from(schema.topics)
-    .orderBy(asc(schema.topics.name));
 
   // Saved views in the sidebar rather than only on Explore: they are how someone gets to
   // the slice they care about, and having to reach Explore first to find them made the
@@ -140,16 +140,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </Link>
 
         <div className="flex-1 py-2">
-          {NAV_GROUPS.map((group) => (
+          {NAV_GROUPS.map((group) => {
+            const items = group.items.filter(
+              (item) => !(IS_STATIC_EXPORT && NOT_IN_STATIC_BUILD.has(item.href)),
+            );
+            if (items.length === 0) return null;
+            return (
             <div key={group.label} className="pb-1.5">
               <div className="t-eyebrow px-3.5 pb-1.5 pt-2.5">{group.label}</div>
-              {group.items.map((item) => (
+              {items.map((item) => (
                 <NavLink key={item.href} href={item.href} title={item.hint} icon={item.icon}>
                   {item.label}
                 </NavLink>
               ))}
             </div>
-          ))}
+            );
+          })}
 
           {savedViews.length > 0 ? (
             <div className="pb-1.5" data-shell-secondary>
@@ -175,12 +181,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
           <div className="pb-1.5">
             <div className="t-eyebrow px-3.5 pb-1.5 pt-2.5">System</div>
-            <NavLink href="/search" title="Search everything monitored" icon="⌕">
-              Search
-            </NavLink>
-            <NavLink href="/coverage" title="Is a company or term in the monitored sources at all?" icon="◍">
-              Coverage check
-            </NavLink>
+            {IS_STATIC_EXPORT ? null : (
+              <>
+                <NavLink href="/search" title="Search everything monitored" icon="⌕">
+                  Search
+                </NavLink>
+                <NavLink
+                  href="/coverage"
+                  title="Is a company or term in the monitored sources at all?"
+                  icon="◍"
+                >
+                  Coverage check
+                </NavLink>
+              </>
+            )}
             {isAdmin ? (
               <NavLink href="/admin" title="Sources, coverage, capabilities, evaluation" icon="⚙">
                 Sources &amp; admin
@@ -262,11 +276,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </span>
       </footer>
 
-      <CommandPalette
-        entities={paletteEntities}
-        industries={paletteIndustries}
-        topics={paletteTopics}
-      />
+      {/* The static build has no server to run set-up through, so it runs in the
+          browser and stores per person — see components/static-variants/setup-gate. */}
+      {IS_STATIC_EXPORT ? <SetupGate /> : null}
+      <CommandPalette />
       <FeedbackWidget />
     </div>
   );

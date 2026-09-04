@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { isWorthAnswering } from '../../apps/web/src/lib/prompt-builder';
 import {
   CASE_MATURITY_ORDER,
   formatAbsolute,
@@ -229,5 +230,38 @@ describe('date formatting never throws', () => {
   it('accepts the ISO strings that raw SQL projections return', () => {
     expect(formatAbsolute('2026-08-30T00:00:00.000Z')).toBe('30 August 2026');
     expect(formatAbsolute(new Date('2026-08-30T00:00:00.000Z'))).toBe('30 August 2026');
+  });
+});
+
+/**
+ * Regression: a body of partly-matching evidence is a subject; one such claim is a
+ * coincidence.
+ *
+ * Coverage alone cannot tell them apart. "Which retailers have moved AI beyond pilots?"
+ * scores 50% and returns twelve relevant claims. "What is happening with IQOS in
+ * Paraguay?" also scores 50%, because one unrelated claim happens to mention Paraguay —
+ * and handing that to a model invites a confident answer built on a coincidence.
+ */
+describe('isWorthAnswering', () => {
+  it('accepts a well-covered question however small the set', () => {
+    expect(isWorthAnswering(1, 1.0)).toBe(true);
+    expect(isWorthAnswering(2, 0.75)).toBe(true);
+  });
+
+  it('accepts partial coverage when there is a body of material behind it', () => {
+    // The retail/AI case: 50% coverage, twelve claims.
+    expect(isWorthAnswering(12, 0.5)).toBe(true);
+    expect(isWorthAnswering(3, 0.5)).toBe(true);
+  });
+
+  it('refuses partial coverage resting on one or two claims', () => {
+    // The IQOS/Paraguay case: 50% coverage, one incidental match.
+    expect(isWorthAnswering(1, 0.5)).toBe(false);
+    expect(isWorthAnswering(2, 0.34)).toBe(false);
+  });
+
+  it('always refuses an empty set', () => {
+    expect(isWorthAnswering(0, 1.0)).toBe(false);
+    expect(isWorthAnswering(0, 0)).toBe(false);
   });
 });

@@ -30,3 +30,9 @@ blob-report/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Static export output and the files the export ships with it.
+apps/web/out/
+apps/web/public/palette.json
+apps/web/public/evidence.json
+.static-build-stash/

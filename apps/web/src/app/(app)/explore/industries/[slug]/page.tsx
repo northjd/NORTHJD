@@ -7,6 +7,13 @@ import { formatAbsolute } from '@mios/domain';
 
 export const dynamic = 'force-dynamic';
 
+export async function generateStaticParams() {
+  const { db, schema } = await import('@mios/database');
+  const rows = await db().select({ slug: schema.industries.slug }).from(schema.industries);
+  return rows.map((r) => ({ slug: r.slug }));
+}
+
+
 /**
  * Industry page — the Market Model layer made readable.
  *

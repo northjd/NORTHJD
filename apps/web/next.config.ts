@@ -5,7 +5,11 @@ const config: NextConfig = {
   // Opt-in, because `next start` refuses to serve a standalone build and silently
   // breaks local development if this is always on. The Dockerfile sets the flag; Vercel
   // needs neither, since it builds its own bundle.
-  output: process.env.BUILD_STANDALONE ? 'standalone' : undefined,
+  output: process.env.STATIC_EXPORT
+    ? 'export'
+    : process.env.BUILD_STANDALONE
+      ? 'standalone'
+      : undefined,
   // Next 16 writes its own CLAUDE.md/AGENTS.md into the app directory. This project
   // documents its conventions in the repository root CLAUDE.md instead.
   agentRules: false,

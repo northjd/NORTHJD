@@ -58,17 +58,51 @@ const CONFIDENCE: Item[] = [
   { group: 'Filter', icon: '⊟', label: 'Reversals', detail: 'stopped or rolled back', href: '/explore?confidence=reversed' },
 ];
 
+/**
+ * Palette contents are fetched, not passed in.
+ *
+ * They used to arrive as props, which serialised eighty-five companies and every taxonomy
+ * row into the HTML of all 831 pages — 161 MB of output, most of it the same list over
+ * and over. Fetching one shared JSON file on first open costs a few milliseconds nobody
+ * notices and takes the build to a fraction of that.
+ */
 export function CommandPalette({
-  entities,
-  industries,
-  topics,
+  entities: initialEntities = [],
+  industries: initialIndustries = [],
+  topics: initialTopics = [],
 }: {
-  entities: PaletteEntity[];
-  industries: PaletteTaxonomy[];
-  topics: PaletteTaxonomy[];
+  entities?: PaletteEntity[];
+  industries?: PaletteTaxonomy[];
+  topics?: PaletteTaxonomy[];
 }) {
+  const [entities, setEntities] = useState<PaletteEntity[]>(initialEntities);
+  const [industries, setIndustries] = useState<PaletteTaxonomy[]>(initialIndustries);
+  const [topics, setTopics] = useState<PaletteTaxonomy[]>(initialTopics);
+  const [loaded, setLoaded] = useState(initialEntities.length > 0);
+
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open || loaded) return;
+    let cancelled = false;
+    void fetch('/palette.json')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        setEntities(data.entities ?? []);
+        setIndustries(data.industries ?? []);
+        setTopics(data.topics ?? []);
+        setLoaded(true);
+      })
+      .catch(() => {
+        // The palette still navigates: the fixed destinations do not depend on this.
+        setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, loaded]);
   const [query, setQuery] = useState('');
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);

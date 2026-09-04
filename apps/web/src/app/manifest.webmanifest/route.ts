@@ -1,3 +1,6 @@
+// Static: the manifest never varies by request, and a static export requires this.
+export const dynamic = 'force-static';
+
 export function GET(): Response {
   return Response.json({
     name: 'NORTH',

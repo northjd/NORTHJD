@@ -8,6 +8,13 @@ import { CopyButton } from '@/components/copy-button';
 
 export const dynamic = 'force-dynamic';
 
+export async function generateStaticParams() {
+  const { db, schema } = await import('@mios/database');
+  const rows = await db().select({ id: schema.conversations.id }).from(schema.conversations);
+  return rows.map((r) => ({ id: r.id }));
+}
+
+
 /** Searchable transcript, with the structured answer preserved per assistant turn. */
 export default async function TranscriptPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();

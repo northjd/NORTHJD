@@ -16,6 +16,13 @@ import { formatAbsolute } from '@mios/domain';
 
 export const dynamic = 'force-dynamic';
 
+export async function generateStaticParams() {
+  const { db, schema } = await import('@mios/database');
+  const rows = await db().select({ slug: schema.entities.slug }).from(schema.entities);
+  return rows.map((r) => ({ slug: r.slug }));
+}
+
+
 export default async function CompanyPage({ params }: { params: Promise<{ slug: string }> }) {
   const user = await requireUser();
   const { slug } = await params;

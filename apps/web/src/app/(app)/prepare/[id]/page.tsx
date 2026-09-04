@@ -9,6 +9,13 @@ import { CopyButton } from '@/components/copy-button';
 
 export const dynamic = 'force-dynamic';
 
+export async function generateStaticParams() {
+  const { db, schema } = await import('@mios/database');
+  const rows = await db().select({ id: schema.meetings.id }).from(schema.meetings);
+  return rows.map((r) => ({ id: r.id }));
+}
+
+
 interface BriefContent {
   sixtySecondBrief: string;
   whatChanged: { window: string; items: { text: string }[] }[];

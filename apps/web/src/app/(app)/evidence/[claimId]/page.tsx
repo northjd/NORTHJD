@@ -8,6 +8,14 @@ import { formatAbsolute } from '@mios/domain';
 
 export const dynamic = 'force-dynamic';
 
+/** Every claim that carries an evidence span — the chain must stay walkable offline. */
+export async function generateStaticParams() {
+  const { db, schema } = await import('@mios/database');
+  const rows = await db().select({ id: schema.claims.id }).from(schema.claims);
+  return rows.map((r) => ({ claimId: r.id }));
+}
+
+
 /**
  * The bottom of the evidence chain.
  *

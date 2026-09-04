@@ -30,7 +30,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test",
+    "build:static": "tsx scripts/build-static.ts",
+    "build:palette": "tsx scripts/build-palette.ts",
+    "build:evidence": "tsx scripts/build-evidence.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

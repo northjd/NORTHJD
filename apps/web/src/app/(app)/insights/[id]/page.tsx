@@ -27,6 +27,19 @@ import { AskAboutThis } from '@/components/ask-about-this';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Every insight, pre-rendered.
+ *
+ * Needed by the static export, and harmless to the server build — Next only calls this
+ * when it is generating pages ahead of time.
+ */
+export async function generateStaticParams() {
+  const { db, schema } = await import('@mios/database');
+  const rows = await db().select({ id: schema.insights.id }).from(schema.insights);
+  return rows.map((r) => ({ id: r.id }));
+}
+
+
 export default async function InsightPage({
   params,
   searchParams,

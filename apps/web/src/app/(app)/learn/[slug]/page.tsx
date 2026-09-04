@@ -9,6 +9,13 @@ import { KnowledgeCheck } from '@/components/knowledge-check';
 
 export const dynamic = 'force-dynamic';
 
+export async function generateStaticParams() {
+  const { db, schema } = await import('@mios/database');
+  const rows = await db().select({ slug: schema.learningUnits.slug }).from(schema.learningUnits);
+  return rows.map((r) => ({ slug: r.slug }));
+}
+
+
 export default async function LearningUnitPage({ params }: { params: Promise<{ slug: string }> }) {
   await requireUser();
   const { slug } = await params;

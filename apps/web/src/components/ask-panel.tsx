@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { retrieveInBrowser } from '@/lib/retrieval-browser';
 
 /**
  * Ask — retrieval here, reasoning in your own Claude.
@@ -54,13 +55,31 @@ export function AskPanel({ initialQuestion = '' }: { initialQuestion?: string })
     setState('working');
     setCopied(false);
     try {
+      /*
+       * The API route when there is one, the shipped corpus when there is not.
+       *
+       * Both paths use the same term extraction, the same coverage test and the same
+       * prompt builder, so the answer to "can this be answered" and the prompt you copy
+       * are identical either way. Only the search differs: PostgreSQL full-text on the
+       * server, weighted term overlap over 471 claims in the browser.
+       */
       const res = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ question: question.trim(), mode }),
-      });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? 'Retrieval failed');
-      setResult(await res.json());
+      }).catch(() => null);
+
+      if (res?.ok) {
+        setResult(await res.json());
+      } else {
+        const local = await retrieveInBrowser(question.trim(), mode);
+        setResult({
+          coverage: local.coverage,
+          evidence: local.prompt.evidence,
+          prompt: local.prompt.text,
+          empty: local.prompt.empty,
+        });
+      }
       setState('done');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Retrieval failed');

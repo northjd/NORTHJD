@@ -49,6 +49,26 @@ const MODE_INSTRUCTION: Record<string, string> = {
     'Explain the underlying mechanics so I understand how this market works, not just what happened.',
 };
 
+/**
+ * Whether a retrieved set is worth handing to a model at all.
+ *
+ * Coverage alone is the wrong test here. "Which retailers have moved AI beyond pilots?"
+ * scores 50% — *pilots* appears everywhere, *retailers* rarely — and returns twelve
+ * genuinely relevant claims, which is plainly worth reasoning over. "What is happening
+ * with IQOS in Paraguay?" also scores 50%, because one unrelated claim mentions Paraguay,
+ * and handing that over invites a confident answer built on a coincidence.
+ *
+ * What separates them is not the ratio but the body of material behind it. A handful of
+ * claims that only partly address the question is a coincidence; a dozen is a subject.
+ */
+const MIN_CLAIMS_FOR_PARTIAL_COVERAGE = 3;
+
+export function isWorthAnswering(claimCount: number, coverageRatio: number): boolean {
+  if (claimCount === 0) return false;
+  if (coverageRatio >= 0.7) return true;
+  return claimCount >= MIN_CLAIMS_FOR_PARTIAL_COVERAGE;
+}
+
 export function buildPrompt(
   question: string,
   claims: RetrievedClaim[],
