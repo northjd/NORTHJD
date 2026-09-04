@@ -8,11 +8,13 @@ import type { CompanyOption } from '@/lib/market-shared';
 /**
  * Jumping straight to a company, when you already know which one.
  *
- * Sized as a filter, not as a section. It used to be a bordered band with its own
- * padding sitting above the market list, which made picking a company look like the
- * primary action on a page whose whole argument is that you choose a market first. It is
- * a shortcut for people who already know the name, so it reads as one: one line, the
- * same weight as the other controls in the tool.
+ * Below the markets, not above them: putting it on top made picking a company look like
+ * the primary action on a page whose whole argument is that you choose a market first.
+ *
+ * But below is not the same as hidden, and the first attempt at this overshot — a 280px
+ * input under a small grey line, beneath even the list of sectors nobody monitors. Typing
+ * a name is half of what the page is for, so it is sized like every other input in the
+ * tool and sits directly under the market list.
  *
  * The industry override that used to live here is gone. It existed because markets had
  * no pages of their own, so re-reading a company through another sector was the only way
@@ -45,8 +47,11 @@ export function MarketSearchControls({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <div className="relative w-full max-w-[280px]">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5">
+      {/* Sized like every other input in the tool. Shrunk to a 280px one-liner it read as
+          a minor filter and was easy to miss entirely, which is the opposite of the job:
+          typing a name is half of what this page is for. */}
+      <div className="relative w-full max-w-md">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -54,9 +59,9 @@ export function MarketSearchControls({
             if (e.key === 'Enter' && matches[0]) go(matches[0].slug);
             if (e.key === 'Escape') setQuery('');
           }}
-          placeholder="Go straight to a company…"
+          placeholder="Search a company…"
           aria-label="Search a company"
-          className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-2.5 py-1.5 text-[12.5px] outline-none focus:border-[var(--accent)]"
+          className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-[13.5px] outline-none focus:border-[var(--accent)]"
         />
 
         {matches.length > 0 ? (
@@ -66,7 +71,7 @@ export function MarketSearchControls({
                 <button
                   type="button"
                   onClick={() => go(c.slug)}
-                  className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[12.5px] hover:bg-[var(--surface-inset)]"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] hover:bg-[var(--surface-inset)]"
                 >
                   <span className="truncate">{c.name}</span>
                   {/* Zero is not hidden: a company we hold nothing on is a real answer,

@@ -69,8 +69,27 @@ export default async function MarketSearchPage() {
         </ul>
       </section>
 
+      {/*
+        Second, not last.
+
+        Markets lead because that is the order the page argues for, but the previous
+        version pushed this to the bottom under a small grey line — below even the list of
+        sectors nobody is watching. Someone who already knows the company name should not
+        have to scroll past everything they did not ask for to type it.
+      */}
+      <section className="mt-9">
+        <h2 className="t-rule">Or go straight to a company</h2>
+        <p className="mt-2 max-w-[72ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
+          Every tracked company, including the ones nothing has been published about — those say
+          what would change it rather than returning an empty page.
+        </p>
+        <div className="mt-3">
+          <MarketSearchControls companies={companies} activeCompany={null} shortcuts={shortcuts} />
+        </div>
+      </section>
+
       {uncovered.length > 0 ? (
-        <section className="mt-8">
+        <section className="mt-9">
           <h2 className="t-rule">Recognised, not yet monitored</h2>
           {/* Separated rather than mixed in. A row reading "0 events" next to one reading
               "86 events" looks like a slow sector; it is actually a sector no registered
@@ -97,13 +116,6 @@ export default async function MarketSearchPage() {
           </ul>
         </section>
       ) : null}
-
-      <section className="mt-9 border-t border-[var(--border)] pt-5">
-        <p className="mb-2.5 text-[11.5px] text-[var(--text-subtle)]">
-          Or, if you already know the name:
-        </p>
-        <MarketSearchControls companies={companies} activeCompany={null} shortcuts={shortcuts} />
-      </section>
     </div>
   );
 }
