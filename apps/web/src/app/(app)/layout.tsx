@@ -31,12 +31,11 @@ import { config } from '@mios/config';
  * Corpus statistics live in the status bar, not the header. They describe our
  * monitoring, not the market, and they were competing with the content for attention.
  *
- * The Companion is deliberately absent from this navigation. Without a language model it
- * can only return sentences that already exist in the corpus, which makes it a slower
- * search with a chat box around it — and an "ask anything" affordance that mostly refuses
- * is worse than no affordance, because it promises reasoning it cannot do. The route and
- * the engine remain: configure ANTHROPIC_API_KEY and it is worth surfacing again. See
- * docs/COMPANION_MODEL.md.
+ * Ask replaced the Companion. Without a language model the Companion could only return
+ * sentences already in the corpus, which made an "ask anything" box a slower search that
+ * mostly refused. Ask does the half NORTH is uniquely able to do — finding the evidence
+ * that bears on a question — and hands the reasoning to the user's own Claude. The
+ * Companion route and engine remain for a deployment that configures a model.
  */
 
 const NAV_GROUPS = [
@@ -48,6 +47,7 @@ const NAV_GROUPS = [
       { href: '/watch', label: 'Watch', icon: '◇', hint: 'What is unresolved, and what would settle it' },
       { href: '/deals', label: 'Key deals', icon: '⇄', hint: 'Publicly announced acquisitions, investments, partnerships and market entries' },
       { href: '/explore', label: 'Explore', icon: '⊞', hint: 'Companies, industries, technologies' },
+      { href: '/ask', label: 'Ask', icon: '◧', hint: 'Find the evidence on a question, then reason over it in your own Claude' },
     ],
   },
   {

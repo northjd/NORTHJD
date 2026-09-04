@@ -44,7 +44,7 @@ export interface CompanionContext {
   now?: Date;
 }
 
-interface RetrievedClaim {
+export interface RetrievedClaim {
   claimId: string;
   text: string;
   claimType: string;
@@ -231,7 +231,7 @@ function termOverlap(text: string, terms: string[]): number {
  * Claim-level retrieval over PostgreSQL full-text search, narrowed by whatever page
  * context the user was looking at.
  */
-async function retrieveClaims(
+export async function retrieveClaims(
   question: string,
   ctx: CompanionContext,
   limit = 12,
