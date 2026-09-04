@@ -1,223 +1,141 @@
 # Deploying NORTH
 
-One platform, one bill, about twenty minutes. Everything below is done in the Vercel
-dashboard — there is no second service to manage.
+One URL, no server, no bill. GitHub builds the site every three hours on its own
+machines and publishes it — your laptop can be shut.
 
-**What you end up with:** a real URL, your own accounts, ingestion every three hours so
-the data is never stale, and feedback from colleagues landing in the database.
+**What you end up with:** a real URL you can send to a colleague, a site that refreshes
+itself eight times a day, and a build that refuses to publish if the evidence rules
+break.
 
-**What it costs: $20/month (~£16), all of it Vercel.**
+**What it costs: nothing.** GitHub Actions minutes are unlimited on public repositories,
+and Pages is free.
 
-|                           | Plan                 | Cost      |
-| ------------------------- | -------------------- | --------- |
-| App + scheduled ingestion | Vercel Pro, one seat | $20/month |
-| Database                  | Neon Free            | £0        |
-
-The seat is for _dashboard access_, which only you need. Colleagues sign in to NORTH
-itself with their own accounts and cost nothing, however many of them there are.
-
-The database is Neon, created directly at [neon.com](https://neon.com) rather than through
-Vercel's marketplace. Vercel has no first-party Postgres, so either route runs on Neon —
-going direct costs one extra signup and gives you Neon's own console, which has the SQL
-editor, branching and the usage graphs. Since the free tier is £0 there is no second
-invoice to consolidate, which was the only argument for the marketplace route.
-
-> **Why Pro and not the free Hobby plan.** Two reasons, both real. Hobby limits scheduled
-> jobs to **once per day**, which would make a product called "Today" a day behind. And
-> Hobby's terms forbid commercial use — showing an internal tool to colleagues is a
-> defensible personal project, an officially adopted one is not. If neither matters to
-> you, everything here works on Hobby with the schedule changed to daily.
+**What you give up**, compared with running a server: there are no accounts, so nothing
+is per-person except what each browser stores for itself; feedback is not collected
+centrally; and anything that needs a request-time server — the free-text coverage check,
+meeting preparation, saved conversations — is left out of the export. The build prints
+the full exclusion list and writes it to `BUILD.txt` in the output.
 
 ---
 
-## 1. Put the code somewhere Vercel can see it
+## Before you start
 
-Vercel deploys from a git repository. The repository is already initialised locally with
-its full history, so this is one push.
+You need a GitHub account. That is the whole list.
 
-Create an empty **private** repository on GitHub, then:
+The repository has to be **public** for Pages to work on a free account. Everything in it
+is public information: the source registry, the taxonomy, and a list of large public
+companies used as search reference data. Nothing marks any company as a client, and no
+client analysis is stored anywhere in the repository. If that is not acceptable for your
+situation, GitHub Pro ($4/month) allows Pages from a private repository — in which case
+change the cron in `.github/workflows/publish.yml` to `0 */6 * * *`, because Actions
+minutes are metered on private repos.
+
+---
+
+## 1. Create the repository and push
 
 ```bash
-cd ~/dev/ap-workspace/market-intelligence-os
-git remote add origin https://github.com/<you>/north.git
-git push -u origin main
+gh repo create north --public --source=. --remote=origin --push
 ```
 
-Nothing secret is committed — `.env` is ignored and always has been. Worth confirming
-once:
+If you would rather do it in the browser: create an empty public repository called
+`north`, then
 
 ```bash
-git ls-files | grep -c "^\.env$"
+git remote add origin https://github.com/<your-username>/north.git && git push -u origin main
 ```
 
-That must print `0`.
+## 2. Turn on Pages
+
+In the repository, **Settings → Pages → Build and deployment → Source**, choose
+**GitHub Actions**. There is nothing else to configure — the workflow already declares
+the permissions it needs.
+
+## 3. Run it once
+
+**Actions → Publish NORTH → Run workflow.** The first run takes about ten minutes: it
+installs dependencies, starts PGlite, creates the schema, fetches every source, checks
+the evidence invariants and builds 900-odd pages.
+
+When it finishes, the URL is at the bottom of the `deploy` job, and under
+**Settings → Pages**. It looks like `https://<your-username>.github.io/north/`.
+
+That is the link you send people.
 
 ---
 
-## 2. Create the project
+## What runs, and when
 
-1. Vercel → **Add New → Project** → import the repository.
-2. Framework preset: **Next.js** (detected automatically).
-3. Root directory: leave as the repository root — the monorepo is configured for it.
-4. **Do not deploy yet.** Add the database and the variables first, or the first build
-   will fail on a missing `DATABASE_URL` and you will have to redeploy anyway.
+`.github/workflows/publish.yml` runs on a push to `main`, on demand, and on a cron at
+`17 */3 * * *` — seventeen minutes past, every three hours. The odd minute is
+deliberate: scheduled jobs everywhere cluster on the hour, and the sources are politer to
+a request that does not arrive with everyone else's.
 
----
+Each run:
 
-## 3. Create the database
+1. starts PGlite — real PostgreSQL compiled to WASM, so there is no database service to
+   provision or pay for;
+2. creates the schema and loads the reference data;
+3. fetches every registered source with an approved rights review;
+4. **runs `npm run eval`** and fails the build if any evidence invariant breaks;
+5. builds the static site and publishes it.
 
-At [neon.com](https://neon.com): sign up, **Create project**, Postgres 17 or later, region
-closest to your Vercel region (`eu-central-1` if you are on Frankfurt).
+Step 4 is the important one. A site that is stale is a nuisance; a site showing a claim
+with no evidence behind it is a lie, and this refuses to publish one.
 
-Copy the connection string from **Dashboard → Connect**.
+## The sub-path
 
-**Take the pooled one.** Neon offers a direct and a pooled URL. Serverless functions open
-many short-lived connections and the pooler is what stops that exhausting the database.
-The pooled URL has **`-pooler`** in the hostname:
+A project site is served from `https://<user>.github.io/<repo>/`, not from the root. The
+workflow works out the right `BASE_PATH` from the repository name and passes it to the
+build. If you rename the repository, the next run picks the new name up on its own.
 
-```
-postgres://user:pass@ep-something-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require
-                                    ^^^^^^^
-```
-
-Getting this wrong does not fail immediately — it fails later, under concurrent use,
-which is the worst way for it to fail.
-
----
-
-## 4. Set the environment variables
-
-Project → **Settings → Environment Variables**. Add these to _Production_ (and _Preview_
-if you want deploy previews to work):
-
-| Variable             | Value                           | Why                                                                                                           |
-| -------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `NODE_ENV`           | `production`                    | Enables secure cookies                                                                                        |
-| `DATABASE_URL`       | the pooled Neon URL from step 3 |                                                                                                               |
-| `DATABASE_POOL_MAX`  | `5`                             | Real Postgres, so use a pool. Small per instance, because many instances exist                                |
-| `SIGNUP_INVITE_CODE` | something you invent            | Colleagues need it to create an account. Rotate it any time                                                   |
-| `CRON_SECRET`        | a long random string            | Vercel sends this to the ingestion route. **Without it the route refuses every request**, which is deliberate |
-| `SESSION_SECRET`     | a long random string            | Signs session cookies                                                                                         |
-
-Generate the two secrets:
+To check the built site behaves under that prefix before publishing:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+npm run build:static && npm run serve:static
 ```
 
-Leave `ANTHROPIC_API_KEY` unset — NORTH runs
-extractive, calls no language model, and costs nothing per request. That is a deliberate
-design choice, not a limitation: nothing can be paraphrased into a claim the source did
-not make.
+That serves `apps/web/out` from `http://localhost:4500/north/` and returns 404 for
+anything requested outside the prefix — which is how a `fetch('/evidence.json')` that
+worked on every local check got caught before it reached production.
+
+## Costs and limits
+
+| Thing                    | Limit                   | Where we are    |
+| ------------------------ | ----------------------- | --------------- |
+| Actions minutes (public) | unlimited               | ~10 min × 8/day |
+| Published site size      | 1 GB soft limit         | ~200 MB         |
+| Pages bandwidth          | 100 GB/month soft limit | far below       |
+| Builds per hour          | 10                      | 1 every 3 hours |
+
+The site is uploaded as a build artifact rather than committed. The output is ~200 MB and
+changes substantially every three hours; committing it would make the repository unusable
+inside a week.
+
+## When something breaks
+
+**The workflow fails at "Check the evidence invariants."** Working as intended — a source
+started returning something that breaks a rule. `npm run eval` locally prints which case
+failed.
+
+**A source shows an error but the build passes.** Also intended. A feed returning 403 is
+recorded against that source and the run continues; one publisher blocking us is not a
+reason to stop publishing. The Sources admin page lists every failure with its status
+code.
+
+**The site loads but has no styling and dead links.** The `BASE_PATH` is wrong. Confirm
+the repository name matches the URL, and reproduce locally with `npm run serve:static`.
+
+**The site is stale.** Check Actions. GitHub disables scheduled workflows on repositories
+with no activity for 60 days; a single push or a manual run re-enables them.
 
 ---
 
-## 5. Deploy, then set up the database
+## Running it as a real server instead
 
-Hit **Deploy**. When it finishes, the schema does not exist yet — create it from your
-machine, pointing at the production database:
-
-```bash
-cd ~/dev/ap-workspace/market-intelligence-os
-export DATABASE_URL="<the pooled Neon URL>"
-export DATABASE_POOL_MAX=5
-
-npm run db:migrate     # tables, indexes, full-text search objects
-npm run db:seed        # taxonomy, sources, learning units, demo fixtures
-npm run pipeline       # first real ingestion — takes about 10 seconds
-```
-
-Then unset it so you do not keep working against production by accident:
-
-```bash
-unset DATABASE_URL DATABASE_POOL_MAX
-```
-
----
-
-## 6. Check it
-
-- `https://<your-app>.vercel.app/api/health` → `{"status":"healthy", ...}`
-- `https://<your-app>.vercel.app` → the NORTH landing page
-- **Activate NORTH** → sign in
-
-Create your own account at `/signup` with the invite code rather than using the seeded
-demo login. The demo account has a password that is in the repository, and it should not
-be the way in on a public URL.
-
-Once you have your own account, remove the demo one:
-
-```sql
-delete from users where email = 'demo@market-intelligence-os.local';
-```
-
----
-
-## 7. Confirm ingestion is running
-
-`vercel.json` schedules `/api/cron/ingest` at **17 minutes past, every three hours** — off
-the hour deliberately, because scheduled jobs everywhere cluster on :00 and the sources
-are politer to a request that does not arrive with everyone else's.
-
-Check it in Vercel → **Cron Jobs** after the first run. To trigger one by hand:
-
-```bash
-curl -H "Authorization: Bearer $CRON_SECRET" https://<your-app>.vercel.app/api/cron/ingest
-```
-
-It returns what it did — documents fetched, claims created, events created, errors. A run
-takes 6–8 seconds against the current source set, measured rather than assumed.
-
----
-
-## Inviting colleagues
-
-Send them the URL and the invite code. They create their own account, go through set-up,
-and get their own brief, reading history and saved insights. The corpus is shared, so
-everyone is looking at the same evidence — which is the point, because then people can
-disagree about the same thing.
-
-Feedback goes to the widget in the bottom-left of every page and lands in the
-`product_feedback` table, with the route they were on recorded automatically.
-
----
-
-## What to watch
-
-**Database compute.** Neon's free tier includes **100 compute-hours a month**, and that,
-rather than storage, is the limit worth watching. The database sleeps when idle and stays
-warm about five minutes after each query, so every scheduled run costs roughly five
-minutes of compute.
-
-At three-hourly that is **~20 compute-hours a month**, leaving about 80 for actual
-reading. Comfortable rather than tight — which is exactly why the schedule is three-hourly
-rather than hourly, since hourly would spend ~60 before anyone opened the app.
-
-Neon's console shows consumption under **Monitoring**. If you ever want it fresher and
-have the headroom, change one line and redeploy — no rebuild, no migration:
-
-```jsonc
-// vercel.json
-"schedule": "17 * * * *"     // hourly
-```
-
-Exceeding the free tier suspends compute until the next month rather than producing a
-surprise bill. Moving up is pay-as-you-go at about $0.11 per compute-hour.
-
-**Storage** is not the constraint: the corpus is ~64 MB against a 0.5 GB allowance and
-grows a megabyte or two a month.
-
-**Function duration.** The pipeline is 6–8 seconds against ~14 sources. Adding many more
-sources would grow it; the route allows 120 seconds and Pro permits up to 300.
-
-**The demo data.** Four demo companies and their documents are clearly badged in the
-interface, but they are fixtures rather than real reporting. `npm run db:seed` inserts
-them; skip that step if you would rather colleagues never see them.
-
----
-
-## Rolling back
-
-Vercel keeps every deployment. **Deployments → ⋯ → Promote to Production** on the last
-good one. Database migrations are additive, so a rollback of the application does not
-need a rollback of the schema.
+Everything the export leaves out — accounts, feedback, the coverage check, meeting
+preparation — needs a server and a managed PostgreSQL. `vercel.json` and the
+`AUTH_MODE`, `SESSION_SECRET` and `DATABASE_URL` settings in `.env.example` are still
+there for that, and `npm run build` with `BUILD_STANDALONE=1` produces a deployable
+server build. That is a different decision with a monthly bill attached, and it is not
+needed to share the reading product with colleagues.

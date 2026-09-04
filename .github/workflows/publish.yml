@@ -42,14 +42,24 @@ jobs:
       # which is fine: nothing else is using it.
       - name: Start the database
         run: |
-          npm run db:up &
+          # Output redirected to a file, not inherited. A background process holding the
+          # step's stdout open is a step that never finishes, and the log gives no clue
+          # why — the runner is simply waiting on a pipe nobody will close.
+          nohup npm run db:up > /tmp/pglite.log 2>&1 &
           for i in $(seq 1 30); do
             nc -z 127.0.0.1 55432 && break
             sleep 2
           done
-          nc -z 127.0.0.1 55432 || { echo "database never came up"; exit 1; }
+          if ! nc -z 127.0.0.1 55432; then
+            echo "database never came up; last output:"
+            cat /tmp/pglite.log
+            exit 1
+          fi
         env:
           DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+          # Next renders pages and route handlers as separate module instances, each with
+          # its own client. One connection means the second evicts the first.
+          PGLITE_MAX_CONNECTIONS: '20'
 
       - name: Create the schema and reference data
         run: |
