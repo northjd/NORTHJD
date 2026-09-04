@@ -717,9 +717,39 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
   const taxonomyTerms = await loadTaxonomyTerms();
 
   const sourceIndustryRows = await d
-    .select({ id: sources.id, industrySlugs: sources.industrySlugs })
+    .select({
+      id: sources.id,
+      industrySlugs: sources.industrySlugs,
+      perspective: sources.perspective,
+    })
     .from(sources);
-  const sourceIndustrySlugs = new Map(sourceIndustryRows.map((r) => [r.id, r.industrySlugs]));
+
+  /*
+   * Which sources may lend their industries to an event that named none.
+   *
+   * A trade publication is *about* its sector: everything Retail Dive publishes is retail
+   * news, so its registration describes its output. A regulator is not. The European
+   * Commission is registered against retail, fashion, consumer goods and technology
+   * because it regulates all of them — and the consequence was that every NATO statement,
+   * Arctic Forum speech and G20 communiqué it published was filed as retail *and* fashion
+   * news. 316 of 319 industry tags in the corpus came from this fallback; three came from
+   * the text. Whole markets were made of press releases that had nothing to do with them.
+   *
+   * So the fallback now applies only where the publication really is sector-bound.
+   * Cross-economy publishers leave the event untagged, which is the honest outcome: it
+   * still reaches the brief and Watch, it just stops claiming to be about a sector.
+   */
+  const CROSS_ECONOMY_PERSPECTIVES = new Set([
+    'REGULATOR',
+    'PUBLIC_INSTITUTION',
+    'FIRST_PARTY_CONSULTING_FIRM',
+  ]);
+  const sourceIndustrySlugs = new Map(
+    sourceIndustryRows.map((r) => [
+      r.id,
+      CROSS_ECONOMY_PERSPECTIVES.has(r.perspective) ? [] : r.industrySlugs,
+    ]),
+  );
 
   for (const cluster of clusters) {
     const clusterDocs = clusterables.filter((c) => cluster.documentIds.includes(c.documentId));

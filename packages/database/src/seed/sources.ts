@@ -305,7 +305,20 @@ export const SOURCES: SourceSeed[] = [
     subjectEntitySlug: 'european-commission',
     language: 'en',
     geographySlugs: ['europe'],
-    industrySlugs: ['retail', 'fashion-apparel', 'consumer-goods', 'technology-ai'],
+    /*
+     * Deliberately empty, and it matters.
+     *
+     * This used to read ['retail', 'fashion-apparel', 'consumer-goods', 'technology-ai']
+     * — true in the sense that the Commission regulates all four, and false in the sense
+     * the pipeline used it: an event whose text names no industry inherits its source's
+     * list, so every NATO statement, Arctic Forum speech and G20 communiqué published
+     * here was filed as retail *and* fashion news. Retail's 86 events were mostly EU
+     * press releases about something else.
+     *
+     * A general institution is not about a sector. Leaving this empty means its items
+     * stay untagged unless their own text says otherwise, which is the honest result.
+     */
+    industrySlugs: [],
     qualityScore: 85,
     notes: 'Official EU announcements. Primary source for regulatory developments.',
     connector: {
@@ -611,5 +624,811 @@ export const SOURCES: SourceSeed[] = [
       reviewNotes: 'Fixtures authored for this repository. No third-party rights involved.',
       licenseStatus: 'internal_demo',
     },
+  },
+
+  /*
+   * ── Trade press and quality news, added 2026-09-04 ────────────────────────
+   *
+   * The registry was nineteen sources, and fourteen of them were technology vendors or
+   * EU institutions. That is why twelve of seventeen markets held nothing: not because
+   * those markets were quiet, but because nobody was watching them. Tobacco had no
+   * source at all, so "no results" was the only answer it could ever give.
+   *
+   * Corporate newsrooms were tried first and mostly refuse: Philip Morris, JTI, BAT,
+   * Nestlé, Unilever, Tesco, REWE, Migros, Ecolab and Estée Lauder all return 403, 404
+   * or 429 to a feed request. Trade publications and quality news are what actually
+   * cover these sectors, and they are independent besides — a company newsroom can only
+   * ever corroborate itself.
+   *
+   * Every endpoint below was fetched on 2026-09-04 and returned a parseable feed with
+   * items. Subscription publications are registered but left off pending a licence
+   * review: their feeds are public, their terms are not obviously compatible with
+   * storing excerpts, and guessing is not a rights decision.
+   */
+
+  // ── Tobacco & nicotine ────────────────────────────────────────────────────
+  {
+    slug: 'tobacco-reporter',
+    name: 'Tobacco Reporter',
+    officialDomain: 'tobaccoreporter.com',
+    homepageUrl: 'https://tobaccoreporter.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'SpecComm International',
+    language: 'en',
+    geographySlugs: ['global'],
+    industrySlugs: ['tobacco'],
+    qualityScore: 60,
+    notes:
+      'Trade publication covering tobacco, heated products and nicotine regulation. The first source registered against this sector.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://tobaccoreporter.com/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes:
+        'Publisher-operated feed, fetched 2026-09-04 and returning full item metadata. Excerpt only; the article link is never followed.',
+    }),
+  },
+  {
+    slug: 'tobacco-journal',
+    name: 'Tobacco Journal International',
+    officialDomain: 'www.tobaccojournal.com',
+    homepageUrl: 'https://www.tobaccojournal.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Tobacco Journal International',
+    language: 'en',
+    geographySlugs: ['global', 'europe'],
+    industrySlugs: ['tobacco'],
+    qualityScore: 58,
+    notes: 'European trade coverage of the tobacco and nicotine industry.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.tobaccojournal.com/feed',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 20 items. Excerpt only.',
+    }),
+  },
+
+  // ── Food, beverage and grocery ────────────────────────────────────────────
+  {
+    slug: 'food-dive',
+    name: 'Food Dive',
+    officialDomain: 'www.fooddive.com',
+    homepageUrl: 'https://www.fooddive.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Industry Dive',
+    language: 'en',
+    geographySlugs: ['united-states', 'north-america'],
+    industrySlugs: ['food-beverage', 'consumer-goods'],
+    qualityScore: 70,
+    notes: 'Sister publication to Retail Dive, covering food manufacturing and brands.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.fooddive.com/feeds/news/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes:
+        'Same publisher and feed conventions as the already-approved Retail Dive entry. Fetched 2026-09-04.',
+    }),
+  },
+  {
+    slug: 'just-food',
+    name: 'Just Food',
+    officialDomain: 'www.just-food.com',
+    homepageUrl: 'https://www.just-food.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'GlobalData',
+    language: 'en',
+    geographySlugs: ['global'],
+    industrySlugs: ['food-beverage', 'consumer-goods'],
+    qualityScore: 66,
+    notes: 'Global food industry news, including M&A and supply chain.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.just-food.com/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 10 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'grocery-gazette',
+    name: 'Grocery Gazette',
+    officialDomain: 'www.grocerygazette.co.uk',
+    homepageUrl: 'https://www.grocerygazette.co.uk/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Grocery Gazette',
+    language: 'en',
+    geographySlugs: ['united-kingdom', 'europe'],
+    industrySlugs: ['retail', 'food-beverage'],
+    qualityScore: 58,
+    notes: 'UK grocery retail, including the discounters and own-label.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.grocerygazette.co.uk/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 10 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'guardian-supermarkets',
+    name: 'The Guardian — Supermarkets',
+    officialDomain: 'www.theguardian.com',
+    homepageUrl: 'https://www.theguardian.com/business/supermarkets',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'Guardian News & Media',
+    language: 'en',
+    geographySlugs: ['united-kingdom', 'europe'],
+    industrySlugs: ['retail', 'food-beverage'],
+    qualityScore: 78,
+    notes: 'Independent reporting on grocery retail — the corroborating half of a company claim.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.theguardian.com/business/supermarkets/rss',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes:
+        'Guardian publishes open RSS per section. Headline and standfirst only, attributed and linked; full text is never retained. Fetched 2026-09-04, 20 items.',
+    }),
+  },
+
+  // ── Fashion and apparel ───────────────────────────────────────────────────
+  {
+    slug: 'drapers',
+    name: 'Drapers',
+    officialDomain: 'www.drapersonline.com',
+    homepageUrl: 'https://www.drapersonline.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Metropolis Business Media',
+    language: 'en',
+    geographySlugs: ['united-kingdom', 'europe'],
+    industrySlugs: ['fashion-apparel', 'retail'],
+    qualityScore: 64,
+    notes: 'UK fashion retail trade press.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.drapersonline.com/feed',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 10 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'guardian-fashion',
+    name: 'The Guardian — Fashion',
+    officialDomain: 'www.theguardian.com',
+    homepageUrl: 'https://www.theguardian.com/fashion',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'Guardian News & Media',
+    language: 'en',
+    geographySlugs: ['united-kingdom', 'global'],
+    industrySlugs: ['fashion-apparel'],
+    qualityScore: 72,
+    notes: 'Fashion industry coverage, including labour and sustainability reporting.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.theguardian.com/fashion/rss',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Open Guardian section feed. Fetched 2026-09-04, 33 items. Excerpt only.',
+    }),
+  },
+
+  // ── Retail ────────────────────────────────────────────────────────────────
+  {
+    slug: 'guardian-retail',
+    name: 'The Guardian — Retail',
+    officialDomain: 'www.theguardian.com',
+    homepageUrl: 'https://www.theguardian.com/business/retail',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'Guardian News & Media',
+    language: 'en',
+    geographySlugs: ['united-kingdom', 'europe'],
+    industrySlugs: ['retail'],
+    qualityScore: 78,
+    notes: 'Independent retail reporting, European rather than US-weighted.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.theguardian.com/business/retail/rss',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Open Guardian section feed. Fetched 2026-09-04, 20 items. Excerpt only.',
+    }),
+  },
+
+  // ── Travel and hospitality ────────────────────────────────────────────────
+  {
+    slug: 'skift',
+    name: 'Skift',
+    officialDomain: 'skift.com',
+    homepageUrl: 'https://skift.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Skift Inc.',
+    language: 'en',
+    geographySlugs: ['global'],
+    industrySlugs: ['travel'],
+    qualityScore: 72,
+    notes: 'Travel industry trade press. The first source registered against this sector.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://skift.com/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 10 items. Excerpt only.',
+    }),
+  },
+
+  /*
+   * ── General business news ─────────────────────────────────────────────────
+   *
+   * Registered against no industry on purpose. These publish across the whole economy,
+   * so lending their sector list to an untagged event is exactly the mistake that filled
+   * Retail with EU press releases. They earn their place through corroboration: an
+   * independent outlet reporting the same thing a company announced is what moves an
+   * event from "announced" to "independently reported".
+   */
+  {
+    slug: 'bbc-business',
+    name: 'BBC News — Business',
+    officialDomain: 'www.bbc.co.uk',
+    homepageUrl: 'https://www.bbc.co.uk/news/business',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'BBC',
+    language: 'en',
+    geographySlugs: ['united-kingdom', 'global'],
+    industrySlugs: [],
+    qualityScore: 82,
+    notes: 'Cross-economy business reporting. Lends no industry; corroborates many.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://feeds.bbci.co.uk/news/business/rss.xml',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes:
+        'BBC publishes these feeds openly for reuse with attribution and a link back. Headline and summary only. Fetched 2026-09-04, 46 items.',
+    }),
+  },
+  {
+    slug: 'guardian-business',
+    name: 'The Guardian — Business',
+    officialDomain: 'www.theguardian.com',
+    homepageUrl: 'https://www.theguardian.com/uk/business',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'Guardian News & Media',
+    language: 'en',
+    geographySlugs: ['united-kingdom', 'europe'],
+    industrySlugs: [],
+    qualityScore: 78,
+    notes: 'Cross-economy business reporting.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.theguardian.com/uk/business/rss',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Open Guardian section feed. Fetched 2026-09-04, 40 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'cnbc-business',
+    name: 'CNBC — Business News',
+    officialDomain: 'www.cnbc.com',
+    homepageUrl: 'https://www.cnbc.com/business/',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'NBCUniversal',
+    language: 'en',
+    geographySlugs: ['united-states', 'global'],
+    industrySlugs: [],
+    qualityScore: 70,
+    notes: 'US market and corporate news. Useful for earnings and deal corroboration.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.cnbc.com/id/10001147/device/rss/rss.html',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 30 items. Excerpt only.',
+    }),
+  },
+
+  /*
+   * Subscription publications. Their feeds are public and were verified reachable, but
+   * headline-and-summary reuse is not clearly within their terms and this project does
+   * not guess about rights. Registered so the gap is visible and the decision is one
+   * licence away, with the connector off until then.
+   */
+  {
+    slug: 'ft-companies',
+    name: 'Financial Times',
+    officialDomain: 'www.ft.com',
+    homepageUrl: 'https://www.ft.com/companies',
+    sourceType: 'independent_news',
+    perspective: 'LICENSED_PREMIUM',
+    sourceOwner: 'The Financial Times Ltd',
+    language: 'en',
+    geographySlugs: ['united-kingdom', 'global'],
+    industrySlugs: [],
+    qualityScore: 90,
+    notes: 'Feed reachable 2026-09-04 (25 items). Off pending a licence decision.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.ft.com/business-education?format=rss',
+      isActive: false,
+      schedule: 'daily',
+    },
+    policy: pendingReview(
+      'Subscription publication. Feed verified reachable 2026-09-04, but FT terms restrict reuse of headlines and summaries without a licence. Not ingested.',
+    ),
+  },
+  {
+    slug: 'economist-business',
+    name: 'The Economist — Business',
+    officialDomain: 'www.economist.com',
+    homepageUrl: 'https://www.economist.com/business',
+    sourceType: 'independent_news',
+    perspective: 'LICENSED_PREMIUM',
+    sourceOwner: 'The Economist Group',
+    language: 'en',
+    geographySlugs: ['global'],
+    industrySlugs: [],
+    qualityScore: 88,
+    notes: 'Feed reachable 2026-09-04 (300 items). Off pending a licence decision.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.economist.com/business/rss.xml',
+      isActive: false,
+      schedule: 'daily',
+    },
+    policy: pendingReview(
+      'Subscription publication. Feed verified reachable 2026-09-04; reuse of summaries requires a licence. Not ingested.',
+    ),
+  },
+  {
+    slug: 'nyt-business',
+    name: 'The New York Times — Business',
+    officialDomain: 'www.nytimes.com',
+    homepageUrl: 'https://www.nytimes.com/section/business',
+    sourceType: 'independent_news',
+    perspective: 'LICENSED_PREMIUM',
+    sourceOwner: 'The New York Times Company',
+    language: 'en',
+    geographySlugs: ['united-states', 'global'],
+    industrySlugs: [],
+    qualityScore: 88,
+    notes: 'Feed reachable 2026-09-04 (50 items). Off pending a licence decision.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://rss.nytimes.com/services/xml/rss/nyt/Business.xml',
+      isActive: false,
+      schedule: 'daily',
+    },
+    policy: pendingReview(
+      'Subscription publication. NYT terms require a licence for systematic reuse of feed content. Not ingested.',
+    ),
+  },
+  {
+    slug: 'wsj-markets',
+    name: 'The Wall Street Journal — Markets',
+    officialDomain: 'www.wsj.com',
+    homepageUrl: 'https://www.wsj.com/news/markets',
+    sourceType: 'independent_news',
+    perspective: 'LICENSED_PREMIUM',
+    sourceOwner: 'Dow Jones & Company',
+    language: 'en',
+    geographySlugs: ['united-states', 'global'],
+    industrySlugs: [],
+    qualityScore: 88,
+    notes: 'Feed reachable 2026-09-04 (20 items). Off pending a licence decision.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://feeds.a.dj.com/rss/RSSMarketsMain.xml',
+      isActive: false,
+      schedule: 'daily',
+    },
+    policy: pendingReview(
+      'Subscription publication. Dow Jones terms require a licence for systematic reuse. Not ingested.',
+    ),
+  },
+
+  /*
+   * ── The rest of the economy, added 2026-09-04 ─────────────────────────────
+   *
+   * A tool called market intelligence that covers four sectors is a tool with an
+   * opinion about which markets exist. These fill in the remaining twelve, so that a
+   * question about automotive, banking, pharma or logistics gets an answer drawn from
+   * somebody who actually reports on it.
+   *
+   * Every endpoint fetched 2026-09-04 and returning a parseable feed with items.
+   * Each is registered against the sector it covers and nothing wider.
+   */
+
+  // ── Automotive & mobility ─────────────────────────────────────────────────
+  {
+    slug: 'just-auto',
+    name: 'Just Auto',
+    officialDomain: 'www.just-auto.com',
+    homepageUrl: 'https://www.just-auto.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'GlobalData',
+    language: 'en',
+    geographySlugs: ['global'],
+    industrySlugs: ['automotive'],
+    qualityScore: 64,
+    notes: 'Automotive manufacturing, suppliers and electrification.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.just-auto.com/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Publisher feed, fetched 2026-09-04, 10 items.' }),
+  },
+  {
+    slug: 'guardian-automotive',
+    name: 'The Guardian — Automotive',
+    officialDomain: 'www.theguardian.com',
+    homepageUrl: 'https://www.theguardian.com/business/automotive-industry',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'Guardian News & Media',
+    language: 'en',
+    geographySlugs: ['united-kingdom', 'europe'],
+    industrySlugs: ['automotive'],
+    qualityScore: 76,
+    notes: 'Independent automotive industry reporting.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.theguardian.com/business/automotive-industry/rss',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Open Guardian section feed, 2026-09-04, 20 items.' }),
+  },
+
+  // ── Energy & utilities ────────────────────────────────────────────────────
+  {
+    slug: 'utility-dive',
+    name: 'Utility Dive',
+    officialDomain: 'www.utilitydive.com',
+    homepageUrl: 'https://www.utilitydive.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Industry Dive',
+    language: 'en',
+    geographySlugs: ['united-states', 'north-america'],
+    industrySlugs: ['energy-utilities'],
+    qualityScore: 70,
+    notes: 'Power, grid and utility regulation.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.utilitydive.com/feeds/news/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Same publisher as the approved Retail Dive entry.' }),
+  },
+  {
+    slug: 'guardian-energy',
+    name: 'The Guardian — Energy',
+    officialDomain: 'www.theguardian.com',
+    homepageUrl: 'https://www.theguardian.com/business/energy-industry',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'Guardian News & Media',
+    language: 'en',
+    geographySlugs: ['united-kingdom', 'europe'],
+    industrySlugs: ['energy-utilities'],
+    qualityScore: 76,
+    notes: 'European energy market and transition reporting.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.theguardian.com/business/energy-industry/rss',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Open Guardian section feed, 2026-09-04, 20 items.' }),
+  },
+
+  // ── Financial services ────────────────────────────────────────────────────
+  {
+    slug: 'banking-dive',
+    name: 'Banking Dive',
+    officialDomain: 'www.bankingdive.com',
+    homepageUrl: 'https://www.bankingdive.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Industry Dive',
+    language: 'en',
+    geographySlugs: ['united-states', 'north-america'],
+    industrySlugs: ['financial-services'],
+    qualityScore: 70,
+    notes: 'Retail and commercial banking, including supervision.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.bankingdive.com/feeds/news/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Same publisher as the approved Retail Dive entry.' }),
+  },
+  {
+    slug: 'finextra',
+    name: 'Finextra',
+    officialDomain: 'www.finextra.com',
+    homepageUrl: 'https://www.finextra.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Finextra Research',
+    language: 'en',
+    geographySlugs: ['global', 'europe'],
+    industrySlugs: ['financial-services', 'technology-ai'],
+    qualityScore: 66,
+    notes: 'Financial technology and payments. High volume.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.finextra.com/rss/headlines.aspx',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Publisher feed, fetched 2026-09-04, 55 items.' }),
+  },
+
+  // ── Healthcare & pharmaceuticals ──────────────────────────────────────────
+  {
+    slug: 'healthcare-dive',
+    name: 'Healthcare Dive',
+    officialDomain: 'www.healthcaredive.com',
+    homepageUrl: 'https://www.healthcaredive.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Industry Dive',
+    language: 'en',
+    geographySlugs: ['united-states', 'north-america'],
+    industrySlugs: ['healthcare'],
+    qualityScore: 70,
+    notes: 'Providers, payers and health policy.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.healthcaredive.com/feeds/news/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Same publisher as the approved Retail Dive entry.' }),
+  },
+  {
+    slug: 'fierce-pharma',
+    name: 'Fierce Pharma',
+    officialDomain: 'www.fiercepharma.com',
+    homepageUrl: 'https://www.fiercepharma.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Questex',
+    language: 'en',
+    geographySlugs: ['global', 'united-states'],
+    industrySlugs: ['pharmaceuticals'],
+    qualityScore: 68,
+    notes: 'Pharmaceutical manufacturers, approvals and commercial strategy.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.fiercepharma.com/rss/xml',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Publisher feed, fetched 2026-09-04, 25 items.' }),
+  },
+  {
+    slug: 'pharmaceutical-technology',
+    name: 'Pharmaceutical Technology',
+    officialDomain: 'www.pharmaceutical-technology.com',
+    homepageUrl: 'https://www.pharmaceutical-technology.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'GlobalData',
+    language: 'en',
+    geographySlugs: ['global'],
+    industrySlugs: ['pharmaceuticals'],
+    qualityScore: 62,
+    notes: 'Drug development, trials and manufacturing.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.pharmaceutical-technology.com/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Publisher feed, fetched 2026-09-04, 10 items.' }),
+  },
+
+  // ── Industrial manufacturing & logistics ──────────────────────────────────
+  {
+    slug: 'manufacturing-dive',
+    name: 'Manufacturing Dive',
+    officialDomain: 'www.manufacturingdive.com',
+    homepageUrl: 'https://www.manufacturingdive.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Industry Dive',
+    language: 'en',
+    geographySlugs: ['united-states', 'north-america'],
+    industrySlugs: ['industrial-manufacturing'],
+    qualityScore: 68,
+    notes: 'Industrial production, automation and plant investment.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.manufacturingdive.com/feeds/news/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Same publisher as the approved Retail Dive entry.' }),
+  },
+  {
+    slug: 'supply-chain-dive',
+    name: 'Supply Chain Dive',
+    officialDomain: 'www.supplychaindive.com',
+    homepageUrl: 'https://www.supplychaindive.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Industry Dive',
+    language: 'en',
+    geographySlugs: ['united-states', 'global'],
+    industrySlugs: ['logistics', 'retail', 'consumer-goods'],
+    qualityScore: 70,
+    notes:
+      'Sourcing, freight and inventory. Registered against retail and consumer goods too, because supply chain is where those sectors actually move.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.supplychaindive.com/feeds/news/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Same publisher as the approved Retail Dive entry.' }),
+  },
+  {
+    slug: 'freightwaves',
+    name: 'FreightWaves',
+    officialDomain: 'www.freightwaves.com',
+    homepageUrl: 'https://www.freightwaves.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'FreightWaves Inc.',
+    language: 'en',
+    geographySlugs: ['united-states', 'global'],
+    industrySlugs: ['logistics'],
+    qualityScore: 64,
+    notes: 'Freight markets, carriers and rates. High volume.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.freightwaves.com/feed',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Publisher feed, fetched 2026-09-04, 50 items.' }),
+  },
+
+  // ── Telecommunications ────────────────────────────────────────────────────
+  {
+    slug: 'mobile-world-live',
+    name: 'Mobile World Live',
+    officialDomain: 'www.mobileworldlive.com',
+    homepageUrl: 'https://www.mobileworldlive.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'GSMA',
+    language: 'en',
+    geographySlugs: ['global'],
+    industrySlugs: ['telecommunications'],
+    qualityScore: 68,
+    notes: 'Operator and network news from the GSMA. Covers Telstra and its peers.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.mobileworldlive.com/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Publisher feed, fetched 2026-09-04, 30 items.' }),
+  },
+  {
+    slug: 'rcr-wireless',
+    name: 'RCR Wireless News',
+    officialDomain: 'www.rcrwireless.com',
+    homepageUrl: 'https://www.rcrwireless.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'RCR Wireless News',
+    language: 'en',
+    geographySlugs: ['united-states', 'global'],
+    industrySlugs: ['telecommunications'],
+    qualityScore: 60,
+    notes: 'Network infrastructure and spectrum.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.rcrwireless.com/feed',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Publisher feed, fetched 2026-09-04, 10 items.' }),
+  },
+
+  // ── Media & entertainment ─────────────────────────────────────────────────
+  {
+    slug: 'hollywood-reporter',
+    name: 'The Hollywood Reporter',
+    officialDomain: 'www.hollywoodreporter.com',
+    homepageUrl: 'https://www.hollywoodreporter.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Penske Media Corporation',
+    language: 'en',
+    geographySlugs: ['united-states', 'global'],
+    industrySlugs: ['media-entertainment'],
+    qualityScore: 60,
+    notes: 'Studios, streaming and the content business.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.hollywoodreporter.com/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Publisher feed, fetched 2026-09-04, 10 items.' }),
+  },
+  {
+    slug: 'guardian-media',
+    name: 'The Guardian — Media',
+    officialDomain: 'www.theguardian.com',
+    homepageUrl: 'https://www.theguardian.com/media',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'Guardian News & Media',
+    language: 'en',
+    geographySlugs: ['united-kingdom', 'europe'],
+    industrySlugs: ['media-entertainment'],
+    qualityScore: 76,
+    notes: 'Broadcasting, publishing and platform regulation.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.theguardian.com/media/rss',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({ reviewNotes: 'Open Guardian section feed, 2026-09-04, 13 items.' }),
   },
 ];
