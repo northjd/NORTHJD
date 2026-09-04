@@ -1743,4 +1743,181 @@ export const SOURCES: SourceSeed[] = [
       'German subscription business daily. Feed verified reachable 2026-09-04; reuse requires a licence. Not ingested.',
     ),
   },
+
+  /*
+   * ── Benelux and Nordic sources, added 2026-09-04 ──────────────────────────
+   *
+   * Belgian and Dutch grocery already arrives through RetailDetail and ESM — which is why
+   * Colruyt and HEMA turned up in claims before either was a registered company. The
+   * Nordics had nothing at all beyond H&M's own newsroom.
+   *
+   * Public broadcasters where possible: they publish across the whole economy, their
+   * feeds are meant for syndication, and they are the least ambiguous rights position
+   * available in a language nobody here reads fluently. All are registered against no
+   * industry, because a national broadcaster is not about a sector.
+   */
+
+  {
+    slug: 'nu-nl-economie',
+    name: 'NU.nl — Economie',
+    officialDomain: 'www.nu.nl',
+    homepageUrl: 'https://www.nu.nl/economie',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'DPG Media',
+    language: 'nl',
+    geographySlugs: ['netherlands', 'europe'],
+    industrySlugs: [],
+    qualityScore: 68,
+    notes: 'Dutch general business news. Ahold Delhaize, Jumbo, Heineken, Philips, Adyen.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.nu.nl/rss/Economie',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated section feed, fetched 2026-09-04, 30 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'dutchnews',
+    name: 'DutchNews.nl',
+    officialDomain: 'www.dutchnews.nl',
+    homepageUrl: 'https://www.dutchnews.nl/',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'DutchNews.nl',
+    language: 'en',
+    geographySlugs: ['netherlands'],
+    industrySlugs: [],
+    qualityScore: 62,
+    notes: 'Dutch news in English — useful where the NU.nl feed is hard to read.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.dutchnews.nl/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 10 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'dr-penge',
+    name: 'DR — Penge',
+    officialDomain: 'www.dr.dk',
+    homepageUrl: 'https://www.dr.dk/nyheder/penge',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'Danmarks Radio',
+    language: 'da',
+    geographySlugs: ['denmark', 'europe'],
+    industrySlugs: [],
+    qualityScore: 78,
+    notes: 'Danish public broadcaster, money and business desk. Salling, Carlsberg, LEGO, Maersk.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.dr.dk/nyheder/service/feeds/penge',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes:
+        'Public-service broadcaster feed, published for syndication. Fetched 2026-09-04, 20 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'nrk-nyheter',
+    name: 'NRK Nyheter',
+    officialDomain: 'www.nrk.no',
+    homepageUrl: 'https://www.nrk.no/',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'Norsk rikskringkasting',
+    language: 'no',
+    geographySlugs: ['norway', 'europe'],
+    industrySlugs: [],
+    qualityScore: 76,
+    notes: 'Norwegian public broadcaster. Reitan, Orkla, Equinor.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.nrk.no/toppsaker.rss',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes:
+        'Public-service broadcaster feed. Fetched 2026-09-04, 100 items. Excerpt only, attributed and linked.',
+    }),
+  },
+  {
+    slug: 'yle-uutiset',
+    name: 'Yle Uutiset',
+    officialDomain: 'yle.fi',
+    homepageUrl: 'https://yle.fi/uutiset',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'Yleisradio Oy',
+    language: 'fi',
+    geographySlugs: ['finland', 'europe'],
+    industrySlugs: [],
+    qualityScore: 76,
+    notes: 'Finnish public broadcaster. Kesko, Nokia, the S Group.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://yle.fi/rss/uutiset/paauutiset',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Public-service broadcaster feed. Fetched 2026-09-04, 13 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'the-local-sweden',
+    name: 'The Local Sweden',
+    officialDomain: 'www.thelocal.se',
+    homepageUrl: 'https://www.thelocal.se/',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'The Local Europe AB',
+    language: 'en',
+    geographySlugs: ['sweden', 'europe'],
+    industrySlugs: [],
+    qualityScore: 60,
+    notes: 'Swedish news in English. IKEA, H&M, Ericsson.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.thelocal.se/feeds/rss.php',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 20 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'dagens-industri',
+    name: 'Dagens industri',
+    officialDomain: 'www.di.se',
+    homepageUrl: 'https://www.di.se/',
+    sourceType: 'independent_news',
+    perspective: 'LICENSED_PREMIUM',
+    sourceOwner: 'Bonnier News',
+    language: 'sv',
+    geographySlugs: ['sweden', 'europe'],
+    industrySlugs: [],
+    qualityScore: 82,
+    notes: 'Feed reachable 2026-09-04 (20 items). Off pending a licence decision.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.di.se/rss',
+      isActive: false,
+      schedule: 'daily',
+    },
+    policy: pendingReview(
+      'Swedish subscription business daily. Feed verified reachable 2026-09-04; reuse requires a licence. Not ingested.',
+    ),
+  },
 ];
