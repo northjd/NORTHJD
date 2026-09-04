@@ -165,50 +165,6 @@ export async function completeBrief(briefId: string): Promise<void> {
     .set({ state: 'completed', completedAt: new Date() })
     .where(eq(dailyBriefs.id, briefId));
 }
-
-export const SECTION_META: Record<string, { title: string; hint: string }> = {
-  executive_three: {
-    title: 'The three that matter',
-    hint: 'Highest combined relevance, impact and evidence strength today.',
-  },
-  what_changed: {
-    title: 'Changed since your last visit',
-    hint: 'Only genuinely new, updated or corrected developments.',
-  },
-  company_watch: {
-    title: 'Your companies',
-    hint: 'Developments at organisations on your watchlist.',
-  },
-  industry_signals: { title: 'Your industries', hint: 'Signals from the industries you follow.' },
-  tech_radar: {
-    title: 'Technology radar',
-    hint: 'What providers and platforms announced, built or shipped.',
-  },
-  broader_market: {
-    title: 'Broader market',
-    hint: 'Economic, regulatory and market developments beyond your focus.',
-  },
-  adjacent_signal: {
-    title: 'One adjacent signal',
-    hint: 'Deliberately outside your stated interests, to keep the brief from closing in on itself.',
-  },
-  learn_one_thing: {
-    title: 'Learn one thing',
-    hint: 'A short fundamentals unit connected to what you read.',
-  },
-  deep_dive: { title: 'Deep dive', hint: 'Longer material for durable understanding.' },
-  prepare_next: { title: 'Prepare for what is next', hint: 'Relevant to an upcoming meeting.' },
-};
-
-export const SECTION_ORDER = [
-  'executive_three',
-  'what_changed',
-  'company_watch',
-  'industry_signals',
-  'tech_radar',
-  'broader_market',
-  'adjacent_signal',
-  'learn_one_thing',
-  'deep_dive',
-  'prepare_next',
-];
+// Section names live in ./brief-sections so the browser can import them too; re-exported
+// here because every server caller already reaches for them through this module.
+export { SECTION_META, SECTION_ORDER } from './brief-sections';

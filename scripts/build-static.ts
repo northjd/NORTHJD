@@ -240,13 +240,28 @@ execSync('npm run build:palette', { cwd: root, stdio: 'inherit' });
 // Ask retrieves in the browser here, so the claim corpus ships with the site.
 execSync('npm run build:evidence', { cwd: root, stdio: 'inherit' });
 
+// The brief's candidate pool, so Today can be composed in the browser from the reader's
+// own answers rather than served as the one the build machine composed for nobody.
+execSync('npm run build:brief-pool', { cwd: root, stdio: 'inherit' });
+
 stashExcluded();
 
 try {
   execSync('npm run build --workspace=@mios/web', {
     cwd: root,
     stdio: 'inherit',
-    env: { ...process.env, STATIC_EXPORT: '1', NEXT_TELEMETRY_DISABLED: '1' },
+    /*
+     * The same fact twice, because server and client code cannot read the same variable.
+     * STATIC_EXPORT is a server-only env var; Next inlines NEXT_PUBLIC_* into the browser
+     * bundle, which is how a client component knows not to link at a route the export
+     * does not contain.
+     */
+    env: {
+      ...process.env,
+      STATIC_EXPORT: '1',
+      NEXT_PUBLIC_STATIC_EXPORT: '1',
+      NEXT_TELEMETRY_DISABLED: '1',
+    },
   });
 
   const out = resolve(root, 'apps/web/out');

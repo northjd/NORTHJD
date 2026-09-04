@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { requireUser, lastVisitAt, touchLastSeen } from '@/lib/session';
+import { requireUser, lastVisitAt, touchLastSeen, IS_STATIC_EXPORT } from '@/lib/session';
 import { ensureTodayBrief, SECTION_META, SECTION_ORDER } from '@/lib/brief';
 import { getCoverage, getFeedbackFor } from '@/lib/queries';
 import {
@@ -16,6 +16,7 @@ import {
 import { formatAbsolute, formatRelative } from '@mios/domain';
 import { WhyShown } from '@/components/why-shown';
 import { BriefProgress } from '@/components/brief-progress';
+import { PersonalBrief } from '@/components/static-variants/personal-brief';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,7 +44,7 @@ export default async function TodayPage() {
   const totalMinutes = items.reduce((sum, i) => sum + i.estimatedMinutes, 0);
   const readCount = items.filter((i) => i.readAt !== null).length;
 
-  return (
+  const generic = (
     <div className="mx-auto max-w-[760px]">
       <div className="min-w-0">
         <header className="mb-6">
@@ -253,4 +254,13 @@ export default async function TodayPage() {
       </div>
     </div>
   );
+
+  /*
+   * The prerendered brief is the fallback, not the answer.
+   *
+   * There are no profile rows in the export, so this one was composed for nobody in
+   * particular. PersonalBrief re-runs the same ranking in the browser against the
+   * answers given at set-up, and renders this instead when there are none.
+   */
+  return IS_STATIC_EXPORT ? <PersonalBrief>{generic}</PersonalBrief> : generic;
 }

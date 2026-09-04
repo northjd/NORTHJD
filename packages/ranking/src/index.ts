@@ -164,7 +164,7 @@ export function scoreItem(
   const accountHits = overlap(ctx.accountEntityIds, item.entityIds);
   if (accountHits > 0) {
     components.accountMatch = WEIGHTS.accountMatch;
-    reasons.push('It involves one of your accounts.');
+    reasons.push('It involves a company you have marked as a priority.');
   }
 
   if (ctx.mission) {
