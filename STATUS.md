@@ -1,11 +1,12 @@
 # STATUS
 
-**Last updated:** 2026-09-02
+**Last updated:** 2026-09-04
 **Phase:** 0–4 complete and verified; 5–8 partially complete
-**Overall:** a working vertical slice plus most of the focused MVP. Real ingestion from
-ten live publisher feeds, a complete evidence chain, seven working Companion modes, and
-94 passing tests. Not production-ready — see [Blocked](#blocked) and
-[Known limitations](#known-limitations).
+**Overall:** shipping as a static site on GitHub Pages, rebuilt every three hours by
+GitHub Actions. Real ingestion from 52 registered sources across sixteen of seventeen
+markets, a complete evidence chain, and 115 unit tests plus 15 evidence invariants that
+gate every publish. See [Known limitations](#known-limitations) for what the export
+gives up.
 
 ---
 
@@ -32,21 +33,22 @@ Measured on the last clean end-to-end run, not estimated.
 | ---------------------------------------- | ------------------------------------------------------ |
 | Database tables / enums / indexes        | 82 / 31 / 215                                          |
 | Full-text search columns                 | 5 (events, insights, claims, entities, learning units) |
-| Active source connectors                 | 10 (verified fetching)                                 |
-| Registered sources total                 | 18                                                     |
-| Documents ingested                       | 191                                                    |
-| Claims extracted                         | 369                                                    |
-| Evidence spans                           | 369                                                    |
+| Active source connectors                 | 38 (verified fetching 2026-09-04)                      |
+| Registered sources total                 | 52                                                     |
+| Documents ingested                       | 629                                                    |
+| Claims extracted                         | 1,135                                                  |
+| Evidence spans                           | 1,135                                                  |
 | **FACT claims without an evidence span** | **0**                                                  |
-| Events after clustering                  | 185                                                    |
-| Insights generated                       | 184                                                    |
-| Contradictions surfaced                  | 3                                                      |
+| Events after clustering                  | 293                                                    |
+| Insights generated                       | 231                                                    |
+| Contradictions surfaced                  | 4                                                      |
 | Conversation applications                | ~1,240                                                 |
 | Learning connections                     | 275                                                    |
 | Full pipeline run time                   | ~8–20s                                                 |
-| Unit + integration tests                 | **94 passing**                                         |
+| Unit + integration tests                 | **115 passing**                                        |
+| Markets with coverage                    | 16 of 17                                               |
 | Evaluation invariants                    | **15/15 passing** against live data                    |
-| Production build                         | clean, 25 routes                                       |
+| Production build                         | clean; static export ~930 pages                        |
 | TypeScript strict typecheck              | clean                                                  |
 
 ---
