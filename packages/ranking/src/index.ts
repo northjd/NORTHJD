@@ -321,6 +321,57 @@ export function composeBrief(scored: ScoredItem[], ctx: UserRankingContext): Com
     overlap(ctx.industrySlugs, s.item.industrySlugs) > 0 ||
     overlap(ctx.topicSlugs, s.item.topicSlugs) > 0;
 
+  /**
+   * Has this reader told us anything about themselves?
+   *
+   * Everything below turns on it. With no answers there is nothing to be relevant *to*,
+   * and a general brief is the honest result rather than a degraded one.
+   */
+  const hasPreferences =
+    ctx.industrySlugs.length > 0 ||
+    ctx.topicSlugs.length > 0 ||
+    ctx.technologySlugs.length > 0 ||
+    ctx.watchedEntityIds.length > 0 ||
+    ctx.accountEntityIds.length > 0 ||
+    ctx.mission !== null;
+
+  /** Any connection at all to what the reader asked for. */
+  const relevant = (s: ScoredItem) =>
+    matchesInterest(s) ||
+    overlap(ctx.technologySlugs, s.item.technologySlugs) > 0 ||
+    overlap(ctx.watchedEntityIds, s.item.entityIds) > 0 ||
+    overlap(ctx.accountEntityIds, s.item.entityIds) > 0 ||
+    (ctx.mission
+      ? overlap(ctx.mission.industrySlugs, s.item.industrySlugs) +
+          overlap(ctx.mission.topicSlugs, s.item.topicSlugs) +
+          overlap(ctx.mission.technologySlugs, s.item.technologySlugs) +
+          overlap(ctx.mission.entityIds, s.item.entityIds) >
+        0
+      : false);
+
+  /*
+   * The relevance gate.
+   *
+   * Four sections used to admit anything: `executive_three` took the top three by raw
+   * score with the predicate `() => true`, `what_changed` asked only whether an item was
+   * new, `tech_radar` took any technology item, and `broader_market` required the item to
+   * be *un*related. Someone who chose Fashion & Apparel and nothing else could therefore
+   * receive nine unrelated items against two related ones — reported from the live site
+   * as tobacco news on a fashion reader's brief, and entirely reproducible.
+   *
+   * Scoring alone could never fix this. Strategic impact, evidence strength, freshness
+   * and novelty together outweigh a single industry match, so a high-impact item from a
+   * sector you did not pick will outrank a moderate one you did. Relevance has to gate
+   * the pool, not merely tilt it.
+   *
+   * Applies only to readers who told us something. Without preferences the predicate
+   * would exclude everything and the brief would be empty.
+   */
+  const gated =
+    (predicate: (s: ScoredItem) => boolean) =>
+    (s: ScoredItem): boolean =>
+      hasPreferences ? relevant(s) && predicate(s) : predicate(s);
+
   const composition: Record<string, number> = {};
 
   /*
@@ -332,21 +383,23 @@ export function composeBrief(scored: ScoredItem[], ctx: UserRankingContext): Com
    * is controlled by the UI's section ordering, so choosing it early costs nothing.
    */
   const adjacentHeld: BriefSlot[] = [];
-  for (const candidate of pool) {
-    if (
-      overlap(ctx.industrySlugs, candidate.item.industrySlugs) === 0 &&
-      overlap(ctx.topicSlugs, candidate.item.topicSlugs) === 0 &&
-      overlap(ctx.watchedEntityIds, candidate.item.entityIds) === 0
-    ) {
-      used.add(candidate.item.insightId);
-      adjacentHeld.push({ section: 'adjacent_signal', scored: candidate });
-      minutes += candidate.item.estimatedMinutes;
-      break;
+  if (hasPreferences) {
+    for (const candidate of pool) {
+      if (!relevant(candidate)) {
+        used.add(candidate.item.insightId);
+        adjacentHeld.push({ section: 'adjacent_signal', scored: candidate });
+        minutes += candidate.item.estimatedMinutes;
+        break;
+      }
     }
   }
 
-  composition.executive_three = take('executive_three', () => true, 3);
-  composition.what_changed = take('what_changed', isRecent, 2);
+  composition.executive_three = take(
+    'executive_three',
+    gated(() => true),
+    3,
+  );
+  composition.what_changed = take('what_changed', gated(isRecent), 2);
   composition.company_watch = take(
     'company_watch',
     (s) => overlap(ctx.watchedEntityIds, s.item.entityIds) > 0,
@@ -355,23 +408,58 @@ export function composeBrief(scored: ScoredItem[], ctx: UserRankingContext): Com
   composition.industry_signals = take('industry_signals', matchesInterest, 2);
   composition.tech_radar = take(
     'tech_radar',
-    (s) => s.item.industrySlugs.includes('technology-ai') || s.item.technologySlugs.length > 0,
+    gated(
+      (s) => s.item.industrySlugs.includes('technology-ai') || s.item.technologySlugs.length > 0,
+    ),
     2,
   );
-  composition.broader_market = take(
-    'broader_market',
-    (s) => !matchesInterest(s) && s.item.strategicImpact !== 'low',
-    1,
-  );
 
-  // Append the held adjacent slot. Chosen before the discretionary sections so the
-  // budget could not squeeze it out.
-  slots.push(...adjacentHeld);
-  composition.adjacent_signal = adjacentHeld.length;
+  /*
+   * Broader market is for readers who told us nothing.
+   *
+   * Its predicate is `!matchesInterest` — it exists to widen a generic brief. For a
+   * reader who did state interests, that is a section defined as "things you did not ask
+   * for", and one of those is already reserved and labelled as the adjacent signal.
+   * Running both meant two unrelated items competing with the two related ones.
+   */
+  composition.broader_market = hasPreferences
+    ? 0
+    : take('broader_market', (s) => !matchesInterest(s) && s.item.strategicImpact !== 'low', 1);
 
+  /*
+   * Append the held adjacent slot — but only if there is something for it to be adjacent
+   * *to*.
+   *
+   * A reserved slot for one thing outside your interests is a guard against the feed
+   * closing in on itself. When nothing relevant was found at all, that same slot becomes
+   * a brief consisting entirely of an item you did not ask for, which is the original
+   * complaint in miniature: a fashion reader handed a tobacco story. Better to report the
+   * gap and show nothing.
+   *
+   * Chosen before the discretionary sections so the budget could not squeeze it out;
+   * released here when it turns out to be the only thing in the brief.
+   */
+  if (slots.length > 0) {
+    slots.push(...adjacentHeld);
+    composition.adjacent_signal = adjacentHeld.length;
+  } else {
+    for (const held of adjacentHeld) minutes -= held.scored.item.estimatedMinutes;
+    composition.adjacent_signal = 0;
+  }
+
+  /*
+   * Two different silences, and they are not interchangeable.
+   *
+   * With the relevance gate on, an empty brief no longer means the corpus is empty — it
+   * means nothing in it touches the areas this reader chose. Saying "no new events were
+   * found" there would be false, and would send someone looking for a broken pipeline
+   * when the answer is that nobody is publishing about their sector.
+   */
   const coverageNote =
     slots.length === 0
-      ? 'No new events were found in the currently monitored sources.'
+      ? hasPreferences
+        ? 'Nothing published in the monitored sources touches the areas you chose. That is a gap in our coverage, not a quiet day in your markets.'
+        : 'No new events were found in the currently monitored sources.'
       : minutes < budget * 0.5
         ? `Short brief today: ${slots.length} item${slots.length === 1 ? '' : 's'} met the relevance bar from the monitored sources. Nothing has been added to fill the time.`
         : '';

@@ -141,6 +141,13 @@ describe('brief composition', () => {
   it('reports an empty day honestly instead of padding it', () => {
     const brief = composeBrief([], ctx());
     expect(brief.slots).toHaveLength(0);
+    // This reader stated interests, so the honest reading of an empty pool is that
+    // nothing covers their areas — not that the corpus is empty.
+    expect(brief.coverageNote).toMatch(/areas you chose/i);
+  });
+
+  it('says the corpus is empty when the reader stated no interests', () => {
+    const brief = composeBrief([], ctx({ industrySlugs: [], topicSlugs: [] }));
     expect(brief.coverageNote).toMatch(/No new events were found/);
   });
 
@@ -154,5 +161,93 @@ describe('brief composition', () => {
     for (const slot of brief.slots) {
       expect(slot.section).not.toMatch(/accenture|consulting|competitor/i);
     }
+  });
+});
+
+/*
+ * Single-industry onboarding.
+ *
+ * Reported from the live site: a reader who chose Fashion & Apparel and nothing else was
+ * shown tobacco news. The cause was in composition rather than scoring — four sections
+ * admitted items with no reference to preferences at all, so a high-impact item from an
+ * unchosen sector outranked a moderate one from the chosen sector and took a slot.
+ */
+describe('a reader who chose one industry', () => {
+  const fashionOnly = ctx({ industrySlugs: ['fashion-apparel'], topicSlugs: [] });
+
+  /** Five tobacco items that outscore fashion on every non-relevance dimension. */
+  const loudTobacco = Array.from({ length: 5 }, (_, i) =>
+    item({
+      insightId: `tob${i}`,
+      industrySlugs: ['tobacco'],
+      strategicImpact: 'high',
+      evidenceStrength: 'MULTIPLE_CREDIBLE_SECONDARY_SOURCES',
+      independentSourceCount: 4,
+    }),
+  );
+  const quietFashion = Array.from({ length: 3 }, (_, i) =>
+    item({ insightId: `fash${i}`, industrySlugs: ['fashion-apparel'], strategicImpact: 'low' }),
+  );
+
+  const scoreAll = (items: RankableItem[], c: UserRankingContext) =>
+    items.map((i) => scoreItem(i, c));
+
+  it('is not handed items from an industry it did not choose', () => {
+    const brief = composeBrief(
+      scoreAll([...loudTobacco, ...quietFashion], fashionOnly),
+      fashionOnly,
+    );
+    const offTopic = brief.slots.filter(
+      (s) =>
+        s.section !== 'adjacent_signal' && !s.scored.item.industrySlugs.includes('fashion-apparel'),
+    );
+    expect(offTopic).toEqual([]);
+  });
+
+  it('still leads with the chosen industry when louder news exists elsewhere', () => {
+    const brief = composeBrief(
+      scoreAll([...loudTobacco, ...quietFashion], fashionOnly),
+      fashionOnly,
+    );
+    const lead = brief.slots.filter((s) => s.section === 'executive_three');
+    expect(lead.length).toBeGreaterThan(0);
+    for (const slot of lead) {
+      expect(slot.scored.item.industrySlugs).toContain('fashion-apparel');
+    }
+  });
+
+  it('allows exactly one adjacent item, and labels it as such', () => {
+    const brief = composeBrief(
+      scoreAll([...loudTobacco, ...quietFashion], fashionOnly),
+      fashionOnly,
+    );
+    const adjacent = brief.slots.filter((s) => s.section === 'adjacent_signal');
+    expect(adjacent.length).toBeLessThanOrEqual(1);
+    // Nothing unrelated may reach the reader through any other section.
+    expect(brief.composition.broader_market).toBe(0);
+  });
+
+  it('reports an honest gap rather than inventing a brief when its industry is uncovered', () => {
+    const brief = composeBrief(scoreAll(loudTobacco, fashionOnly), fashionOnly);
+    const core = brief.slots.filter((s) => s.section !== 'adjacent_signal');
+    expect(core).toEqual([]);
+    expect(brief.coverageNote).toMatch(/areas you chose/i);
+  });
+
+  it('is unaffected when the reader chose nothing — a general brief is still general', () => {
+    const none = ctx({ industrySlugs: [], topicSlugs: [] });
+    const brief = composeBrief(scoreAll([...loudTobacco, ...quietFashion], none), none);
+    expect(brief.slots.length).toBeGreaterThan(0);
+  });
+
+  it('counts a watched company as relevant even outside the chosen industry', () => {
+    const withWatch = ctx({
+      industrySlugs: ['fashion-apparel'],
+      topicSlugs: [],
+      watchedEntityIds: ['pmi'],
+    });
+    const watched = item({ insightId: 'w1', industrySlugs: ['tobacco'], entityIds: ['pmi'] });
+    const brief = composeBrief(scoreAll([watched, ...quietFashion], withWatch), withWatch);
+    expect(brief.slots.some((s) => s.scored.item.insightId === 'w1')).toBe(true);
   });
 });
