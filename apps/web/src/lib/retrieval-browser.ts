@@ -1,3 +1,4 @@
+import { assetPath } from '@/lib/asset-path';
 import { queryTerms, assessCoverage, stemForMatch } from '@mios/domain';
 import { buildPrompt, isWorthAnswering, type BuiltPrompt } from '@/lib/prompt-builder';
 import type { RetrievedClaim } from '@mios/intelligence';
@@ -33,7 +34,7 @@ let cache: BrowserClaim[] | null = null;
 
 export async function loadEvidence(): Promise<BrowserClaim[]> {
   if (cache) return cache;
-  const res = await fetch('/evidence.json');
+  const res = await fetch(assetPath('/evidence.json'));
   if (!res.ok) throw new Error('Could not load the evidence corpus.');
   const data = (await res.json()) as { claims: BrowserClaim[] };
   cache = data.claims ?? [];

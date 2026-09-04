@@ -10,6 +10,20 @@ const config: NextConfig = {
     : process.env.BUILD_STANDALONE
       ? 'standalone'
       : undefined,
+
+  /*
+   * GitHub Pages serves a project site from /<repo>, not from the root. Without a
+   * basePath every asset and link resolves one level too high and the site renders as
+   * unstyled HTML with dead navigation — which looks like a broken build rather than a
+   * misconfigured path, and is the usual way a first Pages deploy fails.
+   *
+   * Set BASE_PATH in the workflow. A user or organisation site serving from the root
+   * leaves it unset.
+   */
+  basePath: process.env.BASE_PATH || undefined,
+  // Directory-style URLs, so /watch/ works as a file on any static host.
+  trailingSlash: true,
+  images: { unoptimized: true },
   // Next 16 writes its own CLAUDE.md/AGENTS.md into the app directory. This project
   // documents its conventions in the repository root CLAUDE.md instead.
   agentRules: false,

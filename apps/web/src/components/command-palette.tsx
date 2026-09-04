@@ -1,5 +1,6 @@
 'use client';
 
+import { assetPath } from '@/lib/asset-path';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -86,7 +87,7 @@ export function CommandPalette({
   useEffect(() => {
     if (!open || loaded) return;
     let cancelled = false;
-    void fetch('/palette.json')
+    void fetch(assetPath('/palette.json'))
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled || !data) return;

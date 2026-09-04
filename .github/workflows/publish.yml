@@ -1,0 +1,99 @@
+name: Publish NORTH
+
+# Three-hourly, plus on demand and on every push to main.
+#
+# The schedule is what makes this worth having: it runs on GitHub's machines, so the
+# site refreshes whether or not anyone's laptop is open. Seventeen minutes past is
+# deliberate — scheduled jobs everywhere cluster on the hour, and the sources are politer
+# to a request that does not arrive with everyone else's.
+on:
+  schedule:
+    - cron: '17 */3 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+# One deployment at a time. A queued run is pointless when a newer one is behind it, but
+# cancelling one mid-deploy would leave Pages half-updated, so in-progress runs finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      # PGlite is real PostgreSQL compiled to WASM, so the whole pipeline runs here with
+      # no database service to provision. It is single-connection and slow under load,
+      # which is fine: nothing else is using it.
+      - name: Start the database
+        run: |
+          npm run db:up &
+          for i in $(seq 1 30); do
+            nc -z 127.0.0.1 55432 && break
+            sleep 2
+          done
+          nc -z 127.0.0.1 55432 || { echo "database never came up"; exit 1; }
+        env:
+          DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+
+      - name: Create the schema and reference data
+        run: |
+          npm run db:migrate
+          npm run db:seed
+        env:
+          DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+
+      # Fetches the sources. This is the step that makes the published site current, and
+      # the only one that touches the network on purpose.
+      - name: Ingest
+        run: npm run pipeline
+        env:
+          DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+
+      # Fails the build rather than publishing something that violates them. A site that
+      # is merely stale is a nuisance; one that shows an unevidenced claim is a lie.
+      - name: Check the evidence invariants
+        run: npm run eval
+        env:
+          DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+
+      - name: Build the site
+        run: npm run build:static
+        env:
+          DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+          STATIC_EXPORT: '1'
+          # A project site serves from /<repo>. Left empty for a user or organisation
+          # site at the root; the workflow works out which this is.
+          BASE_PATH: ${{ github.event.repository.name == format('{0}.github.io', github.repository_owner) && '' || format('/{0}', github.event.repository.name) }}
+
+      # Uploaded as an artifact rather than committed. The output is ~130 MB and changes
+      # substantially every three hours; committing it would make the repository
+      # unusable within a week.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

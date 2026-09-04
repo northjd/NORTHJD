@@ -33,7 +33,8 @@
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test",
     "build:static": "tsx scripts/build-static.ts",
     "build:palette": "tsx scripts/build-palette.ts",
-    "build:evidence": "tsx scripts/build-evidence.ts"
+    "build:evidence": "tsx scripts/build-evidence.ts",
+    "serve:static": "node scripts/serve-subpath.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

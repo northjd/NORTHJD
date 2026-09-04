@@ -240,6 +240,15 @@ try {
   });
 
   const out = resolve(root, 'apps/web/out');
+
+  /*
+   * Without this, GitHub Pages runs the output through Jekyll, which ignores every
+   * directory beginning with an underscore — including `_next`, where all the JavaScript
+   * and CSS live. The result is a site that serves unstyled HTML and looks like a broken
+   * build.
+   */
+  writeFileSync(resolve(out, '.nojekyll'), '');
+
   writeFileSync(
     resolve(out, 'BUILD.txt'),
     [
