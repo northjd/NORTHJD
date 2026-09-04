@@ -1293,4 +1293,266 @@ export const ENTITIES: EntitySeed[] = [
       { alias: 'JAB', type: 'abbreviation', requiresContext: true },
     ],
   },
+
+  /*
+   * ── DACH retail and luxury, added 2026-09-04 ──────────────────────────────
+   *
+   * The company list was Anglo-American with a few European names bolted on, which is
+   * why searching Breuninger returned nothing: it was never registered. Migros and Coop
+   * were registered and still returned nothing, which was the other half of the problem
+   * — no source in the registry published in German or covered Switzerland at all.
+   *
+   * Luxury is here as its own sector rather than folded into fashion. A watch maison and
+   * a fast-fashion retailer are not in the same business: one manages scarcity on
+   * purpose and barely discounts, the other lives on markdown rate.
+   */
+
+  // ── German retail ─────────────────────────────────────────────────────────
+  {
+    slug: 'breuninger',
+    kind: 'company',
+    name: 'Breuninger',
+    legalName: 'E. Breuninger GmbH & Co.',
+    description:
+      'German premium department store group and online retailer, strongest in the south, positioned between mainstream apparel retail and luxury.',
+    officialDomain: 'breuninger.com',
+    hq: 'germany',
+    primaryIndustrySlug: 'fashion-apparel',
+    industrySlugs: ['fashion-apparel', 'retail', 'luxury-goods'],
+    aliases: [{ alias: 'Breuninger' }, { alias: 'E. Breuninger GmbH & Co.', type: 'legal' }],
+  },
+  {
+    slug: 'edeka',
+    kind: 'company',
+    name: 'Edeka',
+    description:
+      'Germany’s largest grocery cooperative, operating a federated structure of regional companies and independent retailers.',
+    officialDomain: 'edeka.de',
+    hq: 'germany',
+    primaryIndustrySlug: 'retail',
+    industrySlugs: ['retail', 'food-beverage'],
+    aliases: [{ alias: 'Edeka' }, { alias: 'EDEKA Zentrale', type: 'legal' }],
+  },
+  {
+    slug: 'otto-group',
+    kind: 'company',
+    name: 'Otto Group',
+    description:
+      'Hamburg-based retail and commerce group, one of the largest European online retailers outside the marketplaces.',
+    officialDomain: 'ottogroup.com',
+    hq: 'germany',
+    primaryIndustrySlug: 'retail',
+    industrySlugs: ['retail', 'fashion-apparel'],
+    aliases: [
+      { alias: 'Otto Group' },
+      // "Otto" alone is a given name and a common word in German text.
+      { alias: 'Otto', requiresContext: true },
+    ],
+  },
+  {
+    slug: 'metro-ag',
+    kind: 'company',
+    name: 'Metro AG',
+    description: 'German wholesale group serving hospitality and independent retail across Europe.',
+    officialDomain: 'metroag.de',
+    hq: 'germany',
+    primaryIndustrySlug: 'retail',
+    industrySlugs: ['retail', 'food-beverage'],
+    aliases: [{ alias: 'Metro AG' }, { alias: 'Metro', requiresContext: true }],
+  },
+  {
+    slug: 'dm-drogerie-markt',
+    kind: 'company',
+    name: 'dm-drogerie markt',
+    description: 'German drugstore chain, the largest in the DACH region by store count.',
+    officialDomain: 'dm.de',
+    hq: 'germany',
+    primaryIndustrySlug: 'retail',
+    industrySlugs: ['retail', 'consumer-goods'],
+    aliases: [
+      { alias: 'dm-drogerie markt' },
+      { alias: 'dm drogerie markt' },
+      // Two letters, and a word in several languages.
+      { alias: 'dm', requiresContext: true },
+    ],
+  },
+  {
+    slug: 'rossmann',
+    kind: 'company',
+    name: 'Rossmann',
+    description: 'German drugstore chain competing with dm across Germany and eastern Europe.',
+    officialDomain: 'rossmann.de',
+    hq: 'germany',
+    primaryIndustrySlug: 'retail',
+    industrySlugs: ['retail', 'consumer-goods'],
+    aliases: [{ alias: 'Rossmann' }, { alias: 'Dirk Rossmann GmbH', type: 'legal' }],
+  },
+  {
+    slug: 'douglas',
+    kind: 'company',
+    name: 'Douglas',
+    description: 'European beauty retailer, listed in Frankfurt, operating stores and online.',
+    officialDomain: 'douglas.de',
+    hq: 'germany',
+    primaryIndustrySlug: 'retail',
+    industrySlugs: ['retail', 'consumer-goods'],
+    aliases: [
+      { alias: 'Douglas', requiresContext: true },
+      { alias: 'Douglas AG', type: 'legal' },
+    ],
+  },
+  {
+    slug: 'puma',
+    kind: 'company',
+    name: 'Puma',
+    description:
+      'German sportswear brand, third by revenue in the European sports market behind adidas and Nike.',
+    officialDomain: 'puma.com',
+    ticker: 'PUM',
+    hq: 'germany',
+    primaryIndustrySlug: 'fashion-apparel',
+    industrySlugs: ['fashion-apparel', 'consumer-goods'],
+    aliases: [{ alias: 'Puma' }, { alias: 'Puma SE', type: 'legal' }],
+  },
+
+  // ── Luxury and watches ────────────────────────────────────────────────────
+  {
+    slug: 'rolex',
+    kind: 'company',
+    name: 'Rolex',
+    description:
+      'Swiss watch manufacturer held by a private foundation, the largest by value in Swiss watchmaking and unusual in publishing almost nothing about itself.',
+    officialDomain: 'rolex.com',
+    hq: 'switzerland',
+    primaryIndustrySlug: 'luxury-goods',
+    industrySlugs: ['luxury-goods'],
+    aliases: [{ alias: 'Rolex' }, { alias: 'Rolex SA', type: 'legal' }],
+  },
+  {
+    slug: 'richemont',
+    kind: 'company',
+    name: 'Richemont',
+    legalName: 'Compagnie Financière Richemont SA',
+    description:
+      'Swiss luxury group holding Cartier, Van Cleef & Arpels, IWC, Jaeger-LeCoultre and others, plus online distribution.',
+    officialDomain: 'richemont.com',
+    ticker: 'CFR',
+    hq: 'switzerland',
+    primaryIndustrySlug: 'luxury-goods',
+    industrySlugs: ['luxury-goods', 'retail'],
+    aliases: [
+      { alias: 'Richemont' },
+      { alias: 'Compagnie Financière Richemont', type: 'legal' },
+      { alias: 'Cartier' },
+      { alias: 'Van Cleef & Arpels' },
+      { alias: 'IWC', requiresContext: true },
+      { alias: 'Jaeger-LeCoultre' },
+    ],
+  },
+  {
+    slug: 'bucherer',
+    kind: 'company',
+    name: 'Bucherer',
+    description:
+      'Swiss luxury watch and jewellery retailer, the largest authorised dealer network in Europe; acquired by Rolex in 2023.',
+    officialDomain: 'bucherer.com',
+    hq: 'switzerland',
+    primaryIndustrySlug: 'luxury-goods',
+    industrySlugs: ['luxury-goods', 'retail'],
+    aliases: [{ alias: 'Bucherer' }, { alias: 'Carl F. Bucherer' }],
+  },
+  {
+    slug: 'swatch-group',
+    kind: 'company',
+    name: 'Swatch Group',
+    description:
+      'Swiss watch group spanning Omega, Longines, Tissot and Swatch, and a major supplier of movements to the wider industry.',
+    officialDomain: 'swatchgroup.com',
+    ticker: 'UHR',
+    hq: 'switzerland',
+    primaryIndustrySlug: 'luxury-goods',
+    industrySlugs: ['luxury-goods', 'consumer-goods'],
+    aliases: [
+      { alias: 'Swatch Group' },
+      { alias: 'Swatch', requiresContext: true },
+      { alias: 'Omega', requiresContext: true },
+      { alias: 'Longines' },
+      { alias: 'Tissot' },
+    ],
+  },
+  {
+    slug: 'lvmh',
+    kind: 'company',
+    name: 'LVMH',
+    legalName: 'LVMH Moët Hennessy Louis Vuitton SE',
+    description:
+      'The largest luxury group, spanning fashion and leather goods, watches and jewellery, wines and spirits, and selective retail.',
+    officialDomain: 'lvmh.com',
+    ticker: 'MC',
+    hq: 'france',
+    primaryIndustrySlug: 'luxury-goods',
+    industrySlugs: ['luxury-goods', 'fashion-apparel', 'retail'],
+    aliases: [
+      { alias: 'LVMH' },
+      { alias: 'Moët Hennessy Louis Vuitton', type: 'legal' },
+      { alias: 'Louis Vuitton' },
+      { alias: 'Tiffany & Co.' },
+      { alias: 'Sephora' },
+      { alias: 'Bulgari' },
+    ],
+  },
+  {
+    slug: 'kering',
+    kind: 'company',
+    name: 'Kering',
+    description: 'French luxury group holding Gucci, Saint Laurent, Bottega Veneta and Boucheron.',
+    officialDomain: 'kering.com',
+    ticker: 'KER',
+    hq: 'france',
+    primaryIndustrySlug: 'luxury-goods',
+    industrySlugs: ['luxury-goods', 'fashion-apparel'],
+    aliases: [
+      { alias: 'Kering' },
+      { alias: 'Gucci' },
+      { alias: 'Saint Laurent' },
+      { alias: 'Bottega Veneta' },
+    ],
+  },
+  {
+    slug: 'hermes',
+    kind: 'company',
+    name: 'Hermès',
+    description:
+      'French luxury house, family-controlled, known for leather goods and for deliberately constrained production.',
+    officialDomain: 'hermes.com',
+    ticker: 'RMS',
+    hq: 'france',
+    primaryIndustrySlug: 'luxury-goods',
+    industrySlugs: ['luxury-goods', 'fashion-apparel'],
+    aliases: [{ alias: 'Hermès' }, { alias: 'Hermes' }],
+  },
+  {
+    slug: 'patek-philippe',
+    kind: 'company',
+    name: 'Patek Philippe',
+    description:
+      'Independent Genevan watch manufacturer, family-owned, at the top of the Swiss watch market by price.',
+    officialDomain: 'patek.com',
+    hq: 'switzerland',
+    primaryIndustrySlug: 'luxury-goods',
+    industrySlugs: ['luxury-goods'],
+    aliases: [{ alias: 'Patek Philippe' }, { alias: 'Patek' }],
+  },
+  {
+    slug: 'audemars-piguet',
+    kind: 'company',
+    name: 'Audemars Piguet',
+    description:
+      'Independent Swiss watch manufacturer from the Vallée de Joux, selling largely through its own boutiques.',
+    officialDomain: 'audemarspiguet.com',
+    hq: 'switzerland',
+    primaryIndustrySlug: 'luxury-goods',
+    industrySlugs: ['luxury-goods'],
+    aliases: [{ alias: 'Audemars Piguet' }, { alias: 'Audemars' }],
+  },
 ];

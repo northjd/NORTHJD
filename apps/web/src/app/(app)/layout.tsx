@@ -8,6 +8,7 @@ import { CommandPalette } from '@/components/command-palette';
 import { FeedbackWidget } from '@/components/feedback-widget';
 import { SetupGate } from '@/components/static-variants/setup-gate';
 import { Wordmark, CompassMark } from '@/components/wordmark';
+import { MakersMark } from '@/components/makers-mark';
 import { querySuggestedFilters } from '@/lib/explore-queries';
 import { db, schema } from '@mios/database';
 import { and, eq } from 'drizzle-orm';
@@ -310,6 +311,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </span>
         <span className="hidden sm:inline">{corpus.activeSources} active sources</span>
         <span className="ml-auto hidden md:inline">Monitored sources only.</span>
+        {/* The maker's mark lives here as well as on the landing page, because the
+            landing page is shown once and there is no way back to it — which made the
+            thing behind it unreachable for everyone after their first visit. */}
+        <MakersMark className="ml-auto text-[9px] font-semibold leading-none md:ml-3" />
       </footer>
 
       {/* The static build has no server to run set-up through, so it runs in the

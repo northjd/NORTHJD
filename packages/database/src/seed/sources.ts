@@ -1431,4 +1431,316 @@ export const SOURCES: SourceSeed[] = [
     },
     policy: approvedFeed({ reviewNotes: 'Open Guardian section feed, 2026-09-04, 13 items.' }),
   },
+
+  /*
+   * ── DACH and luxury, added 2026-09-04 ─────────────────────────────────────
+   *
+   * Every source above is British, American or "global", which in practice means
+   * Anglophone. The consequence was measurable: across 1,135 claims, Migros, Rewe, Lidl,
+   * MediaMarkt and adidas were mentioned exactly zero times, Coop once and Aldi four
+   * times. A tool that watches the Anglo-American retail world is not much use to someone
+   * whose accounts are Swiss and German.
+   *
+   * German-language feeds are indexed with the English text-search configuration, so
+   * German stemming is wrong — "Unternehmen" and "Unternehmens" are separate tokens.
+   * Company names are unaffected, and matching "Migros" is what these are here for.
+   * A German search configuration is worth doing and is not a reason to wait.
+   */
+
+  // ── European grocery and retail, including DACH ───────────────────────────
+  {
+    slug: 'esm-magazine',
+    name: 'ESM — European Supermarket Magazine',
+    officialDomain: 'www.esmmagazine.com',
+    homepageUrl: 'https://www.esmmagazine.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Madison Publications',
+    language: 'en',
+    geographySlugs: ['europe', 'germany', 'switzerland'],
+    industrySlugs: ['retail', 'food-beverage', 'consumer-goods'],
+    qualityScore: 70,
+    notes:
+      'European grocery trade press in English. Covers Coop, Lidl, Rewe and the Schwarz group directly — verified against the live feed before registering.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.esmmagazine.com/feed',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 90 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'retaildetail-eu',
+    name: 'RetailDetail EU',
+    officialDomain: 'www.retaildetail.eu',
+    homepageUrl: 'https://www.retaildetail.eu/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'RetailDetail',
+    language: 'en',
+    geographySlugs: ['europe', 'germany'],
+    industrySlugs: ['retail', 'food-beverage', 'fashion-apparel'],
+    qualityScore: 66,
+    notes: 'Benelux and continental European retail, in English.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.retaildetail.eu/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 30 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'lebensmittel-zeitung',
+    name: 'Lebensmittel Zeitung',
+    officialDomain: 'www.lebensmittelzeitung.net',
+    homepageUrl: 'https://www.lebensmittelzeitung.net/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'dfv Mediengruppe',
+    language: 'de',
+    geographySlugs: ['germany', 'europe'],
+    industrySlugs: ['retail', 'food-beverage', 'consumer-goods'],
+    qualityScore: 74,
+    notes:
+      'The German food-retail trade paper. The single best source for Edeka, Rewe, Aldi and the Schwarz group; verified covering all four before registering.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.lebensmittelzeitung.net/feed',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 25 items. Excerpt only.',
+    }),
+  },
+
+  // ── Switzerland ───────────────────────────────────────────────────────────
+  {
+    slug: 'srf-wirtschaft',
+    name: 'SRF Wirtschaft',
+    officialDomain: 'www.srf.ch',
+    homepageUrl: 'https://www.srf.ch/news/wirtschaft',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'Schweizer Radio und Fernsehen',
+    language: 'de',
+    geographySlugs: ['switzerland', 'europe'],
+    industrySlugs: [],
+    qualityScore: 80,
+    notes:
+      'Swiss public broadcaster, business desk. The first Swiss source in the registry — Migros and Coop were tracked companies with no publication that covers them.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.srf.ch/news/bnf/rss/1926',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes:
+        'Public-service broadcaster feed, published openly for syndication. Fetched 2026-09-04, 60 items. Excerpt only, attributed and linked.',
+    }),
+  },
+
+  // ── Germany, general business ─────────────────────────────────────────────
+  {
+    slug: 'tagesschau-wirtschaft',
+    name: 'tagesschau — Wirtschaft',
+    officialDomain: 'www.tagesschau.de',
+    homepageUrl: 'https://www.tagesschau.de/wirtschaft',
+    sourceType: 'independent_news',
+    perspective: 'INDEPENDENT_BUSINESS_MEDIA',
+    sourceOwner: 'ARD-aktuell',
+    language: 'de',
+    geographySlugs: ['germany', 'europe'],
+    industrySlugs: [],
+    qualityScore: 80,
+    notes: 'German public broadcaster, business desk. Cross-economy, so it lends no sector.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.tagesschau.de/wirtschaft/index~rss2.xml',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes:
+        'Public-service broadcaster feed, published openly. Fetched 2026-09-04, 19 items. Excerpt only.',
+    }),
+  },
+
+  // ── Luxury, watches and jewellery ─────────────────────────────────────────
+  {
+    slug: 'wwd',
+    name: 'WWD',
+    officialDomain: 'wwd.com',
+    homepageUrl: 'https://wwd.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Penske Media Corporation',
+    language: 'en',
+    geographySlugs: ['global', 'united-states'],
+    industrySlugs: ['luxury-goods', 'fashion-apparel', 'retail'],
+    qualityScore: 72,
+    notes: 'The fashion and luxury business paper of record. Covers LVMH, Kering and Richemont.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://wwd.com/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 10 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'luxury-society',
+    name: 'Luxury Society',
+    officialDomain: 'www.luxurysociety.com',
+    homepageUrl: 'https://www.luxurysociety.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Digital Luxury Group',
+    language: 'en',
+    geographySlugs: ['global', 'switzerland'],
+    industrySlugs: ['luxury-goods'],
+    qualityScore: 64,
+    notes: 'Luxury industry analysis, Geneva-based.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.luxurysociety.com/en/rss',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 10 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'jewellery-editor',
+    name: 'The Jewellery Editor',
+    officialDomain: 'www.thejewelleryeditor.com',
+    homepageUrl: 'https://www.thejewelleryeditor.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'The Jewellery Editor Ltd',
+    language: 'en',
+    geographySlugs: ['global', 'united-kingdom'],
+    industrySlugs: ['luxury-goods'],
+    qualityScore: 58,
+    notes: 'Fine jewellery and watches, including the Geneva and Basel fair cycle.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.thejewelleryeditor.com/feed',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 20 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'monochrome-watches',
+    name: 'Monochrome Watches',
+    officialDomain: 'monochrome-watches.com',
+    homepageUrl: 'https://monochrome-watches.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Monochrome Watches',
+    language: 'en',
+    geographySlugs: ['switzerland', 'global'],
+    industrySlugs: ['luxury-goods'],
+    qualityScore: 56,
+    notes:
+      'Swiss watch industry coverage — Rolex, Patek Philippe and Audemars Piguet publish almost nothing themselves.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://monochrome-watches.com/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 10 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'luxus-plus',
+    name: 'Luxus Plus',
+    officialDomain: 'luxus-plus.com',
+    homepageUrl: 'https://luxus-plus.com/en/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Luxus Plus',
+    language: 'en',
+    geographySlugs: ['france', 'europe'],
+    industrySlugs: ['luxury-goods'],
+    qualityScore: 56,
+    notes: 'French luxury business coverage in English. LVMH, Kering, Hermès.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://luxus-plus.com/en/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-04, 10 items. Excerpt only.',
+    }),
+  },
+
+  /*
+   * German-language subscription dailies. Feeds verified reachable 2026-09-04 and left
+   * off for the same reason as the FT and the NZZ's English-language peers: reuse of
+   * their headlines and summaries is a licence question, and this project does not guess
+   * about rights.
+   */
+  {
+    slug: 'nzz',
+    name: 'Neue Zürcher Zeitung',
+    officialDomain: 'www.nzz.ch',
+    homepageUrl: 'https://www.nzz.ch/',
+    sourceType: 'independent_news',
+    perspective: 'LICENSED_PREMIUM',
+    sourceOwner: 'NZZ Mediengruppe',
+    language: 'de',
+    geographySlugs: ['switzerland', 'europe'],
+    industrySlugs: [],
+    qualityScore: 86,
+    notes: 'Feed reachable 2026-09-04 (15 items). Off pending a licence decision.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.nzz.ch/recent.rss',
+      isActive: false,
+      schedule: 'daily',
+    },
+    policy: pendingReview(
+      'Swiss subscription daily. Feed verified reachable 2026-09-04; reuse of headlines and summaries requires a licence. Not ingested.',
+    ),
+  },
+  {
+    slug: 'handelsblatt',
+    name: 'Handelsblatt',
+    officialDomain: 'www.handelsblatt.com',
+    homepageUrl: 'https://www.handelsblatt.com/',
+    sourceType: 'independent_news',
+    perspective: 'LICENSED_PREMIUM',
+    sourceOwner: 'Handelsblatt Media Group',
+    language: 'de',
+    geographySlugs: ['germany', 'europe'],
+    industrySlugs: [],
+    qualityScore: 86,
+    notes: 'Feed reachable 2026-09-04 (50 items). Off pending a licence decision.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.handelsblatt.com/contentexport/feed/schlagzeilen',
+      isActive: false,
+      schedule: 'daily',
+    },
+    policy: pendingReview(
+      'German subscription business daily. Feed verified reachable 2026-09-04; reuse requires a licence. Not ingested.',
+    ),
+  },
 ];

@@ -797,6 +797,12 @@ export const INDUSTRIES: IndustrySeed[] = [
       'Combustible tobacco, heated-tobacco and vapour products, and the regulatory transition between them.',
   },
   {
+    slug: 'luxury-goods',
+    name: 'Luxury & Watches',
+    definition:
+      'Watches, jewellery, leather goods and the maisons behind them, plus the specialist retail and authorised-dealer networks that sell them. Kept separate from Fashion & Apparel because the economics differ: scarcity is managed on purpose, discounting is close to forbidden, and a single group can own both the maison and the shop it sells through.',
+  },
+  {
     slug: 'automotive',
     name: 'Automotive & Mobility',
     definition: 'Vehicle manufacture, suppliers, dealer networks and mobility services.',
@@ -1158,6 +1164,9 @@ export const GEOGRAPHIES = [
   { slug: 'north-america', name: 'North America', isoCode: null },
   { slug: 'asia-pacific', name: 'Asia Pacific', isoCode: null },
   { slug: 'germany', name: 'Germany', isoCode: 'DE', parentSlug: 'europe' },
+  { slug: 'switzerland', name: 'Switzerland', isoCode: 'CH', parentSlug: 'europe' },
+  { slug: 'france', name: 'France', isoCode: 'FR', parentSlug: 'europe' },
+  { slug: 'austria', name: 'Austria', isoCode: 'AT', parentSlug: 'europe' },
   { slug: 'sweden', name: 'Sweden', isoCode: 'SE', parentSlug: 'europe' },
   { slug: 'spain', name: 'Spain', isoCode: 'ES', parentSlug: 'europe' },
   { slug: 'united-kingdom', name: 'United Kingdom', isoCode: 'GB', parentSlug: 'europe' },
