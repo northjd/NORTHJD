@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Badge } from '@mios/ui';
 import type { ExploreFacets, Facet } from '@/lib/explore-queries';
+import { IS_STATIC_BUILD } from '@/lib/static-build';
 
 /**
  * The filter rail.
@@ -443,13 +444,18 @@ function SearchableFacets({
       <div className="mt-2 max-h-[210px] overflow-y-auto">
         {visible.length === 0 ? (
           <p className="t-meta py-2">
-            No {dimension.label.toLowerCase()} matches “{query}”.{' '}
-            <a
-              href={`/coverage?q=${encodeURIComponent(query)}`}
-              className="underline underline-offset-2 hover:text-[var(--text)]"
-            >
-              Check coverage for it →
-            </a>
+            No {dimension.label.toLowerCase()} matches “{query}”.
+            {IS_STATIC_BUILD ? null : (
+              <>
+                {' '}
+                <a
+                  href={`/coverage?q=${encodeURIComponent(query)}`}
+                  className="underline underline-offset-2 hover:text-[var(--text)]"
+                >
+                  Check coverage for it →
+                </a>
+              </>
+            )}
           </p>
         ) : (
           <div className="flex flex-col gap-0.5">

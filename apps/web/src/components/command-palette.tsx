@@ -3,6 +3,7 @@
 import { assetPath } from '@/lib/asset-path';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { IS_STATIC_BUILD } from '@/lib/static-build';
 
 /**
  * Command palette.
@@ -44,12 +45,15 @@ const AREAS: Item[] = [
   { group: 'Go to', icon: '◎', label: 'Today', href: '/' },
   { group: 'Go to', icon: '◇', label: 'Watch', href: '/watch' },
   { group: 'Go to', icon: '⊞', label: 'Explore', href: '/explore' },
-  { group: 'Go to', icon: '◆', label: 'My client', href: '/account' },
+  { group: 'Go to', icon: '◆', label: 'Market search', href: '/account' },
   { group: 'Go to', icon: '▤', label: 'Learn', href: '/learn' },
   { group: 'Go to', icon: '◈', label: 'Prepare', href: '/prepare' },
   { group: 'Go to', icon: '▢', label: 'Library', href: '/library' },
   { group: 'Go to', icon: '◍', label: 'Coverage check', href: '/coverage' },
 ];
+
+/** Routes the static export does not contain. Mirrors the sidebar's own list. */
+const NOT_IN_STATIC_BUILD = new Set(['/search', '/coverage', '/prepare', '/companion']);
 
 const CONFIDENCE: Item[] = [
   {
@@ -143,17 +147,28 @@ export function CommandPalette({
     const hit = (text: string) => !q || text.toLowerCase().includes(q);
     const out: Item[] = [];
 
-    out.push(...AREAS.filter((a) => hit(a.label)));
+    // The export leaves several routes out; offering them here would make the palette a
+    // menu of 404s, which is worse than a shorter menu.
+    out.push(
+      ...AREAS.filter((a) => hit(a.label)).filter(
+        (a) => !(IS_STATIC_BUILD && NOT_IN_STATIC_BUILD.has(a.href)),
+      ),
+    );
 
     for (const e of entities) {
       if (!hit(e.name) && !(e.aliases && hit(e.aliases))) continue;
+      // A company with no coverage still has a page, and that page explains the silence.
+      // Only the server build can answer the free-text coverage check.
+      const href =
+        e.events > 0 || IS_STATIC_BUILD
+          ? `/account/company/${e.slug}`
+          : `/coverage?q=${encodeURIComponent(e.name)}`;
       out.push({
         group: 'Companies',
         icon: '▣',
         label: e.name,
         detail: e.events > 0 ? `${e.events} events` : 'no coverage',
-        href:
-          e.events > 0 ? `/account?slug=${e.slug}` : `/coverage?q=${encodeURIComponent(e.name)}`,
+        href,
       });
       if (out.filter((o) => o.group === 'Companies').length >= 8) break;
     }
@@ -172,19 +187,23 @@ export function CommandPalette({
     out.push(...CONFIDENCE.filter((c) => hit(c.label)));
 
     if (q) {
-      out.push({
-        group: 'Coverage',
-        icon: '⌕',
-        label: `Check coverage for “${query.trim()}”`,
-        detail: 'what we have, and what we do not',
-        href: `/coverage?q=${encodeURIComponent(query.trim())}`,
-      });
+      if (!IS_STATIC_BUILD) {
+        out.push({
+          group: 'Coverage',
+          icon: '⌕',
+          label: `Check coverage for “${query.trim()}”`,
+          detail: 'what we have, and what we do not',
+          href: `/coverage?q=${encodeURIComponent(query.trim())}`,
+        });
+      }
       out.push({
         group: 'Ask',
         icon: '◧',
+        // Ask, not the Companion: the Companion was removed, and this had gone on
+        // pointing at it — a dead route in the server build and an excluded one here.
         label: `Ask: “${query.trim()}”`,
-        detail: 'answers cite their evidence',
-        href: `/companion?q=${encodeURIComponent(query.trim())}`,
+        detail: 'finds the evidence for your own Claude',
+        href: `/ask?q=${encodeURIComponent(query.trim())}`,
       });
     }
     return out;

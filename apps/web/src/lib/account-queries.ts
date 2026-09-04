@@ -518,10 +518,21 @@ export async function queryMarket(
     `),
   );
 
+  /*
+   * Regulatory items *in this sector*.
+   *
+   * The industry join is the whole point and was missing: without it every market showed
+   * the same eight items, so a tobacco page presented retail and AI regulation as though
+   * it were tobacco regulation. Keying on source perspective is still right — what a
+   * regulator publishes is regulatory by definition, whatever subject tags it carries —
+   * but it has to be scoped to the sector being read.
+   */
   const regulatory = rows<AccountEvent>(
     await db().execute(sql`
       select ${EVENT_COLUMNS}
         from events e
+        join event_taxonomy t on t.event_id = e.id and t.kind = 'industry'
+             and t.slug = ${sql.param(industrySlug)}
         left join insights i on i.event_id = e.id and i.workspace_id = ${sql.param(workspaceId)}
        where e.is_suppressed = false
          and exists (

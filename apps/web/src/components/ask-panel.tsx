@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { retrieveInBrowser } from '@/lib/retrieval-browser';
+import { IS_STATIC_BUILD } from '@/lib/static-build';
 
 /**
  * Ask — retrieval here, reasoning in your own Claude.
@@ -160,13 +161,18 @@ export function AskPanel({ initialQuestion = '' }: { initialQuestion?: string })
               is the failure this product exists to prevent — so there is no prompt to copy.
             </p>
             <p className="mt-2 text-[12.5px] text-[var(--text-subtle)]">
-              Registering a source for this would change it.{' '}
-              <a
-                href={`/coverage?q=${encodeURIComponent(question)}`}
-                className="underline underline-offset-2 hover:text-[var(--text)]"
-              >
-                Check coverage →
-              </a>
+              Registering a source for this would change it.
+              {IS_STATIC_BUILD ? null : (
+                <>
+                  {' '}
+                  <a
+                    href={`/coverage?q=${encodeURIComponent(question)}`}
+                    className="underline underline-offset-2 hover:text-[var(--text)]"
+                  >
+                    Check coverage →
+                  </a>
+                </>
+              )}
             </p>
           </div>
         ) : (
