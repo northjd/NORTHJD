@@ -64,7 +64,14 @@ const EXCLUDED_COMPONENTS: { path: string; reason: string }[] = [
  */
 const ACTION_FILES = ['(app)/actions.ts', '(app)/learn/actions.ts', '(app)/prepare/actions.ts'];
 
-const SWAPPED_COMPONENTS = ['brief-progress.tsx', 'feedback-bar.tsx', 'knowledge-check.tsx'];
+const SWAPPED_COMPONENTS = [
+  'brief-progress.tsx',
+  'feedback-bar.tsx',
+  'knowledge-check.tsx',
+  // Posted to /api/feedback, which the export does not contain: a button that failed
+  // silently, so a colleague believed they had told you and you never heard it.
+  'feedback-widget.tsx',
+];
 
 // setup-gate.tsx is imported directly by the layout rather than swapped over an
 // original, so it stays where it is.
