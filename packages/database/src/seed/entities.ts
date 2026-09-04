@@ -571,14 +571,14 @@ export const ENTITIES: EntitySeed[] = [
   },
 
   /*
-   * Accounts a consumer-goods, retail and travel practice actually works with.
+   * Major companies across consumer goods, retail and travel.
    *
    * Reference data, not intelligence. Each row is a public company with its public
    * name, domain, ticker and industry — the sort of thing any market-monitoring tool
    * needs in order to recognise what it is being asked about. Nothing here records a
-   * relationship, an assessment or a maturity judgement about any of them: that would be
-   * client analysis rather than a company list, and it has no business in a tool that
-   * gets shared.
+   * relationship, an assessment or a maturity judgement about any of them, and nothing
+   * marks any row as anyone's client. That would be client analysis rather than a
+   * company list, and it has no business in a repository that gets shared.
    *
    * Most have no source registered, so they will show no coverage. That is the honest
    * state and the product says so, naming the source that would change it. Being able to
@@ -1253,7 +1253,7 @@ export const ENTITIES: EntitySeed[] = [
     aliases: [{ alias: 'Ecolab' }, { alias: 'Ecolab Inc.', type: 'legal' }],
   },
 
-  // ── Adjacent accounts ─────────────────────────────────────────────────────
+  // ── Adjacent sectors ──────────────────────────────────────────────────────
   {
     slug: 'telstra',
     kind: 'company',
