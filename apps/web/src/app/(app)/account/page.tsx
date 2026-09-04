@@ -2,7 +2,13 @@ import Link from 'next/link';
 import { eq } from 'drizzle-orm';
 import { db, schema } from '@mios/database';
 import { requireUser } from '@/lib/session';
-import { queryAccount, type AccountEvent, type AccountRung } from '@/lib/account-queries';
+import {
+  queryAccount,
+  queryMarket,
+  queryMarketIndex,
+  type AccountEvent,
+  type AccountRung,
+} from '@/lib/account-queries';
 import { searchEntities } from '@/lib/entity-search';
 import { MarketSearchControls } from '@/components/market-search-controls';
 import { Badge, Card, InterpretationBlock, MaturityBadge } from '@mios/ui';
@@ -62,18 +68,146 @@ export default async function AccountPage({
       .where(eq(schema.watchlists.workspaceId, user.workspaceId))
   ).slice(0, 6);
 
+  /*
+   * Market first, then a company inside it.
+   *
+   * Three states, in the order someone actually works: choose a sector, see what moved
+   * in it and who is in it, then narrow to one company. Opening on a company assumes you
+   * already know which one matters, which is the opposite of what the page is for.
+   */
   if (!slug) {
+    // ── No company, but a market chosen: the market view.
+    if (industry) {
+      const market = await queryMarket(user.workspaceId, industry);
+      if (market) {
+        return (
+          <div className="mx-auto max-w-[900px]">
+            <p className="t-eyebrow">Market and company insights</p>
+            <h1 className="mt-2 text-[27px] font-semibold leading-[1.16] tracking-[-0.028em]">
+              {market.industry.name}
+            </h1>
+            {market.industry.definition ? (
+              <p className="mt-3 max-w-[64ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
+                {market.industry.definition}
+              </p>
+            ) : null}
+            {!market.industry.isModelled ? (
+              <p className="mt-2 max-w-[64ch] text-[12px] leading-relaxed text-[var(--text-subtle)]">
+                NORTH recognises this sector for classification and search but has not built
+                a market model for it — no value chain, KPI tree or business models. Writing
+                one nobody has researched would be a fabrication, so it says so instead.
+              </p>
+            ) : null}
+
+            <nav className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-[var(--text-subtle)]">
+              <Link href="/account" className="hover:text-[var(--text)]">
+                ← All markets
+              </Link>
+              <span>
+                {market.events.length} events · {market.companies.length} companies
+              </span>
+            </nav>
+
+            <MarketSearchControls
+              companies={allCompanies}
+              industries={[]}
+              activeCompany={null}
+              activeCompanyName={null}
+              recordedIndustries={null}
+              overrideIndustry={null}
+              shortcuts={market.companies.filter((c) => c.events > 0).slice(0, 6)}
+              shortcutsLabel="Most active here"
+            />
+
+            <section className="mt-9">
+              <h2 className="t-rule">
+                Companies in {market.industry.name}
+                <Badge tone="muted">{market.companies.length}</Badge>
+              </h2>
+              <p className="mt-2 max-w-[72ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
+                Everything classified into this sector. A zero is a coverage statement, not
+                a claim that the company is quiet — open one and it names what would change
+                that.
+              </p>
+              <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
+                {market.companies.map((c) => (
+                  <li key={c.slug}>
+                    <Link
+                      href={`/account?slug=${c.slug}`}
+                      className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-inset)] hover:text-[var(--text)]"
+                    >
+                      <span className="truncate">{c.name}</span>
+                      <span className="ml-auto shrink-0 text-[11px] tabular-nums opacity-60">
+                        {c.events || '—'}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="mt-9">
+              <h2 className="t-rule">
+                What moved in {market.industry.name}
+                <Badge tone="muted">{market.events.length}</Badge>
+              </h2>
+              {market.newestAgeDays != null && market.newestAgeDays > 7 ? (
+                <p className="mt-1.5 text-[11.5px] text-caution-700 dark:text-caution-100">
+                  Nothing in the last week — the most recent here is {market.newestAgeDays}{' '}
+                  days old.
+                </p>
+              ) : null}
+              {market.events.length === 0 ? (
+                <p className="mt-3 text-[13px] text-[var(--text-subtle)]">
+                  No event is classified under this sector. No source in the registry covers
+                  it yet — a gap in our monitoring rather than quiet in the market.
+                </p>
+              ) : (
+                <ul className="mt-3 grid gap-2.5">
+                  {market.events.map((e, i) => (
+                    <EventRow key={e.id} event={e} index={i + 1} />
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            {market.regulatory.length > 0 ? (
+              <section className="mt-9">
+                <h2 className="t-rule">
+                  Regulatory and policy
+                  <Badge tone="muted">{market.regulatory.length}</Badge>
+                </h2>
+                <p className="mt-2 max-w-[72ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
+                  Published by regulators and public institutions. Keyed on the source
+                  rather than on subject tags: what a regulator publishes is regulatory by
+                  definition.
+                </p>
+                <ul className="mt-3 grid gap-2.5">
+                  {market.regulatory.map((e, i) => (
+                    <EventRow key={e.id} event={e} index={i + 1} />
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+          </div>
+        );
+      }
+    }
+
+    // ── Nothing chosen: pick a market, or jump straight to a company.
+    const markets = await queryMarketIndex();
     return (
-      <div className="mx-auto max-w-[820px]">
+      <div className="mx-auto max-w-[900px]">
         <p className="t-eyebrow">Market search</p>
         <h1 className="mt-2 text-[27px] font-semibold leading-[1.16] tracking-[-0.028em]">
-          Look up a company
+          Get market and company insights
         </h1>
-        <p className="mt-3 max-w-[62ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
-          One company read through its market. What moved in the sector, who moved it, and
-          then what the company itself has said — in that order, because a conversation
-          needs the market before it needs four press releases.
+        <p className="mt-3 max-w-[64ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
+          Start with a market: what moved in the sector, who is in it, and what regulators
+          have said. Then narrow to a company — in that order, because a conversation needs
+          the market before it needs four press releases.
         </p>
+
         <MarketSearchControls
           companies={allCompanies}
           industries={[]}
@@ -83,6 +217,29 @@ export default async function AccountPage({
           overrideIndustry={null}
           shortcuts={watchlistShortcuts}
         />
+
+        <section className="mt-9">
+          <h2 className="t-rule">Markets</h2>
+          <p className="mt-2 max-w-[72ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
+            Counts are events published in each sector. A sector with none is one no source
+            in the registry covers yet.
+          </p>
+          <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
+            {markets.map((m) => (
+              <li key={m.slug}>
+                <Link
+                  href={`/account?industry=${m.slug}`}
+                  className="flex items-baseline gap-2 rounded-md px-2.5 py-2 transition-colors hover:bg-[var(--surface-inset)]"
+                >
+                  <span className="text-[13.5px] font-medium">{m.name}</span>
+                  <span className="ml-auto shrink-0 text-[11px] tabular-nums text-[var(--text-subtle)]">
+                    {m.events} events · {m.companies} companies
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
     );
   }

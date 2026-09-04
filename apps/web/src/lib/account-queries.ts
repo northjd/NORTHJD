@@ -444,3 +444,133 @@ export async function queryAccount(
     skipped: rungs.slice(0, resolvedLead).filter((r) => r.events.length === 0),
   };
 }
+
+/* ── Market view ───────────────────────────────────────────────────────────── */
+
+export interface MarketCompany {
+  slug: string;
+  name: string;
+  events: number;
+  lastSeen: Date | null;
+}
+
+export interface MarketBoard {
+  industry: { slug: string; name: string; definition: string | null; isModelled: boolean };
+  events: AccountEvent[];
+  companies: MarketCompany[];
+  regulatory: AccountEvent[];
+  newestAgeDays: number | null;
+}
+
+/**
+ * A market before any company is chosen.
+ *
+ * Market search starts here on purpose: you pick a sector, see what moved in it and who
+ * is in it, and only then narrow to one company. Starting from a company assumes you
+ * already know which one matters, which is the opposite of what a market-intelligence
+ * tool is for.
+ *
+ * Companies are listed whether or not anything has been published about them. A zero is
+ * a coverage statement, and the company page says what would change it.
+ */
+export async function queryMarket(
+  workspaceId: string,
+  industrySlug: string,
+): Promise<MarketBoard | null> {
+  const [industry] = rows<{
+    slug: string;
+    name: string;
+    definition: string | null;
+    stages: number;
+  }>(
+    await db().execute(sql`
+      select i.slug, i.name, i.definition,
+             (select count(*)::int from value_chain_stages v where v.industry_id = i.id) stages
+        from industries i where i.slug = ${sql.param(industrySlug)}
+    `),
+  );
+  if (!industry) return null;
+
+  const events = rows<AccountEvent>(
+    await db().execute(sql`
+      select ${EVENT_COLUMNS}
+        from events e
+        join event_taxonomy t on t.event_id = e.id and t.kind = 'industry'
+             and t.slug = ${sql.param(industrySlug)}
+        left join insights i on i.event_id = e.id and i.workspace_id = ${sql.param(workspaceId)}
+       where e.is_suppressed = false
+       order by coalesce(e.event_at, e.first_reported_at) desc
+       limit 20
+    `),
+  );
+
+  const companies = rows<MarketCompany>(
+    await db().execute(sql`
+      select en.slug, en.name,
+             count(distinct e.id)::int                        as events,
+             max(coalesce(e.event_at, e.first_reported_at))   as "lastSeen"
+        from entities en
+        join entity_industries ei on ei.entity_id = en.id
+        join industries ind on ind.id = ei.industry_id and ind.slug = ${sql.param(industrySlug)}
+        left join event_entities ee on ee.entity_id = en.id
+        left join events e on e.id = ee.event_id and e.is_suppressed = false
+       group by en.slug, en.name
+       order by count(distinct e.id) desc, en.name asc
+    `),
+  );
+
+  const regulatory = rows<AccountEvent>(
+    await db().execute(sql`
+      select ${EVENT_COLUMNS}
+        from events e
+        left join insights i on i.event_id = e.id and i.workspace_id = ${sql.param(workspaceId)}
+       where e.is_suppressed = false
+         and exists (
+               select 1 from event_documents ed
+                 join raw_documents rd on rd.id = ed.document_id
+                 join sources src on src.id = rd.source_id
+                where ed.event_id = e.id
+                  and src.perspective in ('REGULATOR', 'PUBLIC_INSTITUTION'))
+       order by coalesce(e.event_at, e.first_reported_at) desc
+       limit 8
+    `),
+  );
+
+  const newest = events
+    .map((e) => e.eventAt ?? e.firstReportedAt)
+    .filter((d): d is Date => d != null)
+    .map((d) => new Date(d).getTime())
+    .sort((a, b) => b - a)[0];
+
+  return {
+    industry: {
+      slug: industry.slug,
+      name: industry.name,
+      definition: industry.definition,
+      // Four sectors carry a full market model; the rest exist for classification.
+      isModelled: industry.stages > 0,
+    },
+    events,
+    companies,
+    regulatory,
+    newestAgeDays: newest ? Math.max(0, Math.floor((Date.now() - newest) / 86_400_000)) : null,
+  };
+}
+
+/** Every industry, with how much has been published in it. */
+export async function queryMarketIndex(): Promise<
+  { slug: string; name: string; events: number; companies: number }[]
+> {
+  return rows(
+    await db().execute(sql`
+      select i.slug, i.name,
+             (select count(*)::int from event_taxonomy t
+                join events e on e.id = t.event_id and e.is_suppressed = false
+               where t.kind = 'industry' and t.slug = i.slug)      as events,
+             (select count(*)::int from entity_industries ei
+               where ei.industry_id = i.id)                        as companies
+        from industries i
+       order by 3 desc, i.name asc
+    `),
+  );
+}
