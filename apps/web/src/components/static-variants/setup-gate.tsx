@@ -180,8 +180,8 @@ export function SetupGate() {
         </p>
         <p className="mt-3 max-w-[62ch] border-l border-[var(--border-strong)] pl-3.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">
           This is a snapshot with no accounts, so your answers are kept in this browser and belong
-          to you alone. The daily brief itself was assembled when the site was built and does not
-          re-rank — these shape what you filter and where the saved views point.
+          to you alone. Your daily brief is then ranked here, on your machine, from the same
+          candidates and the same weights the server would have used — nothing is sent anywhere.
         </p>
 
         <Section n="01" title="Which industries?" why="Your saved views start here.">
