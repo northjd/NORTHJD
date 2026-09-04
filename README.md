@@ -1,11 +1,20 @@
-# Market Intelligence OS
+# NORTH
 
-**Know what changed, understand why it matters, and be ready to discuss it.**
+**Know what changed. Understand what matters. Be ready for what's next.**
+
+### → **[northjd.github.io/NORTHJD](https://northjd.github.io/NORTHJD/)**
+
+The live site. No sign-in, nothing to install — open it and it works. It rebuilds itself
+every three hours on GitHub's machines, so it is current whether or not anyone's laptop
+is open.
 
 An evidence-grounded market intelligence, learning and conversation platform for
 consultants. Not a news app: the unit of intelligence is the real-world _event_, every
 factual statement traces to a quoted passage in a stored source document, and the daily
 brief is finite — it ends, and says so.
+
+Your answers during set-up stay in your own browser, and the brief is ranked there from
+them. Nothing you choose is sent anywhere.
 
 > The most relevant changes in the world, translated into my personal market
 > understanding, my industries, my accounts and my next conversations.
