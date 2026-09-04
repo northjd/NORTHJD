@@ -94,8 +94,6 @@ const watchEventColumns = {
 };
 
 export async function queryWatchBoard(workspaceId: string): Promise<WatchBoard> {
-  const scope = [eq(insights.workspaceId, workspaceId), eq(events.isSuppressed, false)];
-
   /** Things the sources themselves say will happen. Cited, never presented as fact. */
   const stated = await db()
     .select({

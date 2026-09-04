@@ -73,8 +73,11 @@ export function collapseWhitespace(s: string): string {
 export function normalizeText(input: string): string {
   return input
     .replace(/\r\n?/g, '\n')
-    .replace(/ /g, ' ')
-    .replace(/[​-‍﻿]/g, '')
+    // Escapes, not the literal characters: a non-breaking space and a zero-width joiner
+    // are invisible in an editor, and a normaliser nobody can read is one nobody dares
+    // change. u00a0 is NBSP; u200b\u2013u200d and ufeff are the zero-width set.
+    .replace(/\u00a0/g, ' ')
+    .replace(/[\u200b-\u200d\ufeff]/g, '')
     .replace(/[ \t]+/g, ' ')
     .replace(/ *\n */g, '\n')
     .replace(/\n{3,}/g, '\n\n')

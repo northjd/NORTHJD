@@ -21,7 +21,6 @@ import {
   isFirstParty,
   isIndependent,
   normalizeText,
-  slugify,
   truncate,
 } from '@mios/domain';
 import {

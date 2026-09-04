@@ -7,7 +7,7 @@
  * not a fresh query with new items appended.
  */
 
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { db, schema } from '@mios/database';
 import { composeBrief, scoreItem, type ScoredItem } from '@mios/ranking';
 import {
@@ -58,7 +58,7 @@ export async function ensureTodayBrief(
     ),
   );
 
-  const composed = composeBrief(scored, ctx, now);
+  const composed = composeBrief(scored, ctx);
 
   const [brief] = await db()
     .insert(dailyBriefs)
@@ -102,7 +102,7 @@ export async function ensureTodayBrief(
       briefId: brief!.id,
       learningUnitId: unit.id,
       section: 'learn_one_thing',
-      position: position++,
+      position,
       score: 0,
       whyShown: ['A short fundamentals unit, chosen because you have not covered it yet.'],
       estimatedMinutes: unit.estimatedMinutes,

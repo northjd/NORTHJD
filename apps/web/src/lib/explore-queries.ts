@@ -15,7 +15,6 @@ import {
   EVIDENCE_STRENGTHS,
   type CaseMaturity,
   type EvidenceStrength,
-  type EventType,
 } from '@mios/domain';
 import { filterConditions, type ExploreFilters } from './filters';
 

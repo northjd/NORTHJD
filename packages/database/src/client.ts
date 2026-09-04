@@ -82,14 +82,12 @@ class SerialClient {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   query(...args: any[]): Promise<any> {
     const run = async (): Promise<unknown> => {
       let lastError: unknown;
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
           const client = await this.#connect();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           return await (client.query as (...a: any[]) => Promise<unknown>)(...args);
         } catch (err) {
           if (!isTransient(err)) throw err;
@@ -142,7 +140,6 @@ function createClient(): Client {
 export function db(): Database {
   if (!database) {
     client = createClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     database = drizzle(client as any, { schema, casing: 'snake_case' });
   }
   return database;

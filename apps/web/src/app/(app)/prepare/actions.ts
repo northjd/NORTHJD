@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { and, desc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import { db, schema } from '@mios/database';
 import { MeetingBriefRequestSchema, formatAbsolute, subtractDays, toIso } from '@mios/domain';
 import { answerQuestion } from '@mios/intelligence';

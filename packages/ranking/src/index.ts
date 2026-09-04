@@ -280,11 +280,7 @@ export interface ComposedBrief {
  * never padded, because padding is how "nothing important happened today" becomes
  * eight items of filler.
  */
-export function composeBrief(
-  scored: ScoredItem[],
-  ctx: UserRankingContext,
-  now: Date = new Date(),
-): ComposedBrief {
+export function composeBrief(scored: ScoredItem[], ctx: UserRankingContext): ComposedBrief {
   const pool = [...scored].sort((a, b) => b.score - a.score);
   const used = new Set<string>();
   const slots: BriefSlot[] = [];

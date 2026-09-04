@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { and, asc, eq } from 'drizzle-orm';
 import { db, schema } from '@mios/database';
 import { requireUser } from '@/lib/session';
-import { Badge, Card, SectionHeading } from '@mios/ui';
+import { Badge, Card } from '@mios/ui';
 import { CopyButton } from '@/components/copy-button';
 
 export const dynamic = 'force-dynamic';

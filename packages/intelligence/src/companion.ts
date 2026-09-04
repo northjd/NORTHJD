@@ -35,8 +35,8 @@ import { queryTerms, assessCoverage, stemForMatch, type CoverageAssessment } fro
 export { queryTerms, assessCoverage, stemForMatch, type CoverageAssessment };
 
 const {
-  claimEvidence, claims, conversationApplications, documentVersions, entities, entityAliases,
-  eventClaims, eventEntities, events, evidenceSpans, industries, insights, learningUnits,
+  claimEvidence, claims, conversationApplications, documentVersions, entityAliases,
+  eventClaims, eventEntities, events, evidenceSpans, insights, learningUnits,
   rawDocuments, sources,
 } = schema;
 
@@ -98,18 +98,6 @@ function toSearchQuery(question: string): string {
  * The threshold is 0.7 and the refusal names the specific words it could not find,
  * which is far more useful than "insufficient evidence" on its own.
  */
-
-
-
-
-/** How many distinct query terms appear in the text, matched on word prefix. */
-function termOverlap(text: string, terms: string[]): number {
-  const haystack = text.toLowerCase();
-  return terms.filter((term) => {
-    const stem = term.toLowerCase().slice(0, Math.max(4, term.length - 2));
-    return haystack.includes(stem);
-  }).length;
-}
 
 /**
  * Claim-level retrieval over PostgreSQL full-text search, narrowed by whatever page
@@ -401,7 +389,7 @@ async function assembleForMode(
 
   switch (mode) {
     case 'brief_me': {
-      const recent = await recentInsightsFor(ctx, now);
+      const recent = await recentInsightsFor(ctx);
       const segments = recent.map((r) => ({ label: r.headline, text: r.takeaway }));
       // Brief Me reads insights, not claim hits, so the claim-count phrasing in
       // `asOfLine` would read as "0 evidenced claims" and imply the opposite of what
@@ -615,7 +603,6 @@ async function starterQuestionsFor(cited: RetrievedClaim[]): Promise<string[]> {
 
 async function recentInsightsFor(
   ctx: CompanionContext,
-  now: Date,
 ): Promise<{ headline: string; takeaway: string; whyItMatters: string }[]> {
   return db()
     .select({
