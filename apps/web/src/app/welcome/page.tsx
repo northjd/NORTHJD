@@ -50,20 +50,18 @@ export default function WelcomePage() {
         <Wordmark size="xl" aria-hidden />
 
         <div className="mt-14 max-w-[46ch] space-y-1.5">
-          {[
-            'Know what changed.',
-            'Understand what matters.',
-            'Be ready for what’s next.',
-          ].map((line, i) => (
-            <p
-              key={line}
-              className={`text-[15px] leading-relaxed sm:text-[17px] ${
-                i === 0 ? 'text-[var(--text)]' : 'text-[var(--text-muted)]'
-              }`}
-            >
-              {line}
-            </p>
-          ))}
+          {['Know what changed.', 'Understand what matters.', 'Be ready for what’s next.'].map(
+            (line, i) => (
+              <p
+                key={line}
+                className={`text-[15px] leading-relaxed sm:text-[17px] ${
+                  i === 0 ? 'text-[var(--text)]' : 'text-[var(--text-muted)]'
+                }`}
+              >
+                {line}
+              </p>
+            ),
+          )}
         </div>
 
         <Link
@@ -71,10 +69,7 @@ export default function WelcomePage() {
           className="group mt-16 inline-flex items-center gap-3 border border-[var(--border-strong)] px-8 py-3.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--text)] transition-colors hover:border-[var(--text)]"
         >
           Activate NORTH
-          <span
-            aria-hidden
-            className="transition-transform duration-300 group-hover:translate-x-1"
-          >
+          <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">
             →
           </span>
         </Link>
@@ -87,8 +82,8 @@ export default function WelcomePage() {
           <MakersMark className="text-[7px] font-semibold leading-none" />
         </span>
         <p className="max-w-[52ch] text-[10.5px] leading-relaxed text-[var(--text-subtle)]">
-          Every fact carries the passage it came from. Where the evidence is not there,
-          NORTH says so rather than filling the gap.
+          Every fact carries the passage it came from. Where the evidence is not there, NORTH says
+          so rather than filling the gap.
         </p>
       </footer>
     </main>

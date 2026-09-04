@@ -134,7 +134,9 @@ const MATURITY_PLAIN: Record<CaseMaturity, string> = {
  * because "The company announced" as a sentence fragment looks like a bug.
  */
 function subjectFromTitle(title: string): string {
-  const match = /^((?:[A-Z][\w&.'-]*)(?:\s+(?:[A-Z][\w&.'-]*|of|and|the|&)){0,3})/.exec(title.trim());
+  const match = /^((?:[A-Z][\w&.'-]*)(?:\s+(?:[A-Z][\w&.'-]*|of|and|the|&)){0,3})/.exec(
+    title.trim(),
+  );
   const candidate = match?.[1]?.trim();
   if (candidate && candidate.split(/\s+/).length <= 4 && candidate.length >= 3) return candidate;
   return 'the organisation involved';
@@ -149,7 +151,8 @@ const list = (items: string[], conjunction = 'and'): string => {
 
 export function assembleInsight(input: InsightInput): AssembledInsight {
   const facts = input.claims.filter((c) => c.claimType === 'FACT');
-  const subject = input.primaryEntityName ?? input.entityNames[0] ?? subjectFromTitle(input.eventTitle);
+  const subject =
+    input.primaryEntityName ?? input.entityNames[0] ?? subjectFromTitle(input.eventTitle);
   const dateLabel = formatAbsolute(input.eventAt ?? input.firstReportedAt);
   const levers = input.valueLevers.map((l) => LEVER_LABEL[l]);
   const dimensions = input.operatingModelDimensions.map((d) => OM_LABEL[d]);
@@ -160,7 +163,10 @@ export function assembleInsight(input: InsightInput): AssembledInsight {
 
   const whatHappened =
     facts.length > 0
-      ? facts.slice(0, 3).map((c) => c.text).join(' ')
+      ? facts
+          .slice(0, 3)
+          .map((c) => c.text)
+          .join(' ')
       : (input.claims[0]?.text ?? input.eventTitle);
 
   const whatChanged = buildWhatChanged(input, subject, dateLabel);
@@ -192,7 +198,9 @@ export function assembleInsight(input: InsightInput): AssembledInsight {
     .filter(Boolean)
     .join(' ');
 
-  const body = [whatHappened, whatChanged, whyItMatters, marketContext, consultantPerspective].join(' ');
+  const body = [whatHappened, whatChanged, whyItMatters, marketContext, consultantPerspective].join(
+    ' ',
+  );
 
   return {
     headline: truncate(input.eventTitle, 190),
@@ -237,7 +245,10 @@ function buildGenuinelyNew(input: InsightInput, subject: string): string {
   if (input.maturity === 'ANNOUNCED') {
     return 'The announcement itself. No deployment scope or measured outcome is stated, so what is new is the intent, not the result.';
   }
-  if (input.maturity === 'QUANTIFIED_BUSINESS_IMPACT' || input.maturity === 'INDEPENDENTLY_VALIDATED_IMPACT') {
+  if (
+    input.maturity === 'QUANTIFIED_BUSINESS_IMPACT' ||
+    input.maturity === 'INDEPENDENTLY_VALIDATED_IMPACT'
+  ) {
     return 'A quantified outcome — which is rarer than an announcement and is the part worth examining.';
   }
   return `A stated move from intent towards implementation: the source describes it as ${MATURITY_PLAIN[input.maturity]}.`;
@@ -266,11 +277,7 @@ function buildMarketContext(input: InsightInput): string {
   return parts.join(' ');
 }
 
-function buildWhyItMatters(
-  input: InsightInput,
-  levers: string[],
-  dimensions: string[],
-): string {
+function buildWhyItMatters(input: InsightInput, levers: string[], dimensions: string[]): string {
   const parts: string[] = [];
 
   if (levers.length > 0) {
@@ -290,7 +297,9 @@ function buildWhyItMatters(
       'All reporting so far is first-party, so the strategic significance rests on the company’s own account of it.',
     );
   } else if (input.independentSourceCount >= 2) {
-    parts.push(`${input.independentSourceCount} independent sources have reported it, which raises confidence that the event occurred as described — though not that it will deliver the stated benefit.`);
+    parts.push(
+      `${input.independentSourceCount} independent sources have reported it, which raises confidence that the event occurred as described — though not that it will deliver the stated benefit.`,
+    );
   }
 
   return parts.join(' ');
@@ -368,7 +377,9 @@ function buildConversationStarters(
     );
   }
   if (lever && kpi) {
-    out.push(`If this delivers on ${lever}, where does that show up first: ${kpi}, or somewhere else?`);
+    out.push(
+      `If this delivers on ${lever}, where does that show up first: ${kpi}, or somewhere else?`,
+    );
   }
   if (input.firstPartyOnly) {
     out.push(
@@ -376,17 +387,15 @@ function buildConversationStarters(
     );
   }
   if (stage) {
-    out.push(`Does this change how ${stage} actually operates, or does it sit alongside the existing process?`);
+    out.push(
+      `Does this change how ${stage} actually operates, or does it sit alongside the existing process?`,
+    );
   }
 
   return [...new Set(out)].slice(0, 5);
 }
 
-function buildClientImplications(
-  input: InsightInput,
-  subject: string,
-  levers: string[],
-): string[] {
+function buildClientImplications(input: InsightInput, subject: string, levers: string[]): string[] {
   const out: string[] = [];
   const lever = levers[0];
   const industry = input.market.industryName;
@@ -397,7 +406,9 @@ function buildClientImplications(
     );
   }
   if (lever) {
-    out.push(`Anyone building a ${lever} case in this space now has a public reference point to be measured against.`);
+    out.push(
+      `Anyone building a ${lever} case in this space now has a public reference point to be measured against.`,
+    );
   }
   if (input.maturity === 'ANNOUNCED' || input.maturity === 'CONCEPT') {
     out.push(
@@ -473,7 +484,9 @@ function buildKnownUnknowns(input: InsightInput): string[] {
     out.push('Reported by a single source.');
   }
   if (!input.claims.some((c) => c.quantified)) {
-    out.push('No quantified outcome is stated — scope, baseline and measurement period are unknown.');
+    out.push(
+      'No quantified outcome is stated — scope, baseline and measurement period are unknown.',
+    );
   }
   if (!input.eventAt) {
     out.push('The source does not state when this happened; only the publication date is known.');
@@ -501,7 +514,9 @@ function buildCounterSignals(input: InsightInput): string[] {
   }
   const priorReversal = input.priorEvents.find((p) => p.maturity === 'DISCONTINUED_OR_REVERSED');
   if (priorReversal) {
-    out.push(`An earlier related initiative was discontinued: "${truncate(priorReversal.title, 100)}".`);
+    out.push(
+      `An earlier related initiative was discontinued: "${truncate(priorReversal.title, 100)}".`,
+    );
   }
   return out;
 }

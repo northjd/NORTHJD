@@ -52,11 +52,15 @@ export default async function PreparePage() {
               <ul className="space-y-2">
                 {meetings.map((m) => (
                   <li key={m.id} className="text-[13px]">
-                    <Link href={`/prepare/${m.id}`} className="font-medium hover:underline underline-offset-2">
+                    <Link
+                      href={`/prepare/${m.id}`}
+                      className="font-medium hover:underline underline-offset-2"
+                    >
                       {m.title}
                     </Link>
                     <p className="text-[11px] text-[var(--text-subtle)]">
-                      {m.companyName} · {m.createdAt.toLocaleDateString('en-GB', { dateStyle: 'medium' })}
+                      {m.companyName} ·{' '}
+                      {m.createdAt.toLocaleDateString('en-GB', { dateStyle: 'medium' })}
                     </p>
                   </li>
                 ))}

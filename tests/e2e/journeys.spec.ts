@@ -92,8 +92,13 @@ async function clickWhenHydrated(page: Page, name: string | RegExp, expected: st
 }
 
 test.describe('authentication', () => {
-  test('an unauthenticated visitor is sent to the landing page, not a bare password box', async ({ page }) => {
-    test.skip(await isOpenMode(page), 'Open mode has no sign-in: the landing page leads straight in.');
+  test('an unauthenticated visitor is sent to the landing page, not a bare password box', async ({
+    page,
+  }) => {
+    test.skip(
+      await isOpenMode(page),
+      'Open mode has no sign-in: the landing page leads straight in.',
+    );
     await page.goto('/');
     await expect(page).toHaveURL(/\/welcome/);
     // And signing in is one deliberate step from there.
@@ -101,7 +106,9 @@ test.describe('authentication', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('a wrong password is refused without revealing whether the account exists', async ({ page }) => {
+  test('a wrong password is refused without revealing whether the account exists', async ({
+    page,
+  }) => {
     test.skip(await isOpenMode(page), 'Open mode has no passwords to refuse.');
     await page.goto('/login');
     await page.getByLabel('Email').fill(EMAIL);
@@ -203,7 +210,12 @@ test.describe('Companion', () => {
 
   test('answers a covered question with citations', async ({ page }) => {
     await page.goto('/companion');
-    await fillAndSubmit(page, 'Ask the Companion', 'What is happening with markdown and allocation in retail?', 'Ask');
+    await fillAndSubmit(
+      page,
+      'Ask the Companion',
+      'What is happening with markdown and allocation in retail?',
+      'Ask',
+    );
 
     await expect(page.getByText(/As of /).first()).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText('Verified facts').first()).toBeVisible();
@@ -219,18 +231,30 @@ test.describe('Companion', () => {
       'Ask',
     );
 
-    await expect(page.getByText(/do not have sufficient verified evidence/)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/do not have sufficient verified evidence/)).toBeVisible({
+      timeout: 30_000,
+    });
     await expect(page.getByText('Insufficient evidence')).toBeVisible();
   });
 
   test('warns against entering confidential information', async ({ page }) => {
     await page.goto('/companion');
-    await expect(page.getByText(/Do not enter confidential client or company information/)).toBeVisible();
+    await expect(
+      page.getByText(/Do not enter confidential client or company information/),
+    ).toBeVisible();
   });
 
   test('offers every mode and a response-length control', async ({ page }) => {
     await page.goto('/companion');
-    for (const mode of ['Brief me', 'Explain it', 'Explore it', 'Prepare me', 'Challenge me', 'Teach me', 'Capture']) {
+    for (const mode of [
+      'Brief me',
+      'Explain it',
+      'Explore it',
+      'Prepare me',
+      'Challenge me',
+      'Teach me',
+      'Capture',
+    ]) {
       await expect(page.getByRole('button', { name: mode, exact: true })).toBeVisible();
     }
     await expect(page.getByLabel('Length')).toBeVisible();
@@ -240,7 +264,12 @@ test.describe('Companion', () => {
   test('Challenge Me answers with counter-argument or states there is none', async ({ page }) => {
     await page.goto('/companion');
     await page.getByRole('button', { name: 'Challenge me', exact: true }).click();
-    await fillAndSubmit(page, 'Ask the Companion', 'Challenge the claim that AI allocation reduces markdown', 'Ask');
+    await fillAndSubmit(
+      page,
+      'Ask the Companion',
+      'Challenge the claim that AI allocation reduces markdown',
+      'Ask',
+    );
     await expect(
       page.getByText(/evidence that cuts against this|No contradicting evidence exists/),
     ).toBeVisible({ timeout: 30_000 });
@@ -252,7 +281,13 @@ test.describe('Explore', () => {
 
   test('an industry page carries a real market model', async ({ page }) => {
     await page.goto('/explore/industries/fashion-apparel');
-    for (const section of ['Market structure', 'Value chain', 'Business models', 'KPI tree', 'Regulatory environment']) {
+    for (const section of [
+      'Market structure',
+      'Value chain',
+      'Business models',
+      'KPI tree',
+      'Regulatory environment',
+    ]) {
       await expect(page.getByRole('heading', { name: section })).toBeVisible();
     }
     await expect(page.getByRole('heading', { name: 'Open questions' })).toBeVisible();
@@ -275,9 +310,7 @@ test.describe('Explore', () => {
 
     // Consulting is one source perspective among several, reachable through the same
     // filter as every other kind of source.
-    await expect(
-      page.getByRole('button', { name: 'Consulting', exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Consulting', exact: true })).toBeVisible();
     // And no top-level navigation entry for them.
     const nav = page.getByRole('navigation', { name: 'Main' }).first();
     await expect(nav).not.toContainText(/Accenture|Consulting|Competitors/);
@@ -289,7 +322,9 @@ test.describe('Learn', () => {
 
   test('a learning unit shows depth, misconceptions and a knowledge check', async ({ page }) => {
     await page.goto('/learn/fashion-how-money-is-made');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('How fashion retailers make money');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(
+      'How fashion retailers make money',
+    );
     await expect(page.getByText('Objective:')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'The model' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Check your understanding' })).toBeVisible();
@@ -297,7 +332,11 @@ test.describe('Learn', () => {
 
   test('a knowledge check explains the answer rather than only marking it', async ({ page }) => {
     await page.goto('/learn/fashion-how-money-is-made');
-    await clickWhenHydrated(page, /Over-buying/, /Rising markdown alongside falling full-price sell-through/);
+    await clickWhenHydrated(
+      page,
+      /Over-buying/,
+      /Rising markdown alongside falling full-price sell-through/,
+    );
   });
 
   test('the three depth levels are distinguishable', async ({ page }) => {
@@ -334,11 +373,15 @@ test.describe('Prepare', () => {
 test.describe('Admin', () => {
   test.beforeEach(async ({ page }) => signIn(page));
 
-  test('the source registry shows rights status and why a source is not running', async ({ page }) => {
+  test('the source registry shows rights status and why a source is not running', async ({
+    page,
+  }) => {
     await page.goto('/admin/sources');
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Source registry');
     await expect(page.getByText(/Being publicly reachable is not permission/)).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Candidates — registered, not running/ })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /Candidates — registered, not running/ }),
+    ).toBeVisible();
   });
 
   test('coverage names the gaps, not only the totals', async ({ page }) => {
@@ -369,6 +412,8 @@ test.describe('presentation', () => {
   test('labels demo data wherever it appears', async ({ page }) => {
     await signIn(page);
     await page.goto('/explore/companies/northwind-apparel');
-    await expect(page.getByText('Demo data').or(page.getByText('Demo entity')).first()).toBeVisible();
+    await expect(
+      page.getByText('Demo data').or(page.getByText('Demo entity')).first(),
+    ).toBeVisible();
   });
 });

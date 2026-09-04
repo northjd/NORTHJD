@@ -80,10 +80,15 @@ export default async function LibraryPage() {
             <ul className="space-y-2">
               {saved.map((item) => (
                 <Card as="li" key={item.id}>
-                  <Link href={`/insights/${item.insightId}`} className="text-[14px] font-medium hover:underline underline-offset-2">
+                  <Link
+                    href={`/insights/${item.insightId}`}
+                    className="text-[14px] font-medium hover:underline underline-offset-2"
+                  >
                     {item.headline}
                   </Link>
-                  <p className="mt-1 line-clamp-2 text-[13px] text-[var(--text-muted)]">{item.takeaway}</p>
+                  <p className="mt-1 line-clamp-2 text-[13px] text-[var(--text-muted)]">
+                    {item.takeaway}
+                  </p>
                 </Card>
               ))}
             </ul>
@@ -92,7 +97,9 @@ export default async function LibraryPage() {
 
         {notes.length > 0 ? (
           <section>
-            <SectionHeading hint="Your own thinking. Never cited as evidence.">Notes</SectionHeading>
+            <SectionHeading hint="Your own thinking. Never cited as evidence.">
+              Notes
+            </SectionHeading>
             <ul className="space-y-2">
               {notes.map((note) => (
                 <Card as="li" key={note.id}>
@@ -115,11 +122,15 @@ export default async function LibraryPage() {
             <ul className="space-y-2">
               {briefs.map((brief) => (
                 <Card as="li" key={brief.id}>
-                  <Link href={`/prepare/${brief.id}`} className="text-[14px] font-medium hover:underline underline-offset-2">
+                  <Link
+                    href={`/prepare/${brief.id}`}
+                    className="text-[14px] font-medium hover:underline underline-offset-2"
+                  >
                     {brief.title}
                   </Link>
                   <p className="mt-0.5 text-[11px] text-[var(--text-subtle)]">
-                    {brief.companyName} · {brief.createdAt.toLocaleDateString('en-GB', { dateStyle: 'medium' })}
+                    {brief.companyName} ·{' '}
+                    {brief.createdAt.toLocaleDateString('en-GB', { dateStyle: 'medium' })}
                   </p>
                 </Card>
               ))}
@@ -135,12 +146,16 @@ export default async function LibraryPage() {
             <ul className="space-y-2">
               {conversations.map((c) => (
                 <Card as="li" key={c.id}>
-                  <Link href={`/library/conversations/${c.id}`} className="text-[14px] font-medium hover:underline underline-offset-2">
+                  <Link
+                    href={`/library/conversations/${c.id}`}
+                    className="text-[14px] font-medium hover:underline underline-offset-2"
+                  >
                     {c.title || 'Untitled'}
                   </Link>
                   <p className="mt-0.5 text-[11px] text-[var(--text-subtle)]">
                     {c.mode.replace(/_/g, ' ')}
-                    {c.hadVoice ? ' · voice' : ''} · {c.updatedAt.toLocaleDateString('en-GB', { dateStyle: 'medium' })}
+                    {c.hadVoice ? ' · voice' : ''} ·{' '}
+                    {c.updatedAt.toLocaleDateString('en-GB', { dateStyle: 'medium' })}
                   </p>
                 </Card>
               ))}

@@ -150,10 +150,9 @@ export async function queryAccount(
    * to retail and fashion as well, so "who else is in this market" answered Amazon and
    * Walmart. That is the opposite of what choosing an industry is for.
    */
-  const recorded = [
-    ...(entity.primaryIndustry ? [entity.primaryIndustry] : []),
-    ...linked,
-  ].filter((v, i, a) => a.indexOf(v) === i);
+  const recorded = [...(entity.primaryIndustry ? [entity.primaryIndustry] : []), ...linked].filter(
+    (v, i, a) => a.indexOf(v) === i,
+  );
 
   const own = industryOverride ? [industryOverride] : recorded;
 

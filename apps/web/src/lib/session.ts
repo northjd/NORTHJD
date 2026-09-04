@@ -118,7 +118,10 @@ export async function requireAdmin(): Promise<SessionUser> {
   return user;
 }
 
-export async function signIn(email: string, password: string): Promise<{ ok: boolean; error?: string }> {
+export async function signIn(
+  email: string,
+  password: string,
+): Promise<{ ok: boolean; error?: string }> {
   const user = await db().query.users.findFirst({
     where: eq(schema.users.email, email.trim().toLowerCase()),
   });
@@ -132,7 +135,10 @@ export async function signIn(email: string, password: string): Promise<{ ok: boo
   const { token, tokenHash } = createSessionToken();
   const expiresAt = new Date(Date.now() + SESSION_TTL_DAYS * 86_400_000);
   await db().insert(schema.sessions).values({ userId: user.id, tokenHash, expiresAt });
-  await db().update(schema.users).set({ lastSeenAt: new Date() }).where(eq(schema.users.id, user.id));
+  await db()
+    .update(schema.users)
+    .set({ lastSeenAt: new Date() })
+    .where(eq(schema.users.id, user.id));
 
   (await cookies()).set(COOKIE, token, {
     httpOnly: true,
@@ -225,7 +231,9 @@ export async function signOut(): Promise<void> {
   const jar = await cookies();
   const token = jar.get(COOKIE)?.value;
   if (token) {
-    await db().delete(schema.sessions).where(eq(schema.sessions.tokenHash, hashSessionToken(token)));
+    await db()
+      .delete(schema.sessions)
+      .where(eq(schema.sessions.tokenHash, hashSessionToken(token)));
   }
   jar.delete(COOKIE);
 }
@@ -240,5 +248,8 @@ export async function lastVisitAt(userId: string): Promise<Date | null> {
 }
 
 export async function touchLastSeen(userId: string): Promise<void> {
-  await db().update(schema.users).set({ lastSeenAt: new Date() }).where(eq(schema.users.id, userId));
+  await db()
+    .update(schema.users)
+    .set({ lastSeenAt: new Date() })
+    .where(eq(schema.users.id, userId));
 }

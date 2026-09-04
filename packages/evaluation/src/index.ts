@@ -11,8 +11,18 @@
 
 import { and, eq, sql } from 'drizzle-orm';
 import { db, schema } from '@mios/database';
-import { classifyCaseMaturity, describesSameEvent, resolveEntities, extractClaims } from '@mios/intelligence';
-import { scoreIsEntityNeutral, scoreItem, type RankableItem, type UserRankingContext } from '@mios/ranking';
+import {
+  classifyCaseMaturity,
+  describesSameEvent,
+  resolveEntities,
+  extractClaims,
+} from '@mios/intelligence';
+import {
+  scoreIsEntityNeutral,
+  scoreItem,
+  type RankableItem,
+  type UserRankingContext,
+} from '@mios/ranking';
 import { evaluateRights } from '@mios/connectors';
 
 export interface EvaluationCase {
@@ -102,7 +112,10 @@ const CASES: { slug: string; suite: string; name: string; run: Check }[] = [
       const n = row?.n ?? 0;
       return {
         passed: n === 0,
-        detail: n === 0 ? 'All insights are traceable to evidence.' : `${n} insights have no evidenced claim.`,
+        detail:
+          n === 0
+            ? 'All insights are traceable to evidence.'
+            : `${n} insights have no evidenced claim.`,
       };
     },
   },
@@ -285,8 +298,10 @@ const CASES: { slug: string; suite: string; name: string; run: Check }[] = [
       const a = {
         ...base,
         documentId: 'a',
-        title: 'Meridian Retail Group and Halden AI announce strategic partnership on demand forecasting',
-        summary: 'Meridian Retail Group and Halden AI today announced a strategic partnership on demand forecasting. A proof of concept will run in 40 stores.',
+        title:
+          'Meridian Retail Group and Halden AI announce strategic partnership on demand forecasting',
+        summary:
+          'Meridian Retail Group and Halden AI today announced a strategic partnership on demand forecasting. A proof of concept will run in 40 stores.',
         fingerprint: 'aaa',
         sourceId: 's1',
       };
@@ -294,7 +309,8 @@ const CASES: { slug: string; suite: string; name: string; run: Check }[] = [
         ...base,
         documentId: 'b',
         title: 'Halden AI signs Meridian as anchor European retail customer',
-        summary: 'Halden AI has signed Meridian Retail Group as its anchor European retail customer, covering demand forecasting with a proof of concept in around 40 stores.',
+        summary:
+          'Halden AI has signed Meridian Retail Group as its anchor European retail customer, covering demand forecasting with a proof of concept in around 40 stores.',
         fingerprint: 'bbb',
         sourceId: 's2',
       };
@@ -319,8 +335,22 @@ const CASES: { slug: string; suite: string; name: string; run: Check }[] = [
         isIndependent: false,
         summary: 'The company announced a strategic partnership to transform demand forecasting.',
       };
-      const a = { ...base, documentId: 'a', title: 'Company A announces partnership', entityIds: ['a'], fingerprint: 'x', sourceId: 's1' };
-      const b = { ...base, documentId: 'b', title: 'Company B announces partnership', entityIds: ['b'], fingerprint: 'y', sourceId: 's2' };
+      const a = {
+        ...base,
+        documentId: 'a',
+        title: 'Company A announces partnership',
+        entityIds: ['a'],
+        fingerprint: 'x',
+        sourceId: 's1',
+      };
+      const b = {
+        ...base,
+        documentId: 'b',
+        title: 'Company B announces partnership',
+        entityIds: ['b'],
+        fingerprint: 'y',
+        sourceId: 's2',
+      };
       const clustered = describesSameEvent(a, b);
       return {
         passed: !clustered,

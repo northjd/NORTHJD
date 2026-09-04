@@ -360,7 +360,9 @@ export function filterConditions(f: ExploreFilters, now: Date = new Date()): SQL
     where.push(sql`${events.caseMaturity} = any(${sql.param(f.maturities)}::case_maturity[])`);
   }
   if (f.evidenceStrengths.length) {
-    where.push(sql`${events.evidenceStrength} = any(${sql.param(f.evidenceStrengths)}::evidence_strength[])`);
+    where.push(
+      sql`${events.evidenceStrength} = any(${sql.param(f.evidenceStrengths)}::evidence_strength[])`,
+    );
   }
   if (f.impacts.length) {
     where.push(sql`${events.strategicImpact} = any(${sql.param(f.impacts)}::strategic_impact[])`);

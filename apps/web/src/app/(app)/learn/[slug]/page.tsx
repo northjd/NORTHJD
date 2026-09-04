@@ -15,7 +15,6 @@ export async function generateStaticParams() {
   return rows.map((r) => ({ slug: r.slug }));
 }
 
-
 export default async function LearningUnitPage({ params }: { params: Promise<{ slug: string }> }) {
   await requireUser();
   const { slug } = await params;
@@ -47,7 +46,9 @@ export default async function LearningUnitPage({ params }: { params: Promise<{ s
   return (
     <div className="mx-auto max-w-[1000px]">
       <nav className="mb-4 text-[13px] text-[var(--text-subtle)]">
-        <Link href="/learn" className="hover:underline underline-offset-2">Learn</Link>
+        <Link href="/learn" className="hover:underline underline-offset-2">
+          Learn
+        </Link>
         <span className="mx-1.5">/</span>
         <span>{unit.title}</span>
       </nav>
@@ -83,8 +84,13 @@ export default async function LearningUnitPage({ params }: { params: Promise<{ s
                     <h3 className="mb-1.5 text-[14px] font-semibold">{block.heading}</h3>
                     <ul className="space-y-1">
                       {block.points.map((point, j) => (
-                        <li key={j} className="flex gap-2 text-[14px] leading-relaxed text-[var(--text-muted)]">
-                          <span aria-hidden className="text-[var(--text-subtle)]">·</span>
+                        <li
+                          key={j}
+                          className="flex gap-2 text-[14px] leading-relaxed text-[var(--text-muted)]"
+                        >
+                          <span aria-hidden className="text-[var(--text-subtle)]">
+                            ·
+                          </span>
                           {point}
                         </li>
                       ))}
@@ -102,7 +108,9 @@ export default async function LearningUnitPage({ params }: { params: Promise<{ s
                 {unit.keyTerms.map((term) => (
                   <div key={term.term}>
                     <dt className="text-[14px] font-semibold">{term.term}</dt>
-                    <dd className="text-[14px] leading-relaxed text-[var(--text-muted)]">{term.definition}</dd>
+                    <dd className="text-[14px] leading-relaxed text-[var(--text-muted)]">
+                      {term.definition}
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -126,7 +134,9 @@ export default async function LearningUnitPage({ params }: { params: Promise<{ s
 
           {unit.practicalQuestions.length > 0 ? (
             <Card>
-              <SectionHeading hint="Use these in a real conversation.">Questions to ask</SectionHeading>
+              <SectionHeading hint="Use these in a real conversation.">
+                Questions to ask
+              </SectionHeading>
               <ol className="space-y-2">
                 {unit.practicalQuestions.map((question, i) => (
                   <li key={i} className="text-[13px] leading-relaxed">
@@ -147,7 +157,10 @@ export default async function LearningUnitPage({ params }: { params: Promise<{ s
                 {connected.map((event) => (
                   <li key={event.eventId} className="text-[13px]">
                     {event.insightId ? (
-                      <Link href={`/insights/${event.insightId}`} className="leading-snug hover:underline underline-offset-2">
+                      <Link
+                        href={`/insights/${event.insightId}`}
+                        className="leading-snug hover:underline underline-offset-2"
+                      >
                         {event.title}
                       </Link>
                     ) : (
@@ -170,7 +183,9 @@ export default async function LearningUnitPage({ params }: { params: Promise<{ s
               <SectionHeading>Example companies</SectionHeading>
               <div className="flex flex-wrap gap-1.5">
                 {unit.exampleCompanyNames.map((name) => (
-                  <Badge key={name} tone="muted">{name}</Badge>
+                  <Badge key={name} tone="muted">
+                    {name}
+                  </Badge>
                 ))}
               </div>
             </Card>

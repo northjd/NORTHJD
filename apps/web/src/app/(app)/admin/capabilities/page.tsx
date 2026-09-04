@@ -38,7 +38,9 @@ export default async function CapabilitiesPage() {
                 <span className="text-[13px] font-medium">{cap.label}</span>
                 <StatusBadge status={cap.status} />
               </div>
-              <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">{cap.detail}</p>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">
+                {cap.detail}
+              </p>
             </li>
           ))}
         </ul>
@@ -50,7 +52,9 @@ export default async function CapabilitiesPage() {
           {connectors.map((connector) => (
             <li key={connector.type}>
               <p className="text-[13px] font-medium">{connector.label}</p>
-              <p className="text-[12px] leading-relaxed text-[var(--text-subtle)]">{connector.description}</p>
+              <p className="text-[12px] leading-relaxed text-[var(--text-subtle)]">
+                {connector.description}
+              </p>
             </li>
           ))}
         </ul>

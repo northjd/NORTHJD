@@ -56,8 +56,7 @@ export default async function SignUpPage({
         {!enabled ? (
           <div className="surface p-6 text-center">
             <p className="text-[13.5px] leading-relaxed text-[var(--text-muted)]">
-              Sign-up is closed on this deployment. Ask whoever runs it for an invite code,
-              or{' '}
+              Sign-up is closed on this deployment. Ask whoever runs it for an invite code, or{' '}
               <Link href="/login" className="underline underline-offset-2 hover:text-[var(--text)]">
                 sign in
               </Link>{' '}
@@ -101,8 +100,8 @@ export default async function SignUpPage({
             </button>
 
             <p className="text-[11.5px] leading-relaxed text-[var(--text-subtle)]">
-              Your reading history and notes are yours. The sources and evidence are shared
-              with everyone else in the workspace.
+              Your reading history and notes are yours. The sources and evidence are shared with
+              everyone else in the workspace.
             </p>
           </form>
         )}

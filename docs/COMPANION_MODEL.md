@@ -45,7 +45,7 @@ response cannot claim insufficient evidence while asserting facts.
 
 ## Retrieval is claim-level
 
-Not document-level. An answer cites the *sentence* that supports it, with the evidence
+Not document-level. An answer cites the _sentence_ that supports it, with the evidence
 span it came from.
 
 **Query construction.** Interrogatives and stopwords are stripped, then terms are joined
@@ -76,21 +76,21 @@ same ambiguity guard the pipeline uses.
 
 ## Seven modes
 
-| Mode | Purpose | Needs |
-|---|---|---|
-| **Brief me** | A time-boxed update | Recent insights |
-| **Explain it** | Fundamentals and mechanics | A learning unit, or claims |
-| **Explore it** | Evidence-grounded research | Claims — this is the mode |
-| **Prepare me** | One specific conversation | Claims |
+| Mode             | Purpose                             | Needs                      |
+| ---------------- | ----------------------------------- | -------------------------- |
+| **Brief me**     | A time-boxed update                 | Recent insights            |
+| **Explain it**   | Fundamentals and mechanics          | A learning unit, or claims |
+| **Explore it**   | Evidence-grounded research          | Claims — this is the mode  |
+| **Prepare me**   | One specific conversation           | Claims                     |
 | **Challenge me** | Counter-arguments, weak assumptions | May legitimately find none |
-| **Teach me** | Structured learning | A learning unit |
-| **Capture** | The user's own thought | Nothing |
+| **Teach me**     | Structured learning                 | A learning unit            |
+| **Capture**      | The user's own thought              | Nothing                    |
 
 ### Mode-aware insufficiency
 
 Insufficiency is judged on **what the mode actually produced**, not on whether claim
 retrieval returned rows. Getting this wrong is subtle and was a real defect: after the
-relevance floor was added, *Brief me*, *Explain it*, *Teach me* and *Capture* all began
+relevance floor was added, _Brief me_, _Explain it_, _Teach me_ and _Capture_ all began
 refusing to answer, because they were being judged on a retrieval they do not depend on.
 
 ```
@@ -151,13 +151,13 @@ Context may **add** to a question. It may never silently change what was asked.
 
 ## Memory boundaries
 
-| Kind | Lifetime | Notes |
-|---|---|---|
-| Session context | The conversation | Turns, in order |
-| Preference memory | Until changed | Explicit settings only |
-| Knowledge state | Long-lived | Cautious, visible, correctable |
-| Personal notes | Until deleted | **Never cited as evidence** |
-| Organisation knowledge | — | Not implemented |
+| Kind                   | Lifetime         | Notes                          |
+| ---------------------- | ---------------- | ------------------------------ |
+| Session context        | The conversation | Turns, in order                |
+| Preference memory      | Until changed    | Explicit settings only         |
+| Knowledge state        | Long-lived       | Cautious, visible, correctable |
+| Personal notes         | Until deleted    | **Never cited as evidence**    |
+| Organisation knowledge | —                | Not implemented                |
 
 The Companion does not persist casual remarks. Anything durable is explicit,
 inspectable and deletable. The separation of personal notes from claims is
@@ -189,7 +189,7 @@ unavailable without a key.
 ## Extractive vs. model-assisted
 
 With no model configured, every mode still works. Answers reuse claim sentences
-verbatim, structure comes from the data model, and the UI labels output *Extractive*
+verbatim, structure comes from the data model, and the UI labels output _Extractive_
 throughout. It reads as assembled rather than written — the honest trade.
 
 With `AI_PROVIDER=anthropic` and a key, the same structure is filled by a model whose

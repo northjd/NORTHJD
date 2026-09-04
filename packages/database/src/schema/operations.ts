@@ -38,7 +38,10 @@ export const pipelineRuns = pgTable(
     startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp('finished_at', { withTimezone: true }),
     /** Aggregate counters, shown on the admin pipeline page. */
-    stats: jsonb('stats').$type<Record<string, number>>().notNull().default(sql`'{}'::jsonb`),
+    stats: jsonb('stats')
+      .$type<Record<string, number>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     error: text('error').notNull().default(''),
     /** Actual model spend for this run, in USD. Zero for the extractive generator. */
     costUsd: doublePrecision('cost_usd').notNull().default(0),
@@ -94,7 +97,10 @@ export const modelConfigurations = pgTable(
     /** deterministic | anthropic | … */
     provider: varchar('provider', { length: 40 }).notNull(),
     model: varchar('model', { length: 100 }).notNull().default(''),
-    parameters: jsonb('parameters').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    parameters: jsonb('parameters')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     isActive: boolean('is_active').notNull().default(false),
     createdAt: createdAt(),
   },
@@ -120,7 +126,10 @@ export const evaluationCases = pgTable(
     expectation: jsonb('expectation').$type<Record<string, unknown>>().notNull(),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex('evaluation_cases_slug_key').on(t.slug), index('evaluation_cases_suite_idx').on(t.suite)],
+  (t) => [
+    uniqueIndex('evaluation_cases_slug_key').on(t.slug),
+    index('evaluation_cases_suite_idx').on(t.suite),
+  ],
 );
 
 export const evaluationResults = pgTable(
@@ -133,7 +142,10 @@ export const evaluationResults = pgTable(
     runId: uuid('run_id'),
     passed: boolean('passed').notNull(),
     score: doublePrecision('score').notNull().default(0),
-    detail: jsonb('detail').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    detail: jsonb('detail')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     promptVersionId: uuid('prompt_version_id').references(() => promptVersions.id, {
       onDelete: 'set null',
     }),
@@ -155,10 +167,16 @@ export const auditLog = pgTable(
     targetKind: varchar('target_kind', { length: 40 }).notNull().default(''),
     targetId: varchar('target_id', { length: 100 }).notNull().default(''),
     /** Before/after for the changed fields only. Never contains secrets. */
-    detail: jsonb('detail').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    detail: jsonb('detail')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     createdAt: createdAt(),
   },
-  (t) => [index('audit_log_ws_idx').on(t.workspaceId, t.createdAt), index('audit_log_target_idx').on(t.targetKind, t.targetId)],
+  (t) => [
+    index('audit_log_ws_idx').on(t.workspaceId, t.createdAt),
+    index('audit_log_target_idx').on(t.targetKind, t.targetId),
+  ],
 );
 
 /** Per-call model usage, so AI cost is observable rather than estimated. */

@@ -12,11 +12,23 @@ import type { FeedbackKind } from '@mios/domain';
  * relevant" changes what the ranking selects tomorrow.
  */
 const OPTIONS: { kind: FeedbackKind; label: string; hint: string }[] = [
-  { kind: 'already_knew', label: 'I knew this', hint: 'Marks the connected concepts as understood.' },
+  {
+    kind: 'already_knew',
+    label: 'I knew this',
+    hint: 'Marks the connected concepts as understood.',
+  },
   { kind: 'new_to_me', label: 'New to me', hint: 'Marks the connected concepts as introduced.' },
-  { kind: 'need_more_context', label: 'Need more context', hint: 'Prioritises fundamentals on this topic.' },
+  {
+    kind: 'need_more_context',
+    label: 'Need more context',
+    hint: 'Prioritises fundamentals on this topic.',
+  },
   { kind: 'changed_my_view', label: 'Changed my view', hint: 'Recorded for your weekly review.' },
-  { kind: 'used_in_conversation', label: 'Used in a conversation', hint: 'The applicability signal that matters most.' },
+  {
+    kind: 'used_in_conversation',
+    label: 'Used in a conversation',
+    hint: 'The applicability signal that matters most.',
+  },
   { kind: 'not_relevant', label: 'Not relevant', hint: 'Down-weights similar items.' },
 ];
 
@@ -54,8 +66,8 @@ export function FeedbackBar({ insightId }: { insightId: string }) {
       </div>
       {chosen ? (
         <p className="mt-2 text-[12px] text-[var(--text-subtle)]">
-          Recorded. This feeds tomorrow&apos;s selection and your knowledge state — you can review and
-          correct both in your profile.
+          Recorded. This feeds tomorrow&apos;s selection and your knowledge state — you can review
+          and correct both in your profile.
         </p>
       ) : null}
     </div>

@@ -27,10 +27,10 @@ answer.
 **`ts_rank` with an absolute threshold.** Cannot work — rank is only comparable within
 one query. Measured on this corpus:
 
-| Question | Top rank | Should |
-|---|---|---|
-| markdown and allocation in retail | 0.0190 | answer |
-| population of Ulaanbaatar | **0.0304** | refuse |
+| Question                          | Top rank   | Should |
+| --------------------------------- | ---------- | ------ |
+| markdown and allocation in retail | 0.0190     | answer |
+| population of Ulaanbaatar         | **0.0304** | refuse |
 
 The refusable question out-ranks the answerable one.
 
@@ -39,33 +39,33 @@ in 1 claim (0.3%) and is maximally "distinctive", yet the question is out of sco
 
 ## What works
 
-**Query coverage** — the share of query terms that appear *anywhere* in the corpus.
+**Query coverage** — the share of query terms that appear _anywhere_ in the corpus.
 Measured across ten cases:
 
-| Question | Coverage | Should |
-|---|---|---|
-| markdown and allocation in retail | 100% | answer |
-| fashion retailers reduce markdown | 100% | answer |
-| NVIDIA report quarter | 100% | answer |
-| AI deployment maturity | 100% | answer |
-| EU textile traceability | 100% | answer |
-| Uzbek textile mill revenue | 38% | refuse |
-| population of Ulaanbaatar | 50% | refuse |
-| 1974 World Cup final | 60% | refuse |
-| melting point of tungsten carbide | 25% | refuse |
-| Bolivian cement cooperative | 33% | refuse |
+| Question                          | Coverage | Should |
+| --------------------------------- | -------- | ------ |
+| markdown and allocation in retail | 100%     | answer |
+| fashion retailers reduce markdown | 100%     | answer |
+| NVIDIA report quarter             | 100%     | answer |
+| AI deployment maturity            | 100%     | answer |
+| EU textile traceability           | 100%     | answer |
+| Uzbek textile mill revenue        | 38%      | refuse |
+| population of Ulaanbaatar         | 50%      | refuse |
+| 1974 World Cup final              | 60%      | refuse |
+| melting point of tungsten carbide | 25%      | refuse |
+| Bolivian cement cooperative       | 33%      | refuse |
 
 Clean separation. Threshold **0.7**.
 
 It also has a better failure message: a refusal can name the missing words, which is a
 statement about coverage rather than about the question —
-*"No monitored source mentions: Uzbek, mill, unlisted. Only 38% of this question's
-vocabulary appears anywhere in the monitored sources."*
+_"No monitored source mentions: Uzbek, mill, unlisted. Only 38% of this question's
+vocabulary appears anywhere in the monitored sources."_
 
 ## Second fix: strip imperatives, not just interrogatives
 
 "Challenge the claim that AI allocation reduces markdown" failed the gate because
-*challenge*, *claim* and *that* are addressed to the assistant, not to the subject.
+_challenge_, _claim_ and _that_ are addressed to the assistant, not to the subject.
 `QUESTION_NOISE` already stripped interrogatives for that reason; it now also strips
 imperatives — tell, show, explain, brief, prepare, teach, challenge, compare, claim,
 consider, assume, view, and the usual function words.

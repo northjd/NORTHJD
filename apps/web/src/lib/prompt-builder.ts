@@ -100,12 +100,8 @@ export function buildPrompt(
 
   lines.push('You are helping me think about a market question.');
   lines.push('');
-  lines.push(
-    'Below is every piece of evidence my market-intelligence tool holds on this. It was',
-  );
-  lines.push(
-    'retrieved from monitored public sources, and each item carries its source, date and',
-  );
+  lines.push('Below is every piece of evidence my market-intelligence tool holds on this. It was');
+  lines.push('retrieved from monitored public sources, and each item carries its source, date and');
   lines.push('how strong that evidence is.');
   lines.push('');
   lines.push('## Rules');
@@ -147,9 +143,7 @@ export function buildPrompt(
   }
 
   lines.push('---');
-  lines.push(
-    'Evidence assembled by NORTH. Nothing above was written by a language model — each',
-  );
+  lines.push('Evidence assembled by NORTH. Nothing above was written by a language model — each');
   lines.push('item is a sentence from a monitored source.');
 
   return { question, evidence, empty: false, text: lines.join('\n') };

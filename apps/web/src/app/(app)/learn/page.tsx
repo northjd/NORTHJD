@@ -55,7 +55,10 @@ export default async function LearnPage() {
       userAsserted: schema.userKnowledgeStates.userAsserted,
     })
     .from(schema.userKnowledgeStates)
-    .innerJoin(schema.learningConcepts, eq(schema.learningConcepts.id, schema.userKnowledgeStates.conceptId))
+    .innerJoin(
+      schema.learningConcepts,
+      eq(schema.learningConcepts.id, schema.userKnowledgeStates.conceptId),
+    )
     .where(eq(schema.userKnowledgeStates.userId, user.userId))
     .limit(40);
 
@@ -86,15 +89,28 @@ export default async function LearnPage() {
                   {pathUnits.map((unit) => (
                     <Card as="li" key={unit.id}>
                       <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-                        <Badge tone={unit.depth === 'foundation' ? 'neutral' : unit.depth === 'executive' ? 'accent' : 'verified'}>
+                        <Badge
+                          tone={
+                            unit.depth === 'foundation'
+                              ? 'neutral'
+                              : unit.depth === 'executive'
+                                ? 'accent'
+                                : 'verified'
+                          }
+                        >
                           {unit.depth}
                         </Badge>
                         <Badge tone="muted">{unit.minutes} min</Badge>
                         {unit.hasCheck ? <Badge tone="muted">Knowledge check</Badge> : null}
-                        {unit.status === 'completed' ? <Badge tone="verified">Completed</Badge> : null}
+                        {unit.status === 'completed' ? (
+                          <Badge tone="verified">Completed</Badge>
+                        ) : null}
                       </div>
                       <h3 className="text-[15px] font-semibold leading-snug">
-                        <Link href={`/learn/${unit.slug}`} className="hover:underline underline-offset-2">
+                        <Link
+                          href={`/learn/${unit.slug}`}
+                          className="hover:underline underline-offset-2"
+                        >
                           {unit.title}
                         </Link>
                       </h3>
@@ -121,7 +137,8 @@ export default async function LearnPage() {
             </SectionHeading>
             {states.length === 0 ? (
               <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">
-                Nothing recorded yet. Reading insights and marking them as known or new builds this up.
+                Nothing recorded yet. Reading insights and marking them as known or new builds this
+                up.
               </p>
             ) : (
               <ul className="space-y-2.5">
@@ -129,7 +146,11 @@ export default async function LearnPage() {
                   <li key={s.slug} className="text-[13px]">
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-medium">{s.name}</span>
-                      <Badge tone={s.state === 'understood' || s.state === 'applied' ? 'verified' : 'muted'}>
+                      <Badge
+                        tone={
+                          s.state === 'understood' || s.state === 'applied' ? 'verified' : 'muted'
+                        }
+                      >
                         {s.state.replace(/_/g, ' ')}
                       </Badge>
                     </div>

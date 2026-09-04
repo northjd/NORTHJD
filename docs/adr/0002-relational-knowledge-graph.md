@@ -66,7 +66,7 @@ Costs, stated plainly:
 
 ## Revisit when
 
-There is *evidence* that traversal depth is the constraint: a real user need for
+There is _evidence_ that traversal depth is the constraint: a real user need for
 multi-hop path queries, or a recursive CTE that has become the performance bottleneck
 under realistic data volume. Not before. Introducing a graph database because the domain
 is describable as a graph would be choosing the technology for its name rather than for

@@ -94,7 +94,9 @@ export async function queryUserStats(userId: string, workspaceId: string): Promi
     await one(sql`select count(*)::int n from meeting_briefs mb
                   join meetings m on m.id = mb.meeting_id
                   where m.user_id = ${sql.param(userId)}`),
-    await one(sql`select count(*)::int n from followed_entities where user_id = ${sql.param(userId)}`),
+    await one(
+      sql`select count(*)::int n from followed_entities where user_id = ${sql.param(userId)}`,
+    ),
     await one(sql`select count(*)::int n from claims`),
     await one(sql`select count(*)::int n from events where is_suppressed = false`),
     await one(sql`select count(*)::int n from source_connectors where is_active`),

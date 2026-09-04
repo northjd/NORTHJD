@@ -39,8 +39,8 @@ export function BriefProgress({
       <div className="no-print surface mt-8 p-5 text-center">
         <p className="text-[15px] font-medium">You are caught up.</p>
         <p className="mx-auto mt-1.5 max-w-[52ch] text-[13px] leading-relaxed text-[var(--text-muted)]">
-          Nothing more will load here. That is the whole idea — the brief is a decision made
-          once a day, not a feed that keeps going until you stop.
+          Nothing more will load here. That is the whole idea — the brief is a decision made once a
+          day, not a feed that keeps going until you stop.
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           <a

@@ -41,18 +41,48 @@ import {
   scoreStrategicImpact,
   type TaxonomyTerm,
 } from './classify';
-import { detectContradiction, detectMaterialChange, clusterDocuments, type ClusterableDocument } from './cluster';
+import {
+  detectContradiction,
+  detectMaterialChange,
+  clusterDocuments,
+  type ClusterableDocument,
+} from './cluster';
 import { extractClaims } from './extract';
 import { resolveEntities, type EntityCandidate } from './entities';
 import { assembleInsight, type InsightClaim, type MarketModelContext } from './insight';
 
 const {
-  claims, claimEntities, claimEvidence, contradictions, conversationApplications,
-  documentVersions, entities: entitiesTable, entityAliases, eventClaims, eventDocuments,
-  eventEntities, eventTaxonomy, events, evidenceSpans, importJobs, industries, insights,
-  kpis, learningConcepts, learningConnections, pipelineRuns, pipelineStageRuns,
-  rawDocuments, signals, sourceConnectors, sourcePolicies, sources, technologies, topics,
-  valueChainStages, capabilities: capabilitiesTable,
+  claims,
+  claimEntities,
+  claimEvidence,
+  contradictions,
+  conversationApplications,
+  documentVersions,
+  entities: entitiesTable,
+  entityAliases,
+  eventClaims,
+  eventDocuments,
+  eventEntities,
+  eventTaxonomy,
+  events,
+  evidenceSpans,
+  importJobs,
+  industries,
+  insights,
+  kpis,
+  learningConcepts,
+  learningConnections,
+  pipelineRuns,
+  pipelineStageRuns,
+  rawDocuments,
+  signals,
+  sourceConnectors,
+  sourcePolicies,
+  sources,
+  technologies,
+  topics,
+  valueChainStages,
+  capabilities: capabilitiesTable,
 } = schema;
 
 export interface PipelineOptions {
@@ -95,7 +125,11 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineSum
     .insert(pipelineRuns)
     .values({
       workspaceId: options.workspaceId,
-      kind: options.rebuildInsights ? 'rebuild_insights' : options.ingestOnly ? 'ingest_only' : 'full',
+      kind: options.rebuildInsights
+        ? 'rebuild_insights'
+        : options.ingestOnly
+          ? 'ingest_only'
+          : 'full',
       status: 'running',
       trigger: options.trigger ?? 'manual',
     })
@@ -104,9 +138,18 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineSum
   const runId = run!.id;
   const summary: PipelineSummary = {
     runId,
-    documentsFetched: 0, documentsNew: 0, documentsUpdated: 0, documentsSkipped: 0,
-    claimsCreated: 0, evidenceSpansCreated: 0, eventsCreated: 0, eventsUpdated: 0,
-    insightsCreated: 0, contradictionsFound: 0, sourcesBlocked: [], errors: [],
+    documentsFetched: 0,
+    documentsNew: 0,
+    documentsUpdated: 0,
+    documentsSkipped: 0,
+    claimsCreated: 0,
+    evidenceSpansCreated: 0,
+    eventsCreated: 0,
+    eventsUpdated: 0,
+    insightsCreated: 0,
+    contradictionsFound: 0,
+    sourcesBlocked: [],
+    errors: [],
     durationMs: 0,
   };
 
@@ -159,11 +202,7 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineSum
   return summary;
 }
 
-async function stage(
-  runId: string,
-  name: PipelineStage,
-  fn: () => Promise<void>,
-): Promise<void> {
+async function stage(runId: string, name: PipelineStage, fn: () => Promise<void>): Promise<void> {
   const d = db();
   const [row] = await d
     .insert(pipelineStageRuns)
@@ -225,7 +264,10 @@ async function ingest(
 
     const impl = getConnector(connector.connectorType as ConnectorType);
     if (!impl) {
-      summary.sourcesBlocked.push({ source: source.slug, reason: `Connector type "${connector.connectorType}" is not implemented.` });
+      summary.sourcesBlocked.push({
+        source: source.slug,
+        reason: `Connector type "${connector.connectorType}" is not implemented.`,
+      });
       continue;
     }
 
@@ -312,7 +354,18 @@ async function ingest(
 type PersistOutcome = 'created' | 'updated' | 'unchanged';
 
 async function persistDocument(
-  doc: { url: string; externalId: string | null; title: string; body: string; excerpt: string; author: string | null; language: string | null; publishedAt: Date | null; updatedAt: Date | null; raw: Record<string, unknown> },
+  doc: {
+    url: string;
+    externalId: string | null;
+    title: string;
+    body: string;
+    excerpt: string;
+    author: string | null;
+    language: string | null;
+    publishedAt: Date | null;
+    updatedAt: Date | null;
+    raw: Record<string, unknown>;
+  },
   source: typeof sources.$inferSelect,
   scope: StorageScope,
   isDemo: boolean,
@@ -391,7 +444,10 @@ async function persistDocument(
     // A correction upstream must not silently leave derived claims standing.
     await d
       .update(claims)
-      .set({ needsReview: true, reviewReason: 'The source document was corrected after this claim was extracted.' })
+      .set({
+        needsReview: true,
+        reviewReason: 'The source document was corrected after this claim was extracted.',
+      })
       .where(eq(claims.documentVersionId, latest.id));
   }
 
@@ -404,7 +460,9 @@ function canonicalise(rawUrl: string): string {
     const url = new URL(rawUrl);
     url.hash = '';
     const drop = [...url.searchParams.keys()].filter(
-      (k) => k.startsWith('utm_') || ['fbclid', 'gclid', 'mc_cid', 'mc_eid', 'ref', 'source'].includes(k),
+      (k) =>
+        k.startsWith('utm_') ||
+        ['fbclid', 'gclid', 'mc_cid', 'mc_eid', 'ref', 'source'].includes(k),
     );
     drop.forEach((k) => url.searchParams.delete(k));
     url.hostname = url.hostname.toLowerCase().replace(/^www\./, '');
@@ -519,10 +577,15 @@ async function extractAll(summary: PipelineSummary, log: (m: string) => void): P
       }
     }
 
-    await d.update(rawDocuments).set({ processedAt: new Date() }).where(eq(rawDocuments.id, document.id));
+    await d
+      .update(rawDocuments)
+      .set({ processedAt: new Date() })
+      .where(eq(rawDocuments.id, document.id));
   }
 
-  log(`  extracted ${summary.claimsCreated} claims with ${summary.evidenceSpansCreated} evidence spans`);
+  log(
+    `  extracted ${summary.claimsCreated} claims with ${summary.evidenceSpansCreated} evidence spans`,
+  );
 }
 
 async function loadEntityCandidates(): Promise<EntityCandidate[]> {
@@ -547,7 +610,10 @@ async function loadEntityCandidates(): Promise<EntityCandidate[]> {
       aliases: [],
     };
     if (row.alias) {
-      existing.aliases.push({ normalized: row.alias, requiresContext: row.requiresContext ?? false });
+      existing.aliases.push({
+        normalized: row.alias,
+        requiresContext: row.requiresContext ?? false,
+      });
     }
     map.set(row.entityId, existing);
   }
@@ -580,7 +646,12 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
   const docIds = unclustered.map((doc) => doc.documentId);
 
   const versionRows = await d
-    .select({ documentId: documentVersions.documentId, id: documentVersions.id, text: documentVersions.normalizedText, title: documentVersions.title })
+    .select({
+      documentId: documentVersions.documentId,
+      id: documentVersions.id,
+      text: documentVersions.normalizedText,
+      title: documentVersions.title,
+    })
     .from(documentVersions)
     .where(inArray(documentVersions.documentId, docIds));
 
@@ -599,14 +670,22 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
     .where(inArray(documentVersions.documentId, docIds));
 
   const entityRows = await d
-    .select({ documentId: documentVersions.documentId, entityId: claimEntities.entityId, role: claimEntities.role })
+    .select({
+      documentId: documentVersions.documentId,
+      entityId: claimEntities.entityId,
+      role: claimEntities.role,
+    })
     .from(claimEntities)
     .innerJoin(claims, eq(claims.id, claimEntities.claimId))
     .innerJoin(documentVersions, eq(documentVersions.id, claims.documentVersionId))
     .where(inArray(documentVersions.documentId, docIds));
 
-  const byDoc = new Map<string, { text: string; entityIds: Set<string>; subjectIds: Set<string> }>();
-  for (const doc of unclustered) byDoc.set(doc.documentId, { text: '', entityIds: new Set(), subjectIds: new Set() });
+  const byDoc = new Map<
+    string,
+    { text: string; entityIds: Set<string>; subjectIds: Set<string> }
+  >();
+  for (const doc of unclustered)
+    byDoc.set(doc.documentId, { text: '', entityIds: new Set(), subjectIds: new Set() });
   for (const v of versionRows) {
     const entry = byDoc.get(v.documentId);
     if (entry) entry.text = v.text;
@@ -644,12 +723,16 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
 
   for (const cluster of clusters) {
     const clusterDocs = clusterables.filter((c) => cluster.documentIds.includes(c.documentId));
-    const originating = clusterDocs.find((c) => c.documentId === cluster.originatingDocumentId) ?? clusterDocs[0]!;
+    const originating =
+      clusterDocs.find((c) => c.documentId === cluster.originatingDocumentId) ?? clusterDocs[0]!;
     const clusterClaims = claimRows.filter((c) => cluster.documentIds.includes(c.documentId));
     const fullText = clusterDocs.map((c) => `${c.title}. ${c.summary}`).join('\n');
 
     const eventType = classifyEventType(originating.title, fullText);
-    const { maturity, rationale } = classifyCaseMaturity(fullText, cluster.independentSourceCount > 0);
+    const { maturity, rationale } = classifyCaseMaturity(
+      fullText,
+      cluster.independentSourceCount > 0,
+    );
     const quantified = clusterClaims.some((c) => c.quantified);
 
     const strategicImpact = scoreStrategicImpact({
@@ -668,7 +751,10 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
       .insert(events)
       .values({
         title: truncate(originating.title, 300),
-        summary: truncate(clusterClaims.find((c) => c.claimType === 'FACT')?.text ?? originating.summary, 1500),
+        summary: truncate(
+          clusterClaims.find((c) => c.claimType === 'FACT')?.text ?? originating.summary,
+          1500,
+        ),
         eventType,
         eventAt: cluster.eventAt,
         firstReportedAt: cluster.firstReportedAt,
@@ -700,7 +786,11 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
     for (const docId of cluster.documentIds) {
       await d
         .insert(eventDocuments)
-        .values({ eventId: event!.id, documentId: docId, isOriginating: docId === cluster.originatingDocumentId })
+        .values({
+          eventId: event!.id,
+          documentId: docId,
+          isOriginating: docId === cluster.originatingDocumentId,
+        })
         .onConflictDoNothing();
     }
     for (const claim of clusterClaims) {
@@ -714,7 +804,9 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
         .onConflictDoNothing();
     }
     for (const entityId of cluster.entityIds) {
-      const isSubject = clusterDocs.some((doc) => byDoc.get(doc.documentId)?.subjectIds.has(entityId));
+      const isSubject = clusterDocs.some((doc) =>
+        byDoc.get(doc.documentId)?.subjectIds.has(entityId),
+      );
       await d
         .insert(eventEntities)
         .values({ eventId: event!.id, entityId, role: isSubject ? 'subject' : 'mentioned' })
@@ -725,7 +817,13 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
     for (const match of matches) {
       await d
         .insert(eventTaxonomy)
-        .values({ eventId: event!.id, kind: match.kind, slug: match.slug, origin: 'inferred', confidence: match.confidence })
+        .values({
+          eventId: event!.id,
+          kind: match.kind,
+          slug: match.slug,
+          origin: 'inferred',
+          confidence: match.confidence,
+        })
         .onConflictDoNothing();
     }
 
@@ -735,14 +833,18 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
     // content, and it is recorded at lower confidence so ranking treats it as weaker.
     if (!matches.some((m) => m.kind === 'industry')) {
       const sourceIndustries = [
-        ...new Set(
-          clusterDocs.flatMap((doc) => sourceIndustrySlugs.get(doc.sourceId) ?? []),
-        ),
+        ...new Set(clusterDocs.flatMap((doc) => sourceIndustrySlugs.get(doc.sourceId) ?? [])),
       ];
       for (const slug of sourceIndustries.slice(0, 2)) {
         await d
           .insert(eventTaxonomy)
-          .values({ eventId: event!.id, kind: 'industry', slug, origin: 'inferred', confidence: 0.3 })
+          .values({
+            eventId: event!.id,
+            kind: 'industry',
+            slug,
+            origin: 'inferred',
+            confidence: 0.3,
+          })
           .onConflictDoNothing();
       }
     }
@@ -763,9 +865,12 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
 
 function strengthRank(s: string): number {
   const order = [
-    'QUANTIFIED_PRIMARY_EVIDENCE', 'UNQUANTIFIED_PRIMARY_EVIDENCE',
-    'MULTIPLE_CREDIBLE_SECONDARY_SOURCES', 'SINGLE_CREDIBLE_SECONDARY_SOURCE',
-    'COMPANY_SELF_REPORTING', 'WEAK_OR_UNVERIFIED_SIGNAL',
+    'QUANTIFIED_PRIMARY_EVIDENCE',
+    'UNQUANTIFIED_PRIMARY_EVIDENCE',
+    'MULTIPLE_CREDIBLE_SECONDARY_SOURCES',
+    'SINGLE_CREDIBLE_SECONDARY_SOURCE',
+    'COMPANY_SELF_REPORTING',
+    'WEAK_OR_UNVERIFIED_SIGNAL',
   ];
   const idx = order.indexOf(s);
   return idx === -1 ? 99 : idx;
@@ -777,9 +882,15 @@ async function loadTaxonomyTerms(): Promise<TaxonomyTerm[]> {
   // concurrent queries drop it. Six small reads cost nothing anyway.
   const inds = await d.select({ slug: industries.slug, name: industries.name }).from(industries);
   const tops = await d.select({ slug: topics.slug, name: topics.name }).from(topics);
-  const techs = await d.select({ slug: technologies.slug, name: technologies.name }).from(technologies);
-  const stages = await d.select({ slug: valueChainStages.slug, name: valueChainStages.name }).from(valueChainStages);
-  const caps = await d.select({ slug: capabilitiesTable.slug, name: capabilitiesTable.name }).from(capabilitiesTable);
+  const techs = await d
+    .select({ slug: technologies.slug, name: technologies.name })
+    .from(technologies);
+  const stages = await d
+    .select({ slug: valueChainStages.slug, name: valueChainStages.name })
+    .from(valueChainStages);
+  const caps = await d
+    .select({ slug: capabilitiesTable.slug, name: capabilitiesTable.name })
+    .from(capabilitiesTable);
   const kpiRows = await d.select({ slug: kpis.slug, name: kpis.name }).from(kpis);
 
   const expand = (name: string): string[] => {
@@ -790,10 +901,30 @@ async function loadTaxonomyTerms(): Promise<TaxonomyTerm[]> {
   };
 
   return [
-    ...inds.map((r) => ({ kind: 'industry' as const, slug: r.slug, name: r.name, aliases: expand(r.name) })),
-    ...tops.map((r) => ({ kind: 'topic' as const, slug: r.slug, name: r.name, aliases: expand(r.name) })),
-    ...techs.map((r) => ({ kind: 'technology' as const, slug: r.slug, name: r.name, aliases: expand(r.name) })),
-    ...stages.map((r) => ({ kind: 'value_chain_stage' as const, slug: r.slug, name: r.name, aliases: [] })),
+    ...inds.map((r) => ({
+      kind: 'industry' as const,
+      slug: r.slug,
+      name: r.name,
+      aliases: expand(r.name),
+    })),
+    ...tops.map((r) => ({
+      kind: 'topic' as const,
+      slug: r.slug,
+      name: r.name,
+      aliases: expand(r.name),
+    })),
+    ...techs.map((r) => ({
+      kind: 'technology' as const,
+      slug: r.slug,
+      name: r.name,
+      aliases: expand(r.name),
+    })),
+    ...stages.map((r) => ({
+      kind: 'value_chain_stage' as const,
+      slug: r.slug,
+      name: r.name,
+      aliases: [],
+    })),
     ...caps.map((r) => ({ kind: 'capability' as const, slug: r.slug, name: r.name, aliases: [] })),
     ...kpiRows.map((r) => ({ kind: 'kpi' as const, slug: r.slug, name: r.name, aliases: [] })),
   ];
@@ -801,7 +932,10 @@ async function loadTaxonomyTerms(): Promise<TaxonomyTerm[]> {
 
 // ── Stage 4: contradictions ──────────────────────────────────────────────────
 
-async function findContradictions(summary: PipelineSummary, log: (m: string) => void): Promise<void> {
+async function findContradictions(
+  summary: PipelineSummary,
+  log: (m: string) => void,
+): Promise<void> {
   const d = db();
   const recent = await d
     .select({ eventId: eventClaims.eventId, claimId: claims.id, text: claims.text })
@@ -837,7 +971,10 @@ async function findContradictions(summary: PipelineSummary, log: (m: string) => 
           .returning();
         if (row) {
           summary.contradictionsFound++;
-          await d.update(events).set({ verificationStatus: 'DISPUTED' }).where(eq(events.id, eventId));
+          await d
+            .update(events)
+            .set({ verificationStatus: 'DISPUTED' })
+            .where(eq(events.id, eventId));
         }
       }
     }
@@ -932,7 +1069,8 @@ async function buildInsights(
       maturityRationale: event.changeNote,
       claims: insightClaims,
       entityNames: entityRows.map((e) => e.name),
-      primaryEntityName: entityRows.find((e) => e.role === 'subject')?.name ?? entityRows[0]?.name ?? null,
+      primaryEntityName:
+        entityRows.find((e) => e.role === 'subject')?.name ?? entityRows[0]?.name ?? null,
       valueLevers: event.valueLevers as never[],
       operatingModelDimensions: event.operatingModelDimensions as never[],
       market,
@@ -975,8 +1113,14 @@ async function buildInsights(
     const factClaimIds = claimRows.filter((c) => c.claimType === 'FACT').map((c) => c.id);
 
     const applications = [
-      ...assembled.conversationStarters.map((text) => ({ kind: 'conversation_starter' as const, text })),
-      ...assembled.clientImplications.map((text) => ({ kind: 'client_implication' as const, text })),
+      ...assembled.conversationStarters.map((text) => ({
+        kind: 'conversation_starter' as const,
+        text,
+      })),
+      ...assembled.clientImplications.map((text) => ({
+        kind: 'client_implication' as const,
+        text,
+      })),
       ...assembled.hypotheses.map((text) => ({ kind: 'hypothesis' as const, text })),
       ...assembled.contrarianAngle.map((text) => ({ kind: 'contrarian_angle' as const, text })),
     ];
@@ -994,7 +1138,11 @@ async function buildInsights(
 
     // Learning connections: link the event to concepts via its taxonomy matches.
     const taxRows = await d
-      .select({ kind: eventTaxonomy.kind, slug: eventTaxonomy.slug, confidence: eventTaxonomy.confidence })
+      .select({
+        kind: eventTaxonomy.kind,
+        slug: eventTaxonomy.slug,
+        confidence: eventTaxonomy.confidence,
+      })
       .from(eventTaxonomy)
       .where(eq(eventTaxonomy.eventId, event.id));
 
@@ -1016,19 +1164,31 @@ async function buildInsights(
   log(`  generated ${summary.insightsCreated} insights`);
 }
 
-function conceptKind(taxonomyKind: string): 'industry_concept' | 'kpi' | 'capability' | 'technology' | 'value_chain_stage' {
+function conceptKind(
+  taxonomyKind: string,
+): 'industry_concept' | 'kpi' | 'capability' | 'technology' | 'value_chain_stage' {
   switch (taxonomyKind) {
-    case 'kpi': return 'kpi';
-    case 'capability': return 'capability';
-    case 'technology': return 'technology';
-    case 'value_chain_stage': return 'value_chain_stage';
-    default: return 'industry_concept';
+    case 'kpi':
+      return 'kpi';
+    case 'capability':
+      return 'capability';
+    case 'technology':
+      return 'technology';
+    case 'value_chain_stage':
+      return 'value_chain_stage';
+    default:
+      return 'industry_concept';
   }
 }
 
 async function loadConcepts(): Promise<Map<string, { id: string; name: string }>> {
   const rows = await db()
-    .select({ id: learningConcepts.id, name: learningConcepts.name, slug: learningConcepts.slug, refSlug: learningConcepts.refSlug })
+    .select({
+      id: learningConcepts.id,
+      name: learningConcepts.name,
+      slug: learningConcepts.slug,
+      refSlug: learningConcepts.refSlug,
+    })
     .from(learningConcepts);
   const map = new Map<string, { id: string; name: string }>();
   for (const row of rows) {
@@ -1049,7 +1209,8 @@ async function marketContextFor(eventId: string): Promise<MarketModelContext> {
 
   const industrySlugs = slugsOf('industry');
   let industryRow = industrySlugs[0]
-    ? (await d.query.industries.findFirst({ where: eq(industries.slug, industrySlugs[0]) })) ?? null
+    ? ((await d.query.industries.findFirst({ where: eq(industries.slug, industrySlugs[0]) })) ??
+      null)
     : null;
 
   // Industry names rarely appear in the text of an announcement — a press release
@@ -1067,7 +1228,8 @@ async function marketContextFor(eventId: string): Promise<MarketModelContext> {
         .limit(1);
       const industryId = row[0]?.industryId;
       if (industryId) {
-        industryRow = (await d.query.industries.findFirst({ where: eq(industries.id, industryId) })) ?? null;
+        industryRow =
+          (await d.query.industries.findFirst({ where: eq(industries.id, industryId) })) ?? null;
       }
     }
     if (!industryRow && stageSlugs.length > 0) {
@@ -1078,7 +1240,8 @@ async function marketContextFor(eventId: string): Promise<MarketModelContext> {
         .limit(1);
       const industryId = row[0]?.industryId;
       if (industryId) {
-        industryRow = (await d.query.industries.findFirst({ where: eq(industries.id, industryId) })) ?? null;
+        industryRow =
+          (await d.query.industries.findFirst({ where: eq(industries.id, industryId) })) ?? null;
       }
     }
   }
@@ -1125,10 +1288,15 @@ async function fetchNames(
   return rows.map((r) => r.name);
 }
 
-async function priorEventsFor(eventId: string): Promise<{ title: string; at: Date | null; maturity: never }[]> {
+async function priorEventsFor(
+  eventId: string,
+): Promise<{ title: string; at: Date | null; maturity: never }[]> {
   const d = db();
   const entityIds = (
-    await d.select({ entityId: eventEntities.entityId }).from(eventEntities).where(eq(eventEntities.eventId, eventId))
+    await d
+      .select({ entityId: eventEntities.entityId })
+      .from(eventEntities)
+      .where(eq(eventEntities.eventId, eventId))
   ).map((r) => r.entityId);
   if (entityIds.length === 0) return [];
 
@@ -1166,7 +1334,10 @@ async function priorEventsFor(eventId: string): Promise<{ title: string; at: Dat
   }));
 }
 
-async function coverageSnapshot(): Promise<{ monitoredSources: number; industriesCovered: number }> {
+async function coverageSnapshot(): Promise<{
+  monitoredSources: number;
+  industriesCovered: number;
+}> {
   const d = db();
   const [sourceCount] = await d
     .select({ n: sql<number>`count(*)::int` })

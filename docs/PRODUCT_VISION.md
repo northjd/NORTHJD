@@ -22,11 +22,11 @@ styled Instagram.
 
 ## Three connected intelligence layers
 
-| Layer | Answers | Time horizon |
-|---|---|---|
-| **Market Pulse** | What is new? What changed? What gains or loses momentum? What is urgent? What was corrected? What is corroborated? | days |
-| **Market Model** | How does this industry work? Value chain, business models, profit pools, KPIs, capabilities, operating models, technology, regulation | years |
-| **Conversation & Application** | What does this mean for a client? Which hypothesis? Which question? Which counter-position? What to learn next? | the next meeting |
+| Layer                          | Answers                                                                                                                               | Time horizon     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| **Market Pulse**               | What is new? What changed? What gains or loses momentum? What is urgent? What was corrected? What is corroborated?                    | days             |
+| **Market Model**               | How does this industry work? Value chain, business models, profit pools, KPIs, capabilities, operating models, technology, regulation | years            |
+| **Conversation & Application** | What does this mean for a client? Which hypothesis? Which question? Which counter-position? What to learn next?                       | the next meeting |
 
 The layers are linked in the data model, not just in the UI: a Market Pulse event
 points at the Market Model elements it touches, and that link is what produces
@@ -41,9 +41,9 @@ Discover → Understand → Connect → Retain → Apply → Reflect → Improve
 
 Retention uses spaced resurfacing, short reflection prompts, "what you learned this
 week" and "what changed since you learned this" — never manipulative streaks.
-Reflection is explicit: *I already knew this · This was new to me · I need more
+Reflection is explicit: _I already knew this · This was new to me · I need more
 context · This changed my view · I used this in a conversation · Not relevant · Save
-for later · Challenge this conclusion.* Those signals feed selection, depth and
+for later · Challenge this conclusion._ Those signals feed selection, depth and
 learning paths.
 
 ## What makes it defensible

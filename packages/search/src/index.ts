@@ -56,6 +56,8 @@ export class SemanticRetriever implements Retriever {
   readonly name = 'semantic';
   readonly available = false;
   async retrieve(): Promise<RetrievedItem[]> {
-    throw new Error('Semantic retrieval is not configured. Set EMBEDDING_PROVIDER and enable pgvector.');
+    throw new Error(
+      'Semantic retrieval is not configured. Set EMBEDDING_PROVIDER and enable pgvector.',
+    );
   }
 }

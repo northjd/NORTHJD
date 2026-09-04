@@ -152,7 +152,9 @@ export async function safeFetch(
       redirect: 'manual',
       headers: {
         'user-agent': env.INGEST_USER_AGENT,
-        accept: options.accept ?? 'application/rss+xml, application/atom+xml, application/xml, text/xml, text/html;q=0.8, */*;q=0.5',
+        accept:
+          options.accept ??
+          'application/rss+xml, application/atom+xml, application/xml, text/xml, text/html;q=0.8, */*;q=0.5',
         'accept-encoding': 'gzip, deflate',
         ...(options.etag ? { 'if-none-match': options.etag } : {}),
       },

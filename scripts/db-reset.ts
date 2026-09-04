@@ -21,8 +21,9 @@ import { config } from '@mios/config';
 
 const env = config();
 const port = env.PGLITE_PORT;
-const isLocalPglite =
-  new RegExp(`(?:@|//)(?:127\\.0\\.0\\.1|localhost):${port}(?:/|$)`).test(env.DATABASE_URL);
+const isLocalPglite = new RegExp(`(?:@|//)(?:127\\.0\\.0\\.1|localhost):${port}(?:/|$)`).test(
+  env.DATABASE_URL,
+);
 
 if (!isLocalPglite) {
   console.error(`

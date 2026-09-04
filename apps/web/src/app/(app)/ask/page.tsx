@@ -18,11 +18,7 @@ export const metadata = { title: 'Ask' };
  * Handing over a closed set of sourced claims plays to both, costs nothing, needs no API
  * key, and keeps the evidence guarantee intact across the handoff.
  */
-export default async function AskPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string }>;
-}) {
+export default async function AskPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   await requireUser();
   const { q } = await searchParams;
 
@@ -33,9 +29,9 @@ export default async function AskPage({
         Find the evidence, then think it through
       </h1>
       <p className="mt-3 max-w-[64ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
-        Ask a question and NORTH finds every claim in the monitored sources that bears on
-        it — with dates, sources and how strong each one is. Copy the prompt into your own
-        Claude and reason over it there.
+        Ask a question and NORTH finds every claim in the monitored sources that bears on it — with
+        dates, sources and how strong each one is. Copy the prompt into your own Claude and reason
+        over it there.
       </p>
 
       <div className="mt-8">
@@ -45,13 +41,13 @@ export default async function AskPage({
       <div className="mt-10">
         <InterpretationBlock label="Why it works this way">
           <p>
-            NORTH does not run a language model, and this is the better arrangement rather
-            than a limitation it is working around. Retrieval over a curated, cited corpus
-            is what makes an answer checkable, and it is exactly what a model cannot do for
-            itself — it has no way of knowing whether it has any evidence. Phrasing is what
-            models are good at. So NORTH assembles the evidence and your Claude reasons over
-            it, which costs nothing, needs no API key, and means the answer is grounded in
-            sources you can open rather than in something recalled.
+            NORTH does not run a language model, and this is the better arrangement rather than a
+            limitation it is working around. Retrieval over a curated, cited corpus is what makes an
+            answer checkable, and it is exactly what a model cannot do for itself — it has no way of
+            knowing whether it has any evidence. Phrasing is what models are good at. So NORTH
+            assembles the evidence and your Claude reasons over it, which costs nothing, needs no
+            API key, and means the answer is grounded in sources you can open rather than in
+            something recalled.
           </p>
         </InterpretationBlock>
       </div>

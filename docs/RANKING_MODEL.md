@@ -10,7 +10,7 @@ Two properties matter more than the scoring maths: **explainability** and
 Every scoring component that fires contributes a human-readable sentence, and the
 "Why am I seeing this?" panel is assembled from those sentences — not written
 separately. The panel cannot drift from the scoring that actually happened, because it
-*is* the scoring output.
+_is_ the scoring output.
 
 ```ts
 scoreItem(item, ctx) → { score, components, reasons }
@@ -24,7 +24,7 @@ the user sees:
 > - It is new since your last visit.
 > - Only the company itself has reported this so far.
 >
-> *No company or firm receives a ranking bonus for being itself.*
+> _No company or firm receives a ranking bonus for being itself._
 
 Note that reasons include the unflattering ones. "Only the company itself has reported
 this" and "this restates an earlier announcement rather than adding anything" both
@@ -42,11 +42,11 @@ consultant must be able to see why an item was chosen and disagree with it.
 source identity anywhere in the scoring path.
 
 ```ts
-scoreIsEntityNeutral(item, ctx, substituteEntityId)
+scoreIsEntityNeutral(item, ctx, substituteEntityId);
 ```
 
 Scores an item, re-scores it with a different entity, and compares — excluding the
-legitimately relevance-driven terms (watchlist, account, mission), because *following*
+legitimately relevance-driven terms (watchlist, account, mission), because _following_
 a company should raise its items. That is a user preference, not a bias.
 
 Asserted in three places: a unit test, an evaluation invariant, and a second evaluation
@@ -59,30 +59,30 @@ firms are ordinary entities.
 
 ## Components
 
-| Weight | Term | Fires when |
-|---|---|---|
-| 2.6 | `accountMatch` | Involves one of the user's accounts |
-| 2.2 | `watchlistMatch` | Involves a watched company |
-| 2.0 | `strategicImpact` | Scaled by the event's assessed impact |
-| 1.8 | `missionMatch` | Relevant to the active mission |
-| 1.6 | `industryMatch` | In a followed industry |
-| 1.5 | `freshness` | Exponential decay, ~1 week half-life |
-| 1.2 | `topicMatch` | Touches a followed topic |
-| 1.2 | `evidenceStrength` | Inverse of the strength rank |
-| 1.1 | `knowledgeGap` | Connects to an uncovered concept |
-| 1.0 | `technologyMatch` | Involves a followed technology |
-| 1.0 | `novelty` | New to world 1.0 → restated 0.0 |
-| 0.9 | `maturitySubstance` | Measured outcome outranks announcement |
-| 0.8 | `corroboration` | Independent sources reported it |
-| −0.5 | `firstPartyOnlyPenalty` | Nobody independent has confirmed it |
-| −1.4 | `repetitionPenalty` | Repeated story |
-| −2.5 | `alreadyShownPenalty` | Already shown to this user |
-| −0.3 | `demoPenalty` | Demo fixture data |
+| Weight | Term                    | Fires when                             |
+| ------ | ----------------------- | -------------------------------------- |
+| 2.6    | `accountMatch`          | Involves one of the user's accounts    |
+| 2.2    | `watchlistMatch`        | Involves a watched company             |
+| 2.0    | `strategicImpact`       | Scaled by the event's assessed impact  |
+| 1.8    | `missionMatch`          | Relevant to the active mission         |
+| 1.6    | `industryMatch`         | In a followed industry                 |
+| 1.5    | `freshness`             | Exponential decay, ~1 week half-life   |
+| 1.2    | `topicMatch`            | Touches a followed topic               |
+| 1.2    | `evidenceStrength`      | Inverse of the strength rank           |
+| 1.1    | `knowledgeGap`          | Connects to an uncovered concept       |
+| 1.0    | `technologyMatch`       | Involves a followed technology         |
+| 1.0    | `novelty`               | New to world 1.0 → restated 0.0        |
+| 0.9    | `maturitySubstance`     | Measured outcome outranks announcement |
+| 0.8    | `corroboration`         | Independent sources reported it        |
+| −0.5   | `firstPartyOnlyPenalty` | Nobody independent has confirmed it    |
+| −1.4   | `repetitionPenalty`     | Repeated story                         |
+| −2.5   | `alreadyShownPenalty`   | Already shown to this user             |
+| −0.3   | `demoPenalty`           | Demo fixture data                      |
 
 ### What the weights encode
 
 **Substance over noise.** `maturitySubstance` means a quantified outcome outranks an
-announcement. A *reversal* scores 0.8 — high — because a discontinued programme is
+announcement. A _reversal_ scores 0.8 — high — because a discontinued programme is
 unusually informative: the reasons given are worth more than the original announcement
 was.
 
@@ -152,10 +152,10 @@ Configurable. Currently expressed through section limits rather than strict quot
 
 The brief never pads.
 
-- **Nothing at all:** *"No new events were found in the currently monitored sources."*
+- **Nothing at all:** _"No new events were found in the currently monitored sources."_
   A statement about the sources, not about the world.
-- **Thin:** *"Short brief today: 3 items met the relevance bar from the monitored
-  sources. Nothing has been added to fill the time."*
+- **Thin:** _"Short brief today: 3 items met the relevance bar from the monitored
+  sources. Nothing has been added to fill the time."_
 
 Both are unit-tested, because padding is how "nothing important happened today" becomes
 eight items of filler and the brief stops being trustworthy.

@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { createMeetingBriefAction } from '@/app/(app)/prepare/actions';
 
-export function MeetingForm({ companies }: { companies: { id: string; name: string; slug: string }[] }) {
+export function MeetingForm({
+  companies,
+}: {
+  companies: { id: string; name: string; slug: string }[];
+}) {
   const [companyEntityId, setCompanyEntityId] = useState('');
   const [pending, setPending] = useState(false);
 

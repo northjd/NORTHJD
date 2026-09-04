@@ -22,7 +22,6 @@ export async function generateStaticParams() {
   return rows.map((r) => ({ slug: r.slug }));
 }
 
-
 export default async function CompanyPage({ params }: { params: Promise<{ slug: string }> }) {
   const user = await requireUser();
   const { slug } = await params;
@@ -98,7 +97,10 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
 
                   <h3 className="text-[15px] font-semibold leading-snug">
                     {event.insightId ? (
-                      <Link href={`/insights/${event.insightId}`} className="hover:underline underline-offset-2">
+                      <Link
+                        href={`/insights/${event.insightId}`}
+                        className="hover:underline underline-offset-2"
+                      >
                         {event.title}
                       </Link>
                     ) : (
@@ -109,8 +111,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                     {event.summary}
                   </p>
                   <p className="mt-1.5 text-[12px] text-[var(--text-subtle)]">
-                    Event {formatAbsolute(event.eventAt)} · reported {formatAbsolute(event.firstReportedAt)} ·{' '}
-                    {event.sourceCount} source{event.sourceCount === 1 ? '' : 's'}
+                    Event {formatAbsolute(event.eventAt)} · reported{' '}
+                    {formatAbsolute(event.firstReportedAt)} · {event.sourceCount} source
+                    {event.sourceCount === 1 ? '' : 's'}
                   </p>
                 </Card>
               ))}

@@ -45,8 +45,8 @@ is absent, the button does not appear and the UI says:
 > voice and text share one answering path and one evidence model.
 
 A button that appears and does nothing is worse than no button. The same applies to
-recognition errors: microphone permission denial produces *"Voice input failed. Check
-microphone permission, or type instead."*
+recognition errors: microphone permission denial produces _"Voice input failed. Check
+microphone permission, or type instead."_
 
 ---
 

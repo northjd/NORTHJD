@@ -50,7 +50,9 @@ export function KnowledgeCheck({ unitId, check }: { unitId: string; check: Check
                 }`}
               >
                 {option}
-                {reveal && correct ? <span className="ml-2 text-[12px] font-semibold">correct</span> : null}
+                {reveal && correct ? (
+                  <span className="ml-2 text-[12px] font-semibold">correct</span>
+                ) : null}
               </button>
             </li>
           );

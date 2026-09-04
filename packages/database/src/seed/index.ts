@@ -19,10 +19,30 @@ import { LEARNING_PATHS, EXTRA_CONCEPTS } from './learning';
 import { DEMO_FIRST_PARTY_DOCUMENTS, DEMO_INDEPENDENT_DOCUMENTS } from './demo-documents';
 
 const {
-  businessModels, capabilities, entities, entityAliases, entityIndustries, geographies,
-  industries, kpis, learningConcepts, learningPaths, learningUnits, memberships,
-  notificationPreferences, organizations, sourceConnectors, sourcePolicies, sources,
-  technologies, topics, userProfiles, users, valueChainStages, watchlistItems, watchlists,
+  businessModels,
+  capabilities,
+  entities,
+  entityAliases,
+  entityIndustries,
+  geographies,
+  industries,
+  kpis,
+  learningConcepts,
+  learningPaths,
+  learningUnits,
+  memberships,
+  notificationPreferences,
+  organizations,
+  sourceConnectors,
+  sourcePolicies,
+  sources,
+  technologies,
+  topics,
+  userProfiles,
+  users,
+  valueChainStages,
+  watchlistItems,
+  watchlists,
   workspaces,
 } = schema;
 
@@ -58,18 +78,28 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
     const [row] = await d
       .insert(industries)
       .values({
-        slug: ind.slug, name: ind.name, definition: ind.definition,
-        marketStructure: ind.marketStructure ?? '', regulatoryEnvironment: ind.regulatoryEnvironment ?? '',
-        transformationAgenda: ind.transformationAgenda ?? '', openQuestions: ind.openQuestions ?? [],
-        sourceRefs: ind.sourceRefs ?? [], lastReviewedAt: new Date(),
+        slug: ind.slug,
+        name: ind.name,
+        definition: ind.definition,
+        marketStructure: ind.marketStructure ?? '',
+        regulatoryEnvironment: ind.regulatoryEnvironment ?? '',
+        transformationAgenda: ind.transformationAgenda ?? '',
+        openQuestions: ind.openQuestions ?? [],
+        sourceRefs: ind.sourceRefs ?? [],
+        lastReviewedAt: new Date(),
       })
       .onConflictDoUpdate({
         target: industries.slug,
         set: {
-          name: ind.name, definition: ind.definition, marketStructure: ind.marketStructure ?? '',
-          regulatoryEnvironment: ind.regulatoryEnvironment ?? '', transformationAgenda: ind.transformationAgenda,
-          openQuestions: ind.openQuestions ?? [], sourceRefs: ind.sourceRefs ?? [],
-          lastReviewedAt: new Date(), updatedAt: new Date(),
+          name: ind.name,
+          definition: ind.definition,
+          marketStructure: ind.marketStructure ?? '',
+          regulatoryEnvironment: ind.regulatoryEnvironment ?? '',
+          transformationAgenda: ind.transformationAgenda,
+          openQuestions: ind.openQuestions ?? [],
+          sourceRefs: ind.sourceRefs ?? [],
+          lastReviewedAt: new Date(),
+          updatedAt: new Date(),
         },
       })
       .returning();
@@ -98,12 +128,21 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
       const [row] = await d
         .insert(valueChainStages)
         .values({
-          industryId, slug: stage.slug, name: stage.name, position,
-          description: stage.description, profitPoolNote: stage.profitPoolNote,
+          industryId,
+          slug: stage.slug,
+          name: stage.name,
+          position,
+          description: stage.description,
+          profitPoolNote: stage.profitPoolNote,
         })
         .onConflictDoUpdate({
           target: valueChainStages.slug,
-          set: { name: stage.name, description: stage.description, profitPoolNote: stage.profitPoolNote, position },
+          set: {
+            name: stage.name,
+            description: stage.description,
+            profitPoolNote: stage.profitPoolNote,
+            position,
+          },
         })
         .returning();
       stageIdBySlug.set(stage.slug, row!.id);
@@ -114,13 +153,24 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
       const [row] = await d
         .insert(kpis)
         .values({
-          industryId, slug: kpi.slug, name: kpi.name, definition: kpi.definition,
-          formula: kpi.formula, whyItMatters: kpi.whyItMatters,
-          valueLever: kpi.valueLever as never, typicalRange: kpi.typicalRange ?? '',
+          industryId,
+          slug: kpi.slug,
+          name: kpi.name,
+          definition: kpi.definition,
+          formula: kpi.formula,
+          whyItMatters: kpi.whyItMatters,
+          valueLever: kpi.valueLever as never,
+          typicalRange: kpi.typicalRange ?? '',
         })
         .onConflictDoUpdate({
           target: kpis.slug,
-          set: { name: kpi.name, definition: kpi.definition, formula: kpi.formula, whyItMatters: kpi.whyItMatters, typicalRange: kpi.typicalRange ?? '' },
+          set: {
+            name: kpi.name,
+            definition: kpi.definition,
+            formula: kpi.formula,
+            whyItMatters: kpi.whyItMatters,
+            typicalRange: kpi.typicalRange ?? '',
+          },
         })
         .returning();
       kpiIdBySlug.set(kpi.slug, row!.id);
@@ -136,13 +186,19 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
       await d
         .insert(capabilities)
         .values({
-          slug: cap.slug, name: cap.name, description: cap.description,
+          slug: cap.slug,
+          name: cap.name,
+          description: cap.description,
           valueChainStageId: cap.stageSlug ? stageIdBySlug.get(cap.stageSlug) : null,
           operatingModelDimensions: cap.dimensions,
         })
         .onConflictDoUpdate({
           target: capabilities.slug,
-          set: { name: cap.name, description: cap.description, operatingModelDimensions: cap.dimensions },
+          set: {
+            name: cap.name,
+            description: cap.description,
+            operatingModelDimensions: cap.dimensions,
+          },
         });
       capCount++;
     }
@@ -151,12 +207,21 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
       await d
         .insert(businessModels)
         .values({
-          industryId, slug: bm.slug, name: bm.name, description: bm.description,
-          economics: bm.economics, exampleCompanyNames: bm.examples,
+          industryId,
+          slug: bm.slug,
+          name: bm.name,
+          description: bm.description,
+          economics: bm.economics,
+          exampleCompanyNames: bm.examples,
         })
         .onConflictDoUpdate({
           target: businessModels.slug,
-          set: { name: bm.name, description: bm.description, economics: bm.economics, exampleCompanyNames: bm.examples },
+          set: {
+            name: bm.name,
+            description: bm.description,
+            economics: bm.economics,
+            exampleCompanyNames: bm.examples,
+          },
         });
       bmCount++;
     }
@@ -170,7 +235,10 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
     await d
       .insert(topics)
       .values(topic)
-      .onConflictDoUpdate({ target: topics.slug, set: { name: topic.name, description: topic.description } });
+      .onConflictDoUpdate({
+        target: topics.slug,
+        set: { name: topic.name, description: topic.description },
+      });
   }
   counts.topics = TOPICS.length;
 
@@ -178,12 +246,20 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
     await d
       .insert(technologies)
       .values({
-        slug: tech.slug, name: tech.name, description: tech.description,
-        layer: tech.layer, enablesCapabilitySlugs: tech.enables,
+        slug: tech.slug,
+        name: tech.name,
+        description: tech.description,
+        layer: tech.layer,
+        enablesCapabilitySlugs: tech.enables,
       })
       .onConflictDoUpdate({
         target: technologies.slug,
-        set: { name: tech.name, description: tech.description, layer: tech.layer, enablesCapabilitySlugs: tech.enables },
+        set: {
+          name: tech.name,
+          description: tech.description,
+          layer: tech.layer,
+          enablesCapabilitySlugs: tech.enables,
+        },
       });
   }
   counts.technologies = TECHNOLOGIES.length;
@@ -193,17 +269,66 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
   // state can attach to anything an event touches.
 
   const conceptSeeds = [
-    ...EXTRA_CONCEPTS.map((c) => ({ slug: c.slug, name: c.name, kind: c.kind, summary: c.summary, industrySlug: c.industrySlug, refSlug: null as string | null })),
+    ...EXTRA_CONCEPTS.map((c) => ({
+      slug: c.slug,
+      name: c.name,
+      kind: c.kind,
+      summary: c.summary,
+      industrySlug: c.industrySlug,
+      refSlug: null as string | null,
+    })),
     // Industries and topics need concepts too, otherwise an event classified only by
     // industry or topic produces no learning connection and the Depth link is lost.
-    ...INDUSTRIES.map((i) => ({ slug: `concept-${i.slug}`, name: i.name, kind: 'industry_concept', summary: i.definition, industrySlug: i.slug, refSlug: i.slug })),
-    ...TOPICS.map((t) => ({ slug: `concept-${t.slug}`, name: t.name, kind: 'industry_concept', summary: t.description, industrySlug: 'technology-ai', refSlug: t.slug })),
+    ...INDUSTRIES.map((i) => ({
+      slug: `concept-${i.slug}`,
+      name: i.name,
+      kind: 'industry_concept',
+      summary: i.definition,
+      industrySlug: i.slug,
+      refSlug: i.slug,
+    })),
+    ...TOPICS.map((t) => ({
+      slug: `concept-${t.slug}`,
+      name: t.name,
+      kind: 'industry_concept',
+      summary: t.description,
+      industrySlug: 'technology-ai',
+      refSlug: t.slug,
+    })),
     ...INDUSTRIES.flatMap((ind) => [
-      ...(ind.kpis ?? []).map((k) => ({ slug: `concept-${k.slug}`, name: k.name, kind: 'kpi', summary: k.whyItMatters, industrySlug: ind.slug, refSlug: k.slug })),
-      ...(ind.capabilities ?? []).map((c) => ({ slug: `concept-${c.slug}`, name: c.name, kind: 'capability', summary: c.description, industrySlug: ind.slug, refSlug: c.slug })),
-      ...(ind.valueChainStages ?? []).map((s) => ({ slug: `concept-${s.slug}`, name: s.name, kind: 'value_chain_stage', summary: s.description, industrySlug: ind.slug, refSlug: s.slug })),
+      ...(ind.kpis ?? []).map((k) => ({
+        slug: `concept-${k.slug}`,
+        name: k.name,
+        kind: 'kpi',
+        summary: k.whyItMatters,
+        industrySlug: ind.slug,
+        refSlug: k.slug,
+      })),
+      ...(ind.capabilities ?? []).map((c) => ({
+        slug: `concept-${c.slug}`,
+        name: c.name,
+        kind: 'capability',
+        summary: c.description,
+        industrySlug: ind.slug,
+        refSlug: c.slug,
+      })),
+      ...(ind.valueChainStages ?? []).map((s) => ({
+        slug: `concept-${s.slug}`,
+        name: s.name,
+        kind: 'value_chain_stage',
+        summary: s.description,
+        industrySlug: ind.slug,
+        refSlug: s.slug,
+      })),
     ]),
-    ...TECHNOLOGIES.map((t) => ({ slug: `concept-${t.slug}`, name: t.name, kind: 'technology', summary: t.description, industrySlug: 'technology-ai', refSlug: t.slug })),
+    ...TECHNOLOGIES.map((t) => ({
+      slug: `concept-${t.slug}`,
+      name: t.name,
+      kind: 'technology',
+      summary: t.description,
+      industrySlug: 'technology-ai',
+      refSlug: t.slug,
+    })),
   ];
 
   const conceptIdBySlug = new Map<string, string>();
@@ -211,10 +336,17 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
     const [row] = await d
       .insert(learningConcepts)
       .values({
-        slug: c.slug, name: c.name, kind: c.kind, summary: c.summary,
-        industryId: industryIdBySlug.get(c.industrySlug) ?? null, refSlug: c.refSlug,
+        slug: c.slug,
+        name: c.name,
+        kind: c.kind,
+        summary: c.summary,
+        industryId: industryIdBySlug.get(c.industrySlug) ?? null,
+        refSlug: c.refSlug,
       })
-      .onConflictDoUpdate({ target: learningConcepts.slug, set: { name: c.name, summary: c.summary, refSlug: c.refSlug } })
+      .onConflictDoUpdate({
+        target: learningConcepts.slug,
+        set: { name: c.name, summary: c.summary, refSlug: c.refSlug },
+      })
       .returning();
     conceptIdBySlug.set(c.slug, row!.id);
   }
@@ -227,10 +359,16 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
     const [pathRow] = await d
       .insert(learningPaths)
       .values({
-        slug: path.slug, name: path.name, description: path.description,
-        industryId: industryIdBySlug.get(path.industrySlug) ?? null, position: path.position,
+        slug: path.slug,
+        name: path.name,
+        description: path.description,
+        industryId: industryIdBySlug.get(path.industrySlug) ?? null,
+        position: path.position,
       })
-      .onConflictDoUpdate({ target: learningPaths.slug, set: { name: path.name, description: path.description, position: path.position } })
+      .onConflictDoUpdate({
+        target: learningPaths.slug,
+        set: { name: path.name, description: path.description, position: path.position },
+      })
       .returning();
 
     for (const unit of path.units) {
@@ -239,21 +377,36 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
         .values({
           pathId: pathRow!.id,
           conceptId: conceptIdBySlug.get(unit.conceptSlug) ?? null,
-          slug: unit.slug, title: unit.title, depth: unit.depth, position: unit.position,
-          objective: unit.objective, explanation: unit.explanation,
-          structuredModel: unit.structuredModel, keyTerms: unit.keyTerms,
-          coreMetricSlugs: unit.coreMetricSlugs, exampleCompanyNames: unit.exampleCompanyNames,
-          commonMisconceptions: unit.commonMisconceptions, practicalQuestions: unit.practicalQuestions,
-          sourceRefs: unit.sourceRefs, knowledgeCheck: unit.knowledgeCheck ?? null,
-          estimatedMinutes: unit.estimatedMinutes, lastReviewedAt: new Date(),
+          slug: unit.slug,
+          title: unit.title,
+          depth: unit.depth,
+          position: unit.position,
+          objective: unit.objective,
+          explanation: unit.explanation,
+          structuredModel: unit.structuredModel,
+          keyTerms: unit.keyTerms,
+          coreMetricSlugs: unit.coreMetricSlugs,
+          exampleCompanyNames: unit.exampleCompanyNames,
+          commonMisconceptions: unit.commonMisconceptions,
+          practicalQuestions: unit.practicalQuestions,
+          sourceRefs: unit.sourceRefs,
+          knowledgeCheck: unit.knowledgeCheck ?? null,
+          estimatedMinutes: unit.estimatedMinutes,
+          lastReviewedAt: new Date(),
         })
         .onConflictDoUpdate({
           target: learningUnits.slug,
           set: {
-            title: unit.title, objective: unit.objective, explanation: unit.explanation,
-            structuredModel: unit.structuredModel, keyTerms: unit.keyTerms,
-            commonMisconceptions: unit.commonMisconceptions, practicalQuestions: unit.practicalQuestions,
-            knowledgeCheck: unit.knowledgeCheck ?? null, lastReviewedAt: new Date(), updatedAt: new Date(),
+            title: unit.title,
+            objective: unit.objective,
+            explanation: unit.explanation,
+            structuredModel: unit.structuredModel,
+            keyTerms: unit.keyTerms,
+            commonMisconceptions: unit.commonMisconceptions,
+            practicalQuestions: unit.practicalQuestions,
+            knowledgeCheck: unit.knowledgeCheck ?? null,
+            lastReviewedAt: new Date(),
+            updatedAt: new Date(),
           },
         });
       unitCount++;
@@ -271,19 +424,30 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
     const [row] = await d
       .insert(entities)
       .values({
-        kind: ent.kind, slug: ent.slug, name: ent.name, legalName: ent.legalName ?? '',
-        description: ent.description, officialDomain: ent.officialDomain,
-        ticker: ent.ticker ?? '', headquartersGeographySlug: ent.hq ?? '',
+        kind: ent.kind,
+        slug: ent.slug,
+        name: ent.name,
+        legalName: ent.legalName ?? '',
+        description: ent.description,
+        officialDomain: ent.officialDomain,
+        ticker: ent.ticker ?? '',
+        headquartersGeographySlug: ent.hq ?? '',
         primaryIndustrySlug: undefined as never,
-        primaryIndustryId: ent.primaryIndustrySlug ? industryIdBySlug.get(ent.primaryIndustrySlug) : null,
+        primaryIndustryId: ent.primaryIndustrySlug
+          ? industryIdBySlug.get(ent.primaryIndustrySlug)
+          : null,
         businessModelSlug: ent.businessModelSlug ?? '',
         isDemo: ent.isDemo ?? false,
       } as never)
       .onConflictDoUpdate({
         target: entities.slug,
         set: {
-          name: ent.name, description: ent.description, officialDomain: ent.officialDomain,
-          kind: ent.kind, isDemo: ent.isDemo ?? false, updatedAt: new Date(),
+          name: ent.name,
+          description: ent.description,
+          officialDomain: ent.officialDomain,
+          kind: ent.kind,
+          isDemo: ent.isDemo ?? false,
+          updatedAt: new Date(),
         },
       })
       .returning();
@@ -294,8 +458,11 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
       await d
         .insert(entityAliases)
         .values({
-          entityId: row!.id, alias: alias.alias, normalized,
-          language: alias.language ?? 'en', aliasType: alias.type ?? 'trade',
+          entityId: row!.id,
+          alias: alias.alias,
+          normalized,
+          language: alias.language ?? 'en',
+          aliasType: alias.type ?? 'trade',
           requiresContext: alias.requiresContext ?? aliasNeedsContext(alias.alias),
         })
         .onConflictDoNothing();
@@ -320,19 +487,31 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
     const [row] = await d
       .insert(sources)
       .values({
-        slug: src.slug, name: src.name, officialDomain: src.officialDomain,
-        homepageUrl: src.homepageUrl, sourceType: src.sourceType as never,
-        perspective: src.perspective as never, sourceOwner: src.sourceOwner,
-        subjectEntityId: src.subjectEntitySlug ? (entityIdBySlug.get(src.subjectEntitySlug) ?? null) : null,
-        language: src.language, geographySlugs: src.geographySlugs,
-        industrySlugs: src.industrySlugs, qualityScore: src.qualityScore,
-        isDemo: src.isDemo ?? false, notes: src.notes,
+        slug: src.slug,
+        name: src.name,
+        officialDomain: src.officialDomain,
+        homepageUrl: src.homepageUrl,
+        sourceType: src.sourceType as never,
+        perspective: src.perspective as never,
+        sourceOwner: src.sourceOwner,
+        subjectEntityId: src.subjectEntitySlug
+          ? (entityIdBySlug.get(src.subjectEntitySlug) ?? null)
+          : null,
+        language: src.language,
+        geographySlugs: src.geographySlugs,
+        industrySlugs: src.industrySlugs,
+        qualityScore: src.qualityScore,
+        isDemo: src.isDemo ?? false,
+        notes: src.notes,
       })
       .onConflictDoUpdate({
         target: sources.slug,
         set: {
-          name: src.name, notes: src.notes, qualityScore: src.qualityScore,
-          perspective: src.perspective as never, updatedAt: new Date(),
+          name: src.name,
+          notes: src.notes,
+          qualityScore: src.qualityScore,
+          perspective: src.perspective as never,
+          updatedAt: new Date(),
         },
       })
       .returning();
@@ -392,7 +571,10 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
           isActive: src.connector.isActive && src.policy.allowedToIngest,
           schedule: src.connector.schedule,
           configuration,
-          health: src.connector.isActive && src.policy.allowedToIngest ? existingConnector.health : 'disabled',
+          health:
+            src.connector.isActive && src.policy.allowedToIngest
+              ? existingConnector.health
+              : 'disabled',
           updatedAt: new Date(),
         })
         .where(eq(sourceConnectors.id, existingConnector.id));
@@ -448,14 +630,24 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
   await d
     .insert(userProfiles)
     .values({
-      userId, workspaceId: workspace!.id,
-      role: 'Management consultant', seniority: 'manager',
+      userId,
+      workspaceId: workspace!.id,
+      role: 'Management consultant',
+      seniority: 'manager',
       industrySlugs: ['fashion-apparel', 'retail', 'technology-ai'],
       topicSlugs: ['artificial-intelligence', 'agentic-ai', 'supply-chain', 'pricing'],
       technologySlugs: ['large-language-models', 'machine-learning-forecasting'],
       geographySlugs: ['europe', 'global'],
-      informationGoals: ['industry_depth', 'client_preparation', 'technology_monitoring', 'continuous_learning'],
-      learningObjectives: ['Understand fashion retail economics', 'Distinguish AI announcements from deployments'],
+      informationGoals: [
+        'industry_depth',
+        'client_preparation',
+        'technology_monitoring',
+        'continuous_learning',
+      ],
+      learningObjectives: [
+        'Understand fashion retail economics',
+        'Distinguish AI announcements from deployments',
+      ],
       dailyReadingMinutes: 12,
       preferredDepth: 'executive',
       responseLanguage: 'en',
@@ -466,7 +658,12 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
     })
     .onConflictDoNothing();
 
-  for (const kind of ['daily_brief_ready', 'high_impact_watchlist_event', 'important_correction', 'weekly_learning_review'] as const) {
+  for (const kind of [
+    'daily_brief_ready',
+    'high_impact_watchlist_event',
+    'important_correction',
+    'weekly_learning_review',
+  ] as const) {
     await d
       .insert(notificationPreferences)
       .values({ userId, workspaceId: workspace!.id, kind, enabled: true, threshold: 70 })
@@ -499,7 +696,9 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
   }
 
   log(
-    `[seed] ${Object.entries(counts).map(([k, v]) => `${k}=${v}`).join(' ')}`,
+    `[seed] ${Object.entries(counts)
+      .map(([k, v]) => `${k}=${v}`)
+      .join(' ')}`,
   );
 
   return {

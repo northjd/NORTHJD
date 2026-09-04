@@ -97,7 +97,8 @@ export async function currentPreferences(): Promise<CurrentPreferences> {
     technologySlugs: profile?.technologySlugs ?? [],
     entitySlugs: watched.map((w) => w.slug),
     dailyReadingMinutes: profile?.dailyReadingMinutes ?? 12,
-    preferredDepth: (profile?.preferredDepth ?? 'executive') as CurrentPreferences['preferredDepth'],
+    preferredDepth: (profile?.preferredDepth ??
+      'executive') as CurrentPreferences['preferredDepth'],
     onboarded: Boolean(profile?.onboardingCompletedAt),
   };
 }
@@ -167,11 +168,7 @@ export async function savePreferences(formData: FormData): Promise<void> {
 }
 
 /** Replaces the user's watched companies with exactly the given set. */
-async function saveWatchlist(
-  userId: string,
-  workspaceId: string,
-  slugs: string[],
-): Promise<void> {
+async function saveWatchlist(userId: string, workspaceId: string, slugs: string[]): Promise<void> {
   let watchlist = await db().query.watchlists.findFirst({
     where: and(
       eq(schema.watchlists.userId, userId),

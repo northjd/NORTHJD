@@ -51,12 +51,16 @@ const claims = (result.rows ?? []).map((r) => {
     perspective: row.perspective,
     documentTitle: row.documentTitle,
     documentUrl: row.documentUrl,
-    publishedAt: row.publishedAt ? new Date(row.publishedAt as string).toISOString().slice(0, 10) : null,
+    publishedAt: row.publishedAt
+      ? new Date(row.publishedAt as string).toISOString().slice(0, 10)
+      : null,
   };
 });
 
 const file = resolve(out, 'evidence.json');
 const payload = JSON.stringify({ claims, generatedAt: new Date().toISOString() });
 writeFileSync(file, payload);
-console.log(`[evidence] ${claims.length} evidenced claims · ${(payload.length / 1024).toFixed(0)} KB`);
+console.log(
+  `[evidence] ${claims.length} evidenced claims · ${(payload.length / 1024).toFixed(0)} KB`,
+);
 process.exit(0);

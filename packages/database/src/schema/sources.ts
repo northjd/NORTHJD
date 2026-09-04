@@ -54,8 +54,14 @@ export const sources = pgTable(
     /** The entity this source speaks for, when it is a first-party source. */
     subjectEntityId: uuid('subject_entity_id'),
     language: varchar('language', { length: 10 }).notNull().default('en'),
-    geographySlugs: jsonb('geography_slugs').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    industrySlugs: jsonb('industry_slugs').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    geographySlugs: jsonb('geography_slugs')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    industrySlugs: jsonb('industry_slugs')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     /**
      * Editorial quality 0–100. Feeds ranking, never overrides evidence strength: a
      * high-quality publication reporting a rumour is still a weak signal.
@@ -131,7 +137,10 @@ export const sourceConnectors = pgTable(
     /** Feed ETag, last filing date, page cursor — connector-defined. */
     cursor: text('cursor'),
     parsingVersion: integer('parsing_version').notNull().default(1),
-    configuration: jsonb('configuration').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    configuration: jsonb('configuration')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     health: connectorHealthEnum('health').notNull().default('disabled'),
     lastSuccessAt: timestamp('last_success_at', { withTimezone: true }),
     lastFailureAt: timestamp('last_failure_at', { withTimezone: true }),
@@ -140,7 +149,10 @@ export const sourceConnectors = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index('source_connectors_source_idx').on(t.sourceId), index('source_connectors_active_idx').on(t.isActive)],
+  (t) => [
+    index('source_connectors_source_idx').on(t.sourceId),
+    index('source_connectors_active_idx').on(t.isActive),
+  ],
 );
 
 /**
@@ -253,7 +265,10 @@ export const importJobs = pgTable(
     documentsUpdated: integer('documents_updated').notNull().default(0),
     documentsSkipped: integer('documents_skipped').notNull().default(0),
     error: text('error').notNull().default(''),
-    warnings: jsonb('warnings').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    warnings: jsonb('warnings')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
   },
   (t) => [index('import_jobs_connector_idx').on(t.connectorId, t.startedAt)],
 );
@@ -279,7 +294,10 @@ export const rawDocumentsRelations = relations(rawDocuments, ({ one, many }) => 
 }));
 
 export const documentVersionsRelations = relations(documentVersions, ({ one, many }) => ({
-  document: one(rawDocuments, { fields: [documentVersions.documentId], references: [rawDocuments.id] }),
+  document: one(rawDocuments, {
+    fields: [documentVersions.documentId],
+    references: [rawDocuments.id],
+  }),
   spans: many(evidenceSpans),
 }));
 

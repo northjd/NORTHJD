@@ -26,21 +26,136 @@ const hasAny = (text: string, terms: readonly string[]) => terms.some((t) => tex
 // ── Event type ───────────────────────────────────────────────────────────────
 
 const EVENT_TYPE_RULES: { type: EventType; terms: readonly string[] }[] = [
-  { type: 'acquisition', terms: ['acquire', 'acquisition', 'takeover', 'buyout', 'to buy', 'merger'] },
+  {
+    type: 'acquisition',
+    terms: ['acquire', 'acquisition', 'takeover', 'buyout', 'to buy', 'merger'],
+  },
   { type: 'divestiture', terms: ['divest', 'sell its', 'spin-off', 'spin off', 'carve-out'] },
-  { type: 'partnership', terms: ['partner', 'partnership', 'alliance', 'collaborat', 'joint venture', 'teams up', 'works with'] },
-  { type: 'investment', terms: ['invest', 'funding round', 'series a', 'series b', 'series c', 'raises', 'raised', 'capital injection', 'stake in'] },
-  { type: 'product_launch', terms: ['launch', 'unveil', 'introduce', 'new product', 'general availability', 'now available', 'releases'] },
-  { type: 'leadership_change', terms: ['appoint', 'named chief', 'steps down', 'resign', 'new ceo', 'new cfo', 'succeed', 'joins as'] },
-  { type: 'financial_result', terms: ['quarterly results', 'full-year results', 'earnings', 'revenue rose', 'revenue fell', 'operating profit', 'q1 ', 'q2 ', 'q3 ', 'q4 ', 'half-year'] },
-  { type: 'regulation', terms: ['regulator', 'regulation', 'directive', 'legislation', 'compliance deadline', 'fined', 'antitrust', 'ruling', 'act entered'] },
-  { type: 'research_publication', terms: ['study finds', 'research paper', 'published research', 'survey of', 'report finds', 'benchmark'] },
-  { type: 'technology_deployment', terms: ['deploy', 'rollout', 'roll out', 'implement', 'go live', 'in production', 'migrat'] },
-  { type: 'restructuring', terms: ['restructur', 'job cuts', 'layoff', 'redundanc', 'reorganis', 'reorganiz', 'cost programme', 'cost program'] },
-  { type: 'market_entry', terms: ['enters the', 'market entry', 'expands into', 'opens in', 'first store in'] },
-  { type: 'legal_action', terms: ['lawsuit', 'sues', 'court', 'litigation', 'settlement', 'injunction'] },
-  { type: 'sustainability', terms: ['emissions', 'net zero', 'net-zero', 'circular', 'recycl', 'sustainab', 'scope 3'] },
-  { type: 'thought_leadership', terms: ['point of view', 'thought leadership', 'white paper', 'perspective on', 'blog post'] },
+  {
+    type: 'partnership',
+    terms: [
+      'partner',
+      'partnership',
+      'alliance',
+      'collaborat',
+      'joint venture',
+      'teams up',
+      'works with',
+    ],
+  },
+  {
+    type: 'investment',
+    terms: [
+      'invest',
+      'funding round',
+      'series a',
+      'series b',
+      'series c',
+      'raises',
+      'raised',
+      'capital injection',
+      'stake in',
+    ],
+  },
+  {
+    type: 'product_launch',
+    terms: [
+      'launch',
+      'unveil',
+      'introduce',
+      'new product',
+      'general availability',
+      'now available',
+      'releases',
+    ],
+  },
+  {
+    type: 'leadership_change',
+    terms: [
+      'appoint',
+      'named chief',
+      'steps down',
+      'resign',
+      'new ceo',
+      'new cfo',
+      'succeed',
+      'joins as',
+    ],
+  },
+  {
+    type: 'financial_result',
+    terms: [
+      'quarterly results',
+      'full-year results',
+      'earnings',
+      'revenue rose',
+      'revenue fell',
+      'operating profit',
+      'q1 ',
+      'q2 ',
+      'q3 ',
+      'q4 ',
+      'half-year',
+    ],
+  },
+  {
+    type: 'regulation',
+    terms: [
+      'regulator',
+      'regulation',
+      'directive',
+      'legislation',
+      'compliance deadline',
+      'fined',
+      'antitrust',
+      'ruling',
+      'act entered',
+    ],
+  },
+  {
+    type: 'research_publication',
+    terms: [
+      'study finds',
+      'research paper',
+      'published research',
+      'survey of',
+      'report finds',
+      'benchmark',
+    ],
+  },
+  {
+    type: 'technology_deployment',
+    terms: ['deploy', 'rollout', 'roll out', 'implement', 'go live', 'in production', 'migrat'],
+  },
+  {
+    type: 'restructuring',
+    terms: [
+      'restructur',
+      'job cuts',
+      'layoff',
+      'redundanc',
+      'reorganis',
+      'reorganiz',
+      'cost programme',
+      'cost program',
+    ],
+  },
+  {
+    type: 'market_entry',
+    terms: ['enters the', 'market entry', 'expands into', 'opens in', 'first store in'],
+  },
+  {
+    type: 'legal_action',
+    terms: ['lawsuit', 'sues', 'court', 'litigation', 'settlement', 'injunction'],
+  },
+  {
+    type: 'sustainability',
+    terms: ['emissions', 'net zero', 'net-zero', 'circular', 'recycl', 'sustainab', 'scope 3'],
+  },
+  {
+    type: 'thought_leadership',
+    terms: ['point of view', 'thought leadership', 'white paper', 'perspective on', 'blog post'],
+  },
 ];
 
 export function classifyEventType(title: string, body: string): EventType {
@@ -53,11 +168,62 @@ export function classifyEventType(title: string, body: string): EventType {
 
 // ── Case maturity ────────────────────────────────────────────────────────────
 
-const REVERSAL = ['discontinued', 'abandoned', 'scrapped', 'shelved', 'wound down', 'halted', 'cancelled', 'canceled', 'rolled back', 'pulled the plug'];
-const SCALED = ['across all', 'group-wide', 'groupwide', 'company-wide', 'all stores', 'all markets', 'globally deployed', 'in production across', 'fully rolled out', 'enterprise-wide', 'at scale'];
-const LIMITED = ['in selected', 'select stores', 'initial rollout', 'first phase', 'in two markets', 'in three markets', 'limited release', 'early access', 'beta'];
-const PILOT = ['pilot', 'trial', 'proof of concept', 'proof-of-concept', 'poc', 'testing', 'experiment', 'trialling', 'trialing'];
-const CONCEPT = ['exploring', 'evaluating', 'considering', 'plans to develop', 'intends to build', 'research project', 'prototype'];
+const REVERSAL = [
+  'discontinued',
+  'abandoned',
+  'scrapped',
+  'shelved',
+  'wound down',
+  'halted',
+  'cancelled',
+  'canceled',
+  'rolled back',
+  'pulled the plug',
+];
+const SCALED = [
+  'across all',
+  'group-wide',
+  'groupwide',
+  'company-wide',
+  'all stores',
+  'all markets',
+  'globally deployed',
+  'in production across',
+  'fully rolled out',
+  'enterprise-wide',
+  'at scale',
+];
+const LIMITED = [
+  'in selected',
+  'select stores',
+  'initial rollout',
+  'first phase',
+  'in two markets',
+  'in three markets',
+  'limited release',
+  'early access',
+  'beta',
+];
+const PILOT = [
+  'pilot',
+  'trial',
+  'proof of concept',
+  'proof-of-concept',
+  'poc',
+  'testing',
+  'experiment',
+  'trialling',
+  'trialing',
+];
+const CONCEPT = [
+  'exploring',
+  'evaluating',
+  'considering',
+  'plans to develop',
+  'intends to build',
+  'research project',
+  'prototype',
+];
 
 /**
  * @param independentlyConfirmed whether a non-first-party source reported the same
@@ -71,7 +237,10 @@ export function classifyCaseMaturity(
   const s = lower(text);
 
   if (hasAny(s, REVERSAL)) {
-    return { maturity: 'DISCONTINUED_OR_REVERSED', rationale: 'The source describes the initiative being stopped or reversed.' };
+    return {
+      maturity: 'DISCONTINUED_OR_REVERSED',
+      rationale: 'The source describes the initiative being stopped or reversed.',
+    };
   }
 
   const quantified = containsQuantifiedOutcome(text);
@@ -86,81 +255,239 @@ export function classifyCaseMaturity(
 
   if (quantified && outcomeLanguage) {
     return independentlyConfirmed
-      ? { maturity: 'INDEPENDENTLY_VALIDATED_IMPACT', rationale: 'A quantified outcome is reported and at least one independent source reports the same result.' }
-      : { maturity: 'QUANTIFIED_BUSINESS_IMPACT', rationale: 'A quantified outcome is stated, but only by the party reporting it. Not independently verified.' };
+      ? {
+          maturity: 'INDEPENDENTLY_VALIDATED_IMPACT',
+          rationale:
+            'A quantified outcome is reported and at least one independent source reports the same result.',
+        }
+      : {
+          maturity: 'QUANTIFIED_BUSINESS_IMPACT',
+          rationale:
+            'A quantified outcome is stated, but only by the party reporting it. Not independently verified.',
+        };
   }
   if (hasAny(s, SCALED)) {
-    return { maturity: 'SCALED_DEPLOYMENT', rationale: 'The source describes deployment across the whole organisation or market.' };
+    return {
+      maturity: 'SCALED_DEPLOYMENT',
+      rationale: 'The source describes deployment across the whole organisation or market.',
+    };
   }
   if (hasAny(s, LIMITED)) {
-    return { maturity: 'LIMITED_DEPLOYMENT', rationale: 'The source describes deployment limited to selected sites or markets.' };
+    return {
+      maturity: 'LIMITED_DEPLOYMENT',
+      rationale: 'The source describes deployment limited to selected sites or markets.',
+    };
   }
   if (hasAny(s, PILOT)) {
     return { maturity: 'PILOT', rationale: 'The source describes a pilot or trial.' };
   }
   if (hasAny(s, CONCEPT)) {
-    return { maturity: 'CONCEPT', rationale: 'The source describes intent or exploration rather than an implementation.' };
+    return {
+      maturity: 'CONCEPT',
+      rationale: 'The source describes intent or exploration rather than an implementation.',
+    };
   }
-  return { maturity: 'ANNOUNCED', rationale: 'An announcement without stated implementation scope or measured outcome.' };
+  return {
+    maturity: 'ANNOUNCED',
+    rationale: 'An announcement without stated implementation scope or measured outcome.',
+  };
 }
 
 // ── Value levers ─────────────────────────────────────────────────────────────
 
 const LEVER_RULES: { lever: BusinessValueLever; terms: readonly string[] }[] = [
-  { lever: 'revenue_growth', terms: ['revenue growth', 'sales growth', 'top-line', 'new revenue', 'cross-sell', 'upsell', 'conversion rate'] },
+  {
+    lever: 'revenue_growth',
+    terms: [
+      'revenue growth',
+      'sales growth',
+      'top-line',
+      'new revenue',
+      'cross-sell',
+      'upsell',
+      'conversion rate',
+    ],
+  },
   { lever: 'margin_improvement', terms: ['margin', 'gross profit', 'markdown', 'full-price sell'] },
-  { lever: 'productivity', terms: ['productivity', 'efficiency', 'automat', 'throughput', 'cycle time'] },
-  { lever: 'cost_reduction', terms: ['cost reduction', 'cost saving', 'lower costs', 'cost base', 'savings of'] },
+  {
+    lever: 'productivity',
+    terms: ['productivity', 'efficiency', 'automat', 'throughput', 'cycle time'],
+  },
+  {
+    lever: 'cost_reduction',
+    terms: ['cost reduction', 'cost saving', 'lower costs', 'cost base', 'savings of'],
+  },
   { lever: 'working_capital', terms: ['working capital', 'cash conversion', 'payment terms'] },
-  { lever: 'inventory_reduction', terms: ['inventory', 'stock levels', 'overstock', 'stockout', 'availability', 'allocation', 'replenish'] },
-  { lever: 'customer_retention', terms: ['retention', 'loyalty', 'churn', 'repeat purchase', 'lifetime value'] },
-  { lever: 'speed_to_market', terms: ['speed to market', 'time to market', 'lead time', 'faster launch', 'design-to-shelf'] },
-  { lever: 'risk_reduction', terms: ['risk', 'resilience of supply', 'fraud', 'security incident'] },
-  { lever: 'compliance', terms: ['compliance', 'regulatory requirement', 'audit', 'reporting obligation', 'csrd', 'gdpr', 'ai act'] },
-  { lever: 'employee_productivity', terms: ['employee productivity', 'store associate', 'workforce', 'colleague', 'staff time'] },
-  { lever: 'resilience', terms: ['resilience', 'supply chain disruption', 'nearshoring', 'dual sourcing'] },
-  { lever: 'innovation', terms: ['innovation', 'r&d', 'new capability', 'research and development'] },
-  { lever: 'sustainability', terms: ['sustainab', 'emissions', 'circular', 'recycled', 'net zero', 'net-zero'] },
+  {
+    lever: 'inventory_reduction',
+    terms: [
+      'inventory',
+      'stock levels',
+      'overstock',
+      'stockout',
+      'availability',
+      'allocation',
+      'replenish',
+    ],
+  },
+  {
+    lever: 'customer_retention',
+    terms: ['retention', 'loyalty', 'churn', 'repeat purchase', 'lifetime value'],
+  },
+  {
+    lever: 'speed_to_market',
+    terms: ['speed to market', 'time to market', 'lead time', 'faster launch', 'design-to-shelf'],
+  },
+  {
+    lever: 'risk_reduction',
+    terms: ['risk', 'resilience of supply', 'fraud', 'security incident'],
+  },
+  {
+    lever: 'compliance',
+    terms: [
+      'compliance',
+      'regulatory requirement',
+      'audit',
+      'reporting obligation',
+      'csrd',
+      'gdpr',
+      'ai act',
+    ],
+  },
+  {
+    lever: 'employee_productivity',
+    terms: ['employee productivity', 'store associate', 'workforce', 'colleague', 'staff time'],
+  },
+  {
+    lever: 'resilience',
+    terms: ['resilience', 'supply chain disruption', 'nearshoring', 'dual sourcing'],
+  },
+  {
+    lever: 'innovation',
+    terms: ['innovation', 'r&d', 'new capability', 'research and development'],
+  },
+  {
+    lever: 'sustainability',
+    terms: ['sustainab', 'emissions', 'circular', 'recycled', 'net zero', 'net-zero'],
+  },
 ];
 
 export function classifyValueLevers(text: string, max = 4): BusinessValueLever[] {
   const s = lower(text);
-  return LEVER_RULES.filter((r) => hasAny(s, r.terms)).map((r) => r.lever).slice(0, max);
+  return LEVER_RULES.filter((r) => hasAny(s, r.terms))
+    .map((r) => r.lever)
+    .slice(0, max);
 }
 
 // ── Operating model dimensions ───────────────────────────────────────────────
 
 const OM_RULES: { dim: OperatingModelDimension; terms: readonly string[] }[] = [
   { dim: 'governance', terms: ['governance', 'steering', 'oversight', 'board approved'] },
-  { dim: 'decision_rights', terms: ['decision rights', 'who decides', 'mandate', 'accountability for', 'ownership of'] },
-  { dim: 'organization', terms: ['reorganis', 'reorganiz', 'new unit', 'centre of excellence', 'center of excellence', 'team structure'] },
+  {
+    dim: 'decision_rights',
+    terms: ['decision rights', 'who decides', 'mandate', 'accountability for', 'ownership of'],
+  },
+  {
+    dim: 'organization',
+    terms: [
+      'reorganis',
+      'reorganiz',
+      'new unit',
+      'centre of excellence',
+      'center of excellence',
+      'team structure',
+    ],
+  },
   { dim: 'process', terms: ['process', 'workflow', 'planning cycle', 'end-to-end'] },
-  { dim: 'data', terms: ['data platform', 'data quality', 'data foundation', 'master data', 'data lake', 'data warehouse'] },
-  { dim: 'technology', terms: ['platform', 'system', 'software', 'cloud', 'model', 'infrastructure', 'api'] },
-  { dim: 'talent', terms: ['talent', 'upskill', 'reskill', 'training', 'hiring', 'capability building'] },
+  {
+    dim: 'data',
+    terms: [
+      'data platform',
+      'data quality',
+      'data foundation',
+      'master data',
+      'data lake',
+      'data warehouse',
+    ],
+  },
+  {
+    dim: 'technology',
+    terms: ['platform', 'system', 'software', 'cloud', 'model', 'infrastructure', 'api'],
+  },
+  {
+    dim: 'talent',
+    terms: ['talent', 'upskill', 'reskill', 'training', 'hiring', 'capability building'],
+  },
   { dim: 'incentives', terms: ['incentive', 'bonus', 'kpi target', 'performance pay'] },
-  { dim: 'performance_management', terms: ['performance management', 'dashboard', 'reporting cadence', 'okr'] },
+  {
+    dim: 'performance_management',
+    terms: ['performance management', 'dashboard', 'reporting cadence', 'okr'],
+  },
   { dim: 'funding', terms: ['capex', 'investment of', 'budget', 'funding model'] },
-  { dim: 'change_adoption', terms: ['adoption', 'change management', 'rollout to users', 'user uptake', 'training programme'] },
+  {
+    dim: 'change_adoption',
+    terms: [
+      'adoption',
+      'change management',
+      'rollout to users',
+      'user uptake',
+      'training programme',
+    ],
+  },
 ];
 
 export function classifyOperatingModelDimensions(text: string, max = 4): OperatingModelDimension[] {
   const s = lower(text);
-  return OM_RULES.filter((r) => hasAny(s, r.terms)).map((r) => r.dim).slice(0, max);
+  return OM_RULES.filter((r) => hasAny(s, r.terms))
+    .map((r) => r.dim)
+    .slice(0, max);
 }
 
 // ── Likely executive owner ───────────────────────────────────────────────────
 
 const OWNER_RULES: { owner: ExecutiveOwner; terms: readonly string[] }[] = [
-  { owner: 'CFO', terms: ['margin', 'cost', 'capital', 'earnings', 'cash', 'financial reporting', 'working capital'] },
-  { owner: 'CIO', terms: ['it landscape', 'erp', 'legacy system', 'integration', 'infrastructure'] },
+  {
+    owner: 'CFO',
+    terms: [
+      'margin',
+      'cost',
+      'capital',
+      'earnings',
+      'cash',
+      'financial reporting',
+      'working capital',
+    ],
+  },
+  {
+    owner: 'CIO',
+    terms: ['it landscape', 'erp', 'legacy system', 'integration', 'infrastructure'],
+  },
   { owner: 'CTO', terms: ['engineering', 'architecture', 'model', 'platform', 'developer'] },
   { owner: 'CDO', terms: ['data', 'analytics', 'ai governance', 'data quality'] },
-  { owner: 'CMO', terms: ['brand', 'marketing', 'campaign', 'customer acquisition', 'personalis', 'personaliz'] },
-  { owner: 'CSCO', terms: ['supply chain', 'logistics', 'sourcing', 'inventory', 'warehouse', 'distribution'] },
-  { owner: 'COO', terms: ['operations', 'store operations', 'process', 'productivity', 'fulfilment', 'fulfillment'] },
+  {
+    owner: 'CMO',
+    terms: ['brand', 'marketing', 'campaign', 'customer acquisition', 'personalis', 'personaliz'],
+  },
+  {
+    owner: 'CSCO',
+    terms: ['supply chain', 'logistics', 'sourcing', 'inventory', 'warehouse', 'distribution'],
+  },
+  {
+    owner: 'COO',
+    terms: [
+      'operations',
+      'store operations',
+      'process',
+      'productivity',
+      'fulfilment',
+      'fulfillment',
+    ],
+  },
   { owner: 'CHRO', terms: ['workforce', 'talent', 'employee', 'training', 'hiring'] },
-  { owner: 'TRANSFORMATION_OFFICER', terms: ['transformation programme', 'transformation program', 'change programme'] },
+  {
+    owner: 'TRANSFORMATION_OFFICER',
+    terms: ['transformation programme', 'transformation program', 'change programme'],
+  },
   { owner: 'CEO', terms: ['strategy', 'group strategy', 'portfolio', 'acquisition', 'merger'] },
 ];
 
@@ -191,10 +518,22 @@ export function scoreStrategicImpact(input: {
   let score = 0;
 
   const typeWeight: Partial<Record<EventType, number>> = {
-    acquisition: 3, divestiture: 3, regulation: 3, restructuring: 2, partnership: 2,
-    investment: 2, financial_result: 2, technology_deployment: 2, market_entry: 2,
-    leadership_change: 1, product_launch: 1, research_publication: 1, legal_action: 2,
-    sustainability: 1, thought_leadership: 0, other: 0,
+    acquisition: 3,
+    divestiture: 3,
+    regulation: 3,
+    restructuring: 2,
+    partnership: 2,
+    investment: 2,
+    financial_result: 2,
+    technology_deployment: 2,
+    market_entry: 2,
+    leadership_change: 1,
+    product_launch: 1,
+    research_publication: 1,
+    legal_action: 2,
+    sustainability: 1,
+    thought_leadership: 0,
+    other: 0,
   };
   score += typeWeight[input.eventType] ?? 0;
 
@@ -238,12 +577,19 @@ export function matchTaxonomy(text: string, terms: TaxonomyTerm[]): TaxonomyMatc
     for (const surface of surfaces) {
       const needle = lower(surface);
       if (needle.length < 2) continue;
-      const pattern = new RegExp(`(^|[^\\p{L}\\p{N}])${escapeRegex(needle)}([^\\p{L}\\p{N}]|$)`, 'giu');
+      const pattern = new RegExp(
+        `(^|[^\\p{L}\\p{N}])${escapeRegex(needle)}([^\\p{L}\\p{N}]|$)`,
+        'giu',
+      );
       const found = s.match(pattern);
       if (found) hits += found.length;
     }
     if (hits > 0) {
-      matches.push({ kind: term.kind, slug: term.slug, confidence: Math.min(0.9, 0.4 + hits * 0.15) });
+      matches.push({
+        kind: term.kind,
+        slug: term.slug,
+        confidence: Math.min(0.9, 0.4 + hits * 0.15),
+      });
     }
   }
 

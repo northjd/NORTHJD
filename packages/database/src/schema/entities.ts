@@ -206,7 +206,10 @@ export const entityCoverage = pgTable(
     firstPartySourceCount: integer('first_party_source_count').notNull().default(0),
     independentSourceCount: integer('independent_source_count').notNull().default(0),
     lastEventAt: timestamp('last_event_at', { withTimezone: true }),
-    knownGaps: jsonb('known_gaps').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    knownGaps: jsonb('known_gaps')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     updatedAt: updatedAt(),
   },
   (t) => [uniqueIndex('entity_coverage_entity_key').on(t.entityId)],

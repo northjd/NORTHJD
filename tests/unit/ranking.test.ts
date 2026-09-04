@@ -8,22 +8,40 @@ import {
 } from '@mios/ranking';
 
 const item = (over: Partial<RankableItem> = {}): RankableItem => ({
-  insightId: over.insightId ?? 'i1', eventId: 'e1', headline: 'A development',
-  eventAt: new Date(), firstReportedAt: new Date(),
-  strategicImpact: 'moderate', evidenceStrength: 'SINGLE_CREDIBLE_SECONDARY_SOURCE',
-  caseMaturity: 'ANNOUNCED', novelty: 'new_to_world',
-  sourceCount: 1, independentSourceCount: 1, firstPartyOnly: false,
-  estimatedMinutes: 2, isDemo: false,
-  industrySlugs: [], topicSlugs: [], technologySlugs: [], entityIds: [],
-  conceptSlugs: [], knowledgeGapConceptSlugs: [],
-  alreadyShown: false, storyRepetitions: 0,
+  insightId: over.insightId ?? 'i1',
+  eventId: 'e1',
+  headline: 'A development',
+  eventAt: new Date(),
+  firstReportedAt: new Date(),
+  strategicImpact: 'moderate',
+  evidenceStrength: 'SINGLE_CREDIBLE_SECONDARY_SOURCE',
+  caseMaturity: 'ANNOUNCED',
+  novelty: 'new_to_world',
+  sourceCount: 1,
+  independentSourceCount: 1,
+  firstPartyOnly: false,
+  estimatedMinutes: 2,
+  isDemo: false,
+  industrySlugs: [],
+  topicSlugs: [],
+  technologySlugs: [],
+  entityIds: [],
+  conceptSlugs: [],
+  knowledgeGapConceptSlugs: [],
+  alreadyShown: false,
+  storyRepetitions: 0,
   ...over,
 });
 
 const ctx = (over: Partial<UserRankingContext> = {}): UserRankingContext => ({
-  industrySlugs: ['retail'], topicSlugs: ['artificial-intelligence'], technologySlugs: [],
-  watchedEntityIds: [], accountEntityIds: [], mission: null,
-  lastVisitAt: null, readingBudgetMinutes: 12,
+  industrySlugs: ['retail'],
+  topicSlugs: ['artificial-intelligence'],
+  technologySlugs: [],
+  watchedEntityIds: [],
+  accountEntityIds: [],
+  mission: null,
+  lastVisitAt: null,
+  readingBudgetMinutes: 12,
   ...over,
 });
 
@@ -40,7 +58,9 @@ describe('ranking neutrality', () => {
   it('boosts an item only because it is watched, not because of who it is', () => {
     const consulting = item({ entityIds: ['accenture'] });
     const watched = ctx({ watchedEntityIds: ['accenture'] });
-    expect(scoreItem(consulting, watched).score).toBeGreaterThan(scoreItem(consulting, ctx()).score);
+    expect(scoreItem(consulting, watched).score).toBeGreaterThan(
+      scoreItem(consulting, ctx()).score,
+    );
   });
 });
 
@@ -80,7 +100,10 @@ describe('substance over noise', () => {
 
   it('prefers stronger evidence, all else equal', () => {
     const weak = scoreItem(item({ evidenceStrength: 'WEAK_OR_UNVERIFIED_SIGNAL' }), ctx()).score;
-    const strong = scoreItem(item({ evidenceStrength: 'QUANTIFIED_PRIMARY_EVIDENCE' }), ctx()).score;
+    const strong = scoreItem(
+      item({ evidenceStrength: 'QUANTIFIED_PRIMARY_EVIDENCE' }),
+      ctx(),
+    ).score;
     expect(strong).toBeGreaterThan(weak);
   });
 });
@@ -88,7 +111,11 @@ describe('substance over noise', () => {
 describe('brief composition', () => {
   const many = Array.from({ length: 30 }, (_, i) =>
     scoreItem(
-      item({ insightId: `i${i}`, industrySlugs: i % 2 === 0 ? ['retail'] : ['other'], estimatedMinutes: 3 }),
+      item({
+        insightId: `i${i}`,
+        industrySlugs: i % 2 === 0 ? ['retail'] : ['other'],
+        estimatedMinutes: 3,
+      }),
       ctx(),
     ),
   );

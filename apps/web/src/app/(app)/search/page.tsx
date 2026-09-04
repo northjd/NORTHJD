@@ -35,12 +35,17 @@ export default async function SearchPage({
           evidenceStrength: schema.events.evidenceStrength,
           sourceCount: schema.events.sourceCount,
           insightId: schema.insights.id,
-          rank: sql<number>`ts_rank(${schema.events.searchVector}, websearch_to_tsquery('english', ${query}))`.as('rank'),
+          rank: sql<number>`ts_rank(${schema.events.searchVector}, websearch_to_tsquery('english', ${query}))`.as(
+            'rank',
+          ),
         })
         .from(schema.events)
         .leftJoin(
           schema.insights,
-          and(eq(schema.insights.eventId, schema.events.id), eq(schema.insights.workspaceId, user.workspaceId)),
+          and(
+            eq(schema.insights.eventId, schema.events.id),
+            eq(schema.insights.workspaceId, user.workspaceId),
+          ),
         )
         .where(
           and(
@@ -54,7 +59,11 @@ export default async function SearchPage({
 
   const entities = query
     ? await db()
-        .select({ slug: schema.entities.slug, name: schema.entities.name, kind: schema.entities.kind })
+        .select({
+          slug: schema.entities.slug,
+          name: schema.entities.name,
+          kind: schema.entities.kind,
+        })
         .from(schema.entities)
         .where(sql`${schema.entities.searchVector} @@ websearch_to_tsquery('simple', ${query})`)
         .limit(8)
@@ -62,9 +71,15 @@ export default async function SearchPage({
 
   const units = query
     ? await db()
-        .select({ slug: schema.learningUnits.slug, title: schema.learningUnits.title, depth: schema.learningUnits.depth })
+        .select({
+          slug: schema.learningUnits.slug,
+          title: schema.learningUnits.title,
+          depth: schema.learningUnits.depth,
+        })
         .from(schema.learningUnits)
-        .where(sql`${schema.learningUnits.searchVector} @@ websearch_to_tsquery('english', ${query})`)
+        .where(
+          sql`${schema.learningUnits.searchVector} @@ websearch_to_tsquery('english', ${query})`,
+        )
         .limit(8)
     : [];
 
@@ -80,7 +95,10 @@ export default async function SearchPage({
           aria-label="Search"
           className="min-w-0 flex-1 rounded border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[14px]"
         />
-        <button type="submit" className="rounded bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-[var(--surface)]">
+        <button
+          type="submit"
+          className="rounded bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-[var(--surface)]"
+        >
           Search
         </button>
       </form>
@@ -122,14 +140,19 @@ export default async function SearchPage({
                 </div>
                 <h3 className="text-[15px] font-semibold leading-snug">
                   {event.insightId ? (
-                    <Link href={`/insights/${event.insightId}`} className="hover:underline underline-offset-2">
+                    <Link
+                      href={`/insights/${event.insightId}`}
+                      className="hover:underline underline-offset-2"
+                    >
                       {event.title}
                     </Link>
                   ) : (
                     event.title
                   )}
                 </h3>
-                <p className="mt-1 line-clamp-2 text-[13px] text-[var(--text-muted)]">{event.summary}</p>
+                <p className="mt-1 line-clamp-2 text-[13px] text-[var(--text-muted)]">
+                  {event.summary}
+                </p>
                 <p className="mt-1.5 text-[11px] text-[var(--text-subtle)]">
                   {formatAbsolute(event.eventAt ?? event.firstReportedAt)}
                 </p>
@@ -145,10 +168,15 @@ export default async function SearchPage({
           <ul className="space-y-1.5">
             {units.map((unit) => (
               <li key={unit.slug} className="text-[14px]">
-                <Link href={`/learn/${unit.slug}`} className="font-medium hover:underline underline-offset-2">
+                <Link
+                  href={`/learn/${unit.slug}`}
+                  className="font-medium hover:underline underline-offset-2"
+                >
                   {unit.title}
                 </Link>
-                <Badge tone="muted" className="ml-2">{unit.depth}</Badge>
+                <Badge tone="muted" className="ml-2">
+                  {unit.depth}
+                </Badge>
               </li>
             ))}
           </ul>

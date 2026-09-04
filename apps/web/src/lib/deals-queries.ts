@@ -20,11 +20,7 @@ import { db } from '@mios/database';
  */
 
 export type DealKind =
-  | 'acquisition'
-  | 'divestiture'
-  | 'investment'
-  | 'partnership'
-  | 'market_entry';
+  'acquisition' | 'divestiture' | 'investment' | 'partnership' | 'market_entry';
 
 export interface Deal {
   id: string;
@@ -118,9 +114,11 @@ export async function queryDeals(workspaceId: string, withinDays?: number): Prom
       left join insights i on i.event_id = e.id and i.workspace_id = ${sql.param(workspaceId)}
      where e.is_suppressed = false
        and e.event_type = any(${sql.param(kinds)}::event_type[])
-       ${withinDays
-         ? sql`and coalesce(e.event_at, e.first_reported_at) >= now() - (${sql.param(String(withinDays))} || ' days')::interval`
-         : sql``}
+       ${
+         withinDays
+           ? sql`and coalesce(e.event_at, e.first_reported_at) >= now() - (${sql.param(String(withinDays))} || ' days')::interval`
+           : sql``
+       }
      order by coalesce(e.event_at, e.first_reported_at) desc
      limit 120
   `);
@@ -140,8 +138,9 @@ export async function queryDeals(workspaceId: string, withinDays?: number): Prom
     })).filter((g) => g.deals.length > 0),
     total: deals.length,
     counts: {
-      announcedOnly: deals.filter((d) => d.caseMaturity === 'ANNOUNCED' || d.caseMaturity === 'CONCEPT')
-        .length,
+      announcedOnly: deals.filter(
+        (d) => d.caseMaturity === 'ANNOUNCED' || d.caseMaturity === 'CONCEPT',
+      ).length,
       corroborated: deals.filter((d) => d.independentSourceCount > 0).length,
       withFigures: deals.filter((d) => d.hasFigure).length,
     },

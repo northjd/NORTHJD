@@ -63,13 +63,15 @@ export async function createMeetingBriefAction(formData: FormData): Promise<void
 
   const content = await buildBriefContent(user.userId, user.workspaceId, input);
 
-  await db().insert(schema.meetingBriefs).values({
-    meetingId: meeting!.id,
-    depth: input.depth,
-    lookbackDays: input.lookbackDays,
-    content: content as unknown as Record<string, unknown>,
-    generator: 'deterministic_extractive',
-  });
+  await db()
+    .insert(schema.meetingBriefs)
+    .values({
+      meetingId: meeting!.id,
+      depth: input.depth,
+      lookbackDays: input.lookbackDays,
+      content: content as unknown as Record<string, unknown>,
+      generator: 'deterministic_extractive',
+    });
 
   redirect(`/prepare/${meeting!.id}`);
 }
@@ -113,7 +115,10 @@ async function buildBriefContent(
     { window: '12m', days: 365 },
   ];
 
-  const whatChanged: { window: '7d' | '30d' | '90d' | '12m'; items: { text: string; citationIndexes: number[] }[] }[] = [];
+  const whatChanged: {
+    window: '7d' | '30d' | '90d' | '12m';
+    items: { text: string; citationIndexes: number[] }[];
+  }[] = [];
 
   if (input.companyEntityId) {
     for (const { window, days } of windows) {
@@ -131,7 +136,10 @@ async function buildBriefContent(
           and(
             eq(schema.eventEntities.entityId, input.companyEntityId),
             eq(schema.events.isSuppressed, false),
-            gte(sql`coalesce(${schema.events.eventAt}, ${schema.events.firstReportedAt})`, subtractDays(now, days)),
+            gte(
+              sql`coalesce(${schema.events.eventAt}, ${schema.events.firstReportedAt})`,
+              subtractDays(now, days),
+            ),
           ),
         )
         .orderBy(desc(sql`coalesce(${schema.events.eventAt}, ${schema.events.firstReportedAt})`))
@@ -159,7 +167,8 @@ async function buildBriefContent(
       answer.conversationStarters.length > 0
         ? answer.conversationStarters
         : answer.suggestedFollowUps,
-    contrarianAngle: answer.hypotheses.length > 0 ? answer.hypotheses : answer.interpretations.slice(0, 1),
+    contrarianAngle:
+      answer.hypotheses.length > 0 ? answer.hypotheses : answer.interpretations.slice(0, 1),
     knownUnknowns: [...answer.unknowns, ...answer.coverageLimitations],
     marketExamples: [],
     citations: answer.citations,

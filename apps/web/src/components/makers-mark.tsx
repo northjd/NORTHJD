@@ -59,8 +59,8 @@ export function MakersMark({ className = '' }: { className?: string }) {
               Congratulations — I&rsquo;m an easter egg.
             </p>
             <p className="mt-3 text-[13.5px] leading-relaxed text-[var(--text-muted)]">
-              JD hid me here for you to find. If you got this far you were poking at the
-              logo instead of reading the copy, which is exactly the right instinct.
+              JD hid me here for you to find. If you got this far you were poking at the logo
+              instead of reading the copy, which is exactly the right instinct.
             </p>
             <p className="mt-5 text-[13.5px] font-medium text-[var(--text)]">
               Welcome to the team.

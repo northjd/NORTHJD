@@ -1,7 +1,14 @@
 import Link from 'next/link';
 import { requireUser } from '@/lib/session';
 import { queryDeals, type Deal } from '@/lib/deals-queries';
-import { Badge, Card, EmptyState, InterpretationBlock, MaturityBadge, EvidenceBadge } from '@mios/ui';
+import {
+  Badge,
+  Card,
+  EmptyState,
+  InterpretationBlock,
+  MaturityBadge,
+  EvidenceBadge,
+} from '@mios/ui';
 import { formatAbsolute } from '@mios/domain';
 import type { CaseMaturity, EvidenceStrength } from '@mios/domain';
 import { ListKeyboardNav } from '@/components/list-keyboard-nav';
@@ -34,9 +41,9 @@ export default async function DealsPage() {
         Publicly announced transactions
       </h1>
       <p className="mt-3 max-w-[64ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
-        Acquisitions, divestitures, investments, partnerships and market entries — what
-        moves ownership, capital or position, as opposed to what launches a product.
-        Figures appear only where a source stated one.
+        Acquisitions, divestitures, investments, partnerships and market entries — what moves
+        ownership, capital or position, as opposed to what launches a product. Figures appear only
+        where a source stated one.
       </p>
 
       {board.total === 0 ? (
@@ -77,12 +84,11 @@ export default async function DealsPage() {
           <div className="mt-6">
             <InterpretationBlock label="Announced is not completed">
               <p>
-                {board.counts.announcedOnly} of {board.total} of these are announcements with
-                no reported completion, and{' '}
-                {board.total - board.counts.corroborated} have been reported only by the
-                parties to the deal. Transactions collapse, regulators block them and terms
-                get renegotiated — and the press release is written by the side that wants it
-                to proceed. Read the maturity badge before you read the headline.
+                {board.counts.announcedOnly} of {board.total} of these are announcements with no
+                reported completion, and {board.total - board.counts.corroborated} have been
+                reported only by the parties to the deal. Transactions collapse, regulators block
+                them and terms get renegotiated — and the press release is written by the side that
+                wants it to proceed. Read the maturity badge before you read the headline.
               </p>
             </InterpretationBlock>
           </div>
@@ -132,7 +138,10 @@ function DealRow({ deal, index }: { deal: Deal; index: number }) {
           </Badge>
         ) : null}
         {deal.hasFigure ? (
-          <Badge tone="accent" title="A source states a monetary figure, with an evidence span behind it.">
+          <Badge
+            tone="accent"
+            title="A source states a monetary figure, with an evidence span behind it."
+          >
             Figure stated
           </Badge>
         ) : null}

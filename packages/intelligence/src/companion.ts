@@ -35,9 +35,19 @@ import { queryTerms, assessCoverage, stemForMatch, type CoverageAssessment } fro
 export { queryTerms, assessCoverage, stemForMatch, type CoverageAssessment };
 
 const {
-  claimEvidence, claims, conversationApplications, documentVersions, entityAliases,
-  eventClaims, eventEntities, events, evidenceSpans, insights, learningUnits,
-  rawDocuments, sources,
+  claimEvidence,
+  claims,
+  conversationApplications,
+  documentVersions,
+  entityAliases,
+  eventClaims,
+  eventEntities,
+  events,
+  evidenceSpans,
+  insights,
+  learningUnits,
+  rawDocuments,
+  sources,
 } = schema;
 
 export interface CompanionContext {
@@ -66,9 +76,6 @@ export interface RetrievedClaim {
   eventId: string | null;
   rank: number;
 }
-
-
-
 
 function toSearchQuery(question: string): string {
   return queryTerms(question).join(' or ');
@@ -134,7 +141,10 @@ export async function retrieveClaims(
       sql`exists (
         select 1 from ${eventClaims} ec
         join ${eventEntities} ee on ee.event_id = ec.event_id
-        where ec.claim_id = ${claims.id} and ee.entity_id in (${sql.join(entityFilterIds.map((id) => sql`${id}`), sql`, `)})
+        where ec.claim_id = ${claims.id} and ee.entity_id in (${sql.join(
+          entityFilterIds.map((id) => sql`${id}`),
+          sql`, `,
+        )})
       )`,
     );
   }
@@ -170,7 +180,13 @@ export async function retrieveClaims(
     .limit(limit * 2);
 
   // Prefer FACT claims, then strongest evidence, then most recent.
-  const priority: Record<string, number> = { FACT: 0, FORECAST: 1, INTERPRETATION: 2, UNVERIFIED_SIGNAL: 3, HYPOTHESIS: 4 };
+  const priority: Record<string, number> = {
+    FACT: 0,
+    FORECAST: 1,
+    INTERPRETATION: 2,
+    UNVERIFIED_SIGNAL: 3,
+    HYPOTHESIS: 4,
+  };
   const seen = new Set<string>();
   // No per-claim floor: the relevant claims each match only one term, so filtering
   // claim-by-claim discards them. Relevance is judged on the set, in assessCoverage.
@@ -190,13 +206,19 @@ export async function retrieveClaims(
 async function entityIdsMentionedIn(question: string): Promise<string[]> {
   const normalized = question.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ');
   const rows = await db()
-    .select({ entityId: entityAliases.entityId, normalized: entityAliases.normalized, requiresContext: entityAliases.requiresContext })
+    .select({
+      entityId: entityAliases.entityId,
+      normalized: entityAliases.normalized,
+      requiresContext: entityAliases.requiresContext,
+    })
     .from(entityAliases);
 
   const hits = new Set<string>();
   for (const row of rows) {
     if (row.normalized.length < 3 && row.requiresContext) continue;
-    const pattern = new RegExp(`(^|\\s)${row.normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\s|$)`);
+    const pattern = new RegExp(
+      `(^|\\s)${row.normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\s|$)`,
+    );
     if (pattern.test(normalized)) hits.add(row.entityId);
   }
   return [...hits].slice(0, 5);
@@ -380,12 +402,16 @@ async function assembleForMode(
 
   const baseUnknowns: string[] = [];
   if (firstPartyOnly) {
-    baseUnknowns.push('Every source here is first-party. Nothing has been independently confirmed.');
+    baseUnknowns.push(
+      'Every source here is first-party. Nothing has been independently confirmed.',
+    );
   }
   if (!cited.some((c) => c.quantified)) {
     baseUnknowns.push('None of the retrieved claims states a quantified outcome.');
   }
-  baseUnknowns.push('Only the monitored sources were searched; developments outside them are not visible.');
+  baseUnknowns.push(
+    'Only the monitored sources were searched; developments outside them are not visible.',
+  );
 
   switch (mode) {
     case 'brief_me': {
@@ -400,7 +426,10 @@ async function assembleForMode(
             ? `${recent.length} development${recent.length === 1 ? '' : 's'} to know, as of ${formatAbsolute(now)}. Each links to its own evidence.`
             : `No new developments met the relevance bar in the monitored sources, as of ${formatAbsolute(now)}.`,
         verifiedFacts: factStatements,
-        interpretations: recent.map((r) => r.whyItMatters).filter(Boolean).slice(0, 3),
+        interpretations: recent
+          .map((r) => r.whyItMatters)
+          .filter(Boolean)
+          .slice(0, 3),
         hypotheses: [],
         counterEvidence: [],
         unknowns: baseUnknowns,
@@ -419,12 +448,17 @@ async function assembleForMode(
           : `The monitored sources contain evidence on this, but no structured explainer exists for it yet. ${asOfLine}`,
         verifiedFacts: factStatements,
         interpretations: explanation
-          ? explanation.structuredModel.flatMap((s) => s.points.map((p) => `${s.heading}: ${p}`)).slice(0, 6)
+          ? explanation.structuredModel
+              .flatMap((s) => s.points.map((p) => `${s.heading}: ${p}`))
+              .slice(0, 6)
           : [],
         hypotheses: [],
         counterEvidence: [],
         unknowns: explanation
-          ? [`Common misconception: ${explanation.commonMisconceptions[0] ?? 'none recorded'}`, ...baseUnknowns]
+          ? [
+              `Common misconception: ${explanation.commonMisconceptions[0] ?? 'none recorded'}`,
+              ...baseUnknowns,
+            ]
           : ['No structured learning unit covers this concept yet.', ...baseUnknowns],
         followUps: explanation?.practicalQuestions.slice(0, 3) ?? [],
         conversationStarters: [],
@@ -439,10 +473,15 @@ async function assembleForMode(
         directAnswer: `${facts.length} evidenced statement${facts.length === 1 ? '' : 's'} bear on this. ${asOfLine}`,
         verifiedFacts: factStatements,
         interpretations: interpretationClaims.slice(0, 3).map((c) => c.text),
-        hypotheses: forecasts.slice(0, 3).map((c) => `Stated as a forward-looking claim by the source: ${c.text}`),
+        hypotheses: forecasts
+          .slice(0, 3)
+          .map((c) => `Stated as a forward-looking claim by the source: ${c.text}`),
         counterEvidence: await counterEvidenceFor(cited, indexOf),
         unknowns: baseUnknowns,
-        followUps: ['Which of these is independently confirmed?', 'Show me the strongest evidence only.'],
+        followUps: [
+          'Which of these is independently confirmed?',
+          'Show me the strongest evidence only.',
+        ],
         conversationStarters: [],
         segments: facts.slice(0, 5).map((f) => ({ label: f.sourceName, text: f.text })),
       };
@@ -500,7 +539,9 @@ async function assembleForMode(
         interpretations: unit ? unit.keyTerms.map((t) => `${t.term}: ${t.definition}`) : [],
         hypotheses: [],
         counterEvidence: [],
-        unknowns: unit ? unit.commonMisconceptions : ['No structured content for this concept yet.'],
+        unknowns: unit
+          ? unit.commonMisconceptions
+          : ['No structured content for this concept yet.'],
         followUps: unit?.practicalQuestions.slice(0, 3) ?? [],
         conversationStarters: [],
         segments: unit
@@ -521,7 +562,10 @@ async function assembleForMode(
         hypotheses: [],
         counterEvidence: [],
         unknowns: [],
-        followUps: ['What should I investigate next on this?', 'Summarise what I learned in this conversation.'],
+        followUps: [
+          'What should I investigate next on this?',
+          'Summarise what I learned in this conversation.',
+        ],
         conversationStarters: [],
         segments: [],
       };
@@ -531,27 +575,41 @@ async function assembleForMode(
 
 function budgetItems(length: ResponseLength): number {
   switch (length) {
-    case 'one_sentence': return 1;
-    case 'thirty_seconds': return 2;
-    case 'sixty_second_brief': return 3;
-    case 'executive_summary': return 4;
-    case 'standard': return 6;
-    case 'deep_dive': return 10;
+    case 'one_sentence':
+      return 1;
+    case 'thirty_seconds':
+      return 2;
+    case 'sixty_second_brief':
+      return 3;
+    case 'executive_summary':
+      return 4;
+    case 'standard':
+      return 6;
+    case 'deep_dive':
+      return 10;
   }
 }
 
 function buildAssumptionChallenges(cited: RetrievedClaim[], firstPartyOnly: boolean): string[] {
   const out: string[] = [];
   if (firstPartyOnly) {
-    out.push('Assumption: the company’s own description is accurate and complete. Nothing here tests that.');
+    out.push(
+      'Assumption: the company’s own description is accurate and complete. Nothing here tests that.',
+    );
   }
   if (cited.some((c) => c.quantified)) {
-    out.push('Assumption: the reported figures use a stable baseline. None of the sources states the baseline method.');
+    out.push(
+      'Assumption: the reported figures use a stable baseline. None of the sources states the baseline method.',
+    );
   }
   if (cited.some((c) => c.claimType === 'FORECAST')) {
-    out.push('Assumption: stated intent becomes delivery. Announcements and outcomes are different claims.');
+    out.push(
+      'Assumption: stated intent becomes delivery. Announcements and outcomes are different claims.',
+    );
   }
-  out.push('Alternative explanation: the observed change is driven by market conditions rather than by the initiative described.');
+  out.push(
+    'Alternative explanation: the observed change is driven by market conditions rather than by the initiative described.',
+  );
   return out.slice(0, 4);
 }
 
@@ -563,7 +621,10 @@ async function counterEvidenceFor(
   if (claimIds.length === 0) return [];
 
   const rows = await db()
-    .select({ explanation: schema.contradictions.explanation, claimAId: schema.contradictions.claimAId })
+    .select({
+      explanation: schema.contradictions.explanation,
+      claimAId: schema.contradictions.claimAId,
+    })
     .from(schema.contradictions)
     .where(inArray(schema.contradictions.claimAId, claimIds))
     .limit(5);
@@ -582,7 +643,12 @@ async function starterQuestionsFor(cited: RetrievedClaim[]): Promise<string[]> {
     await db()
       .select({ eventId: eventClaims.eventId })
       .from(eventClaims)
-      .where(inArray(eventClaims.claimId, cited.map((c) => c.claimId)))
+      .where(
+        inArray(
+          eventClaims.claimId,
+          cited.map((c) => c.claimId),
+        ),
+      )
       .limit(20)
   ).map((r) => r.eventId);
 
@@ -642,7 +708,9 @@ async function learningUnitsFor(
       commonMisconceptions: learningUnits.commonMisconceptions,
       practicalQuestions: learningUnits.practicalQuestions,
       depth: learningUnits.depth,
-      rank: sql<number>`ts_rank(${learningUnits.searchVector}, websearch_to_tsquery('english', ${query}))`.as('rank'),
+      rank: sql<number>`ts_rank(${learningUnits.searchVector}, websearch_to_tsquery('english', ${query}))`.as(
+        'rank',
+      ),
     })
     .from(learningUnits)
     .where(sql`${learningUnits.searchVector} @@ websearch_to_tsquery('english', ${query})`)

@@ -27,7 +27,10 @@ export default async function ProfilePage() {
       confidence: schema.userKnowledgeStates.confidence,
     })
     .from(schema.userKnowledgeStates)
-    .innerJoin(schema.learningConcepts, eq(schema.learningConcepts.id, schema.userKnowledgeStates.conceptId))
+    .innerJoin(
+      schema.learningConcepts,
+      eq(schema.learningConcepts.id, schema.userKnowledgeStates.conceptId),
+    )
     .where(eq(schema.userKnowledgeStates.userId, user.userId))
     .limit(50);
 
@@ -53,13 +56,21 @@ export default async function ProfilePage() {
             <div>
               <dt className="text-[var(--text-muted)]">Industries</dt>
               <dd className="mt-0.5 flex flex-wrap gap-1">
-                {profile.industrySlugs.map((s) => <Badge key={s} tone="accent">{s}</Badge>)}
+                {profile.industrySlugs.map((s) => (
+                  <Badge key={s} tone="accent">
+                    {s}
+                  </Badge>
+                ))}
               </dd>
             </div>
             <div>
               <dt className="text-[var(--text-muted)]">Topics</dt>
               <dd className="mt-0.5 flex flex-wrap gap-1">
-                {profile.topicSlugs.map((s) => <Badge key={s} tone="neutral">{s}</Badge>)}
+                {profile.topicSlugs.map((s) => (
+                  <Badge key={s} tone="neutral">
+                    {s}
+                  </Badge>
+                ))}
               </dd>
             </div>
             <div>
@@ -115,13 +126,17 @@ export default async function ProfilePage() {
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium">{s.name}</span>
                   <span className="flex items-center gap-1.5">
-                    <Badge tone={s.userAsserted ? 'verified' : 'muted'}>{s.state.replace(/_/g, ' ')}</Badge>
+                    <Badge tone={s.userAsserted ? 'verified' : 'muted'}>
+                      {s.state.replace(/_/g, ' ')}
+                    </Badge>
                     <span className="text-[11px] text-[var(--text-subtle)]">
                       {(s.confidence * 100).toFixed(0)}%
                     </span>
                   </span>
                 </div>
-                <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--text-subtle)]">{s.reason}</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--text-subtle)]">
+                  {s.reason}
+                </p>
               </li>
             ))}
           </ul>

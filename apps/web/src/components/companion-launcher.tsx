@@ -75,7 +75,11 @@ export function CompanionLauncher() {
   );
 }
 
-function derivePageContext(pathname: string): { kind: string; id: string | null; label: string | null } {
+function derivePageContext(pathname: string): {
+  kind: string;
+  id: string | null;
+  label: string | null;
+} {
   if (pathname === '/') return { kind: 'today', id: null, label: 'today’s brief' };
 
   const insight = /^\/insights\/([0-9a-f-]{36})/.exec(pathname);

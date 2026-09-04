@@ -175,7 +175,10 @@ export const events = pgTable(
     classificationOrigin: classificationOriginEnum('classification_origin')
       .notNull()
       .default('inferred'),
-    valueLevers: jsonb('value_levers').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    valueLevers: jsonb('value_levers')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     operatingModelDimensions: jsonb('operating_model_dimensions')
       .$type<string[]>()
       .notNull()
@@ -184,7 +187,10 @@ export const events = pgTable(
       .$type<string[]>()
       .notNull()
       .default(sql`'[]'::jsonb`),
-    geographySlugs: jsonb('geography_slugs').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    geographySlugs: jsonb('geography_slugs')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
 
     /** Suppressed by an admin — retained with a reason, never silently deleted. */
     isSuppressed: boolean('is_suppressed').notNull().default(false),
@@ -383,9 +389,18 @@ export const insights = pgTable(
     marketContext: text('market_context').notNull().default(''),
     /** Explicitly labelled as our interpretation everywhere it is rendered. */
     consultantPerspective: text('consultant_perspective').notNull().default(''),
-    clientImplications: jsonb('client_implications').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    knownUnknowns: jsonb('known_unknowns').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    counterSignals: jsonb('counter_signals').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    clientImplications: jsonb('client_implications')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    knownUnknowns: jsonb('known_unknowns')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    counterSignals: jsonb('counter_signals')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
 
     novelty: noveltyKindEnum('novelty').notNull().default('new_to_world'),
     estimatedReadingMinutes: integer('estimated_reading_minutes').notNull().default(2),
@@ -476,14 +491,24 @@ export const caseStudies = pgTable(
   {
     id: id(),
     title: text('title').notNull(),
-    subjectEntityId: uuid('subject_entity_id').references(() => entities.id, { onDelete: 'set null' }),
-    providerEntityId: uuid('provider_entity_id').references(() => entities.id, { onDelete: 'set null' }),
+    subjectEntityId: uuid('subject_entity_id').references(() => entities.id, {
+      onDelete: 'set null',
+    }),
+    providerEntityId: uuid('provider_entity_id').references(() => entities.id, {
+      onDelete: 'set null',
+    }),
     industryId: uuid('industry_id').references(() => industries.id, { onDelete: 'set null' }),
     whatWasAnnounced: text('what_was_announced').notNull().default(''),
     whatWasImplemented: text('what_was_implemented').notNull().default(''),
     scope: text('scope').notNull().default(''),
-    geographies: jsonb('geographies').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    functions: jsonb('functions').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    geographies: jsonb('geographies')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    functions: jsonb('functions')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     maturity: caseMaturityEnum('maturity').notNull().default('ANNOUNCED'),
     reportedOutcomes: jsonb('reported_outcomes')
       .$type<{ metric: string; value: string; claimId: string | null }[]>()
@@ -493,13 +518,19 @@ export const caseStudies = pgTable(
       .notNull()
       .default('COMPANY_SELF_REPORTING'),
     independentlyConfirmed: boolean('independently_confirmed').notNull().default(false),
-    openQuestions: jsonb('open_questions').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    openQuestions: jsonb('open_questions')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     lastVerifiedAt: timestamp('last_verified_at', { withTimezone: true }),
     isDemo: boolean('is_demo').notNull().default(false),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index('case_studies_subject_idx').on(t.subjectEntityId), index('case_studies_maturity_idx').on(t.maturity)],
+  (t) => [
+    index('case_studies_subject_idx').on(t.subjectEntityId),
+    index('case_studies_maturity_idx').on(t.maturity),
+  ],
 );
 
 export const caseStudyClaims = pgTable(

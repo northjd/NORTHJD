@@ -3,7 +3,7 @@
 **Know what changed, understand why it matters, and be ready to discuss it.**
 
 An evidence-grounded market intelligence, learning and conversation platform for
-consultants. Not a news app: the unit of intelligence is the real-world *event*, every
+consultants. Not a news app: the unit of intelligence is the real-world _event_, every
 factual statement traces to a quoted passage in a stored source document, and the daily
 brief is finite — it ends, and says so.
 
@@ -38,11 +38,11 @@ brief is finite — it ends, and says so.
 
 Three connected layers:
 
-| Layer | Answers | Horizon |
-|---|---|---|
-| **Market Pulse** | What is new? What changed? What is corroborated or corrected? | days |
-| **Market Model** | How does this industry work — value chain, business models, profit pools, KPIs, capabilities, regulation? | years |
-| **Conversation & Application** | What does this mean for a client? Which hypothesis? Which question? What is the counter-position? | the next meeting |
+| Layer                          | Answers                                                                                                   | Horizon          |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------- | ---------------- |
+| **Market Pulse**               | What is new? What changed? What is corroborated or corrected?                                             | days             |
+| **Market Model**               | How does this industry work — value chain, business models, profit pools, KPIs, capabilities, regulation? | years            |
+| **Conversation & Application** | What does this mean for a client? Which hypothesis? Which question? What is the counter-position?         | the next meeting |
 
 The layers are linked in the data model, not just the UI. An event points at the market
 model elements it touches, and that link is what produces client implications,
@@ -178,18 +178,18 @@ Full documentation with defaults is in [`.env.example`](.env.example). Everythin
 safe default or a documented "not configured" behaviour: the app boots, the pipeline
 runs, and unavailable capabilities are reported as unavailable rather than faked.
 
-| Variable | Default | Notes |
-|---|---|---|
-| `DATABASE_URL` | local PGlite | Point at managed PostgreSQL for production |
-| `SESSION_SECRET` | — | **Required in production**, ≥32 chars |
-| `AI_PROVIDER` | `deterministic` | `deterministic` \| `anthropic` |
-| `ANTHROPIC_API_KEY` | — | Only needed for `AI_PROVIDER=anthropic` |
-| `STT_PROVIDER` | `browser` | On-device transcription; no audio reaches the server |
-| `TTS_PROVIDER` | `browser` | On-device speech synthesis |
-| `INGEST_ENABLED` | `true` | Global kill switch for outbound fetching |
-| `INGEST_REQUIRE_RIGHTS_REVIEW` | `true` | **Leave on.** Refuses un-reviewed sources |
-| `VOICE_PERSIST_AUDIO` | `false` | Audio is not stored by default |
-| `DATABASE_POOL_MAX` | `1` | Raise above 1 for real PostgreSQL |
+| Variable                       | Default         | Notes                                                |
+| ------------------------------ | --------------- | ---------------------------------------------------- |
+| `DATABASE_URL`                 | local PGlite    | Point at managed PostgreSQL for production           |
+| `SESSION_SECRET`               | —               | **Required in production**, ≥32 chars                |
+| `AI_PROVIDER`                  | `deterministic` | `deterministic` \| `anthropic`                       |
+| `ANTHROPIC_API_KEY`            | —               | Only needed for `AI_PROVIDER=anthropic`              |
+| `STT_PROVIDER`                 | `browser`       | On-device transcription; no audio reaches the server |
+| `TTS_PROVIDER`                 | `browser`       | On-device speech synthesis                           |
+| `INGEST_ENABLED`               | `true`          | Global kill switch for outbound fetching             |
+| `INGEST_REQUIRE_RIGHTS_REVIEW` | `true`          | **Leave on.** Refuses un-reviewed sources            |
+| `VOICE_PERSIST_AUDIO`          | `false`         | Audio is not stored by default                       |
+| `DATABASE_POOL_MAX`            | `1`             | Raise above 1 for real PostgreSQL                    |
 
 The root `.env` is found by `packages/config` regardless of which directory a process
 was started from, so there is one file rather than one per app.
@@ -287,18 +287,18 @@ labelled demo fixtures. The seed fabricates none of them.
 Ten publisher feeds are active and verified working. Each was probed, its
 `robots.txt` retrieved and checked, and the review recorded in the database:
 
-| Source | Perspective |
-|---|---|
-| NVIDIA Newsroom | First-party vendor |
-| Google — The Keyword | First-party vendor |
-| OpenAI News | First-party vendor |
-| Meta Newsroom | First-party vendor |
-| AWS Machine Learning Blog | First-party vendor |
-| H&M Group News | First-party company |
-| Retail Dive | Trade press (independent) |
-| European Commission — Press Corner | Regulator |
-| NIST News | Public institution |
-| McKinsey Insights | First-party consulting firm |
+| Source                             | Perspective                 |
+| ---------------------------------- | --------------------------- |
+| NVIDIA Newsroom                    | First-party vendor          |
+| Google — The Keyword               | First-party vendor          |
+| OpenAI News                        | First-party vendor          |
+| Meta Newsroom                      | First-party vendor          |
+| AWS Machine Learning Blog          | First-party vendor          |
+| H&M Group News                     | First-party company         |
+| Retail Dive                        | Trade press (independent)   |
+| European Commission — Press Corner | Regulator                   |
+| NIST News                          | Public institution          |
+| McKinsey Insights                  | First-party consulting firm |
 
 The mix is deliberate: without an independent source, nothing can ever be corroborated,
 and the platform would only be able to repeat what companies say about themselves.
@@ -313,7 +313,7 @@ and a **demo fixture connector**.
 Clearly labelled everywhere it appears, with a **Demo data** badge on every derived
 event, insight and citation:
 
-- Two demo sources — *Demo Corporate Newsroom* (first-party) and *Demo Trade Press*
+- Two demo sources — _Demo Corporate Newsroom_ (first-party) and _Demo Trade Press_
   (independent) — serving six fixture documents
 - Four fictional companies: Northwind Apparel, Meridian Retail Group, Halden AI, Calder
   Stores
@@ -367,7 +367,7 @@ Stated plainly rather than buried.
 With no `ANTHROPIC_API_KEY`, generation is **extractive**: sentences are reused verbatim
 from stored evidence, classifications come from rules, and structural sections are
 assembled from the data model. Nothing is paraphrased or invented. It is honest and
-useful but reads as assembled rather than written, and the UI labels it *Extractive*
+useful but reads as assembled rather than written, and the UI labels it _Extractive_
 throughout. Setting `AI_PROVIDER=anthropic` with a key routes generation through a model
 whose output is schema-validated and evidence-checked before display; anything that
 fails those checks is discarded rather than shown.

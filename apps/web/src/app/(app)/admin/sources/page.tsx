@@ -17,9 +17,21 @@ export default async function SourcesPage() {
   const { sources } = await getCoverage();
 
   const groups = [
-    { key: 'active', label: 'Active', filter: (s: (typeof sources)[number]) => s.isActive && s.rightsStatus === 'approved' },
-    { key: 'candidate', label: 'Candidates — registered, not running', filter: (s: (typeof sources)[number]) => s.rightsStatus !== 'approved' },
-    { key: 'inactive', label: 'Approved but inactive', filter: (s: (typeof sources)[number]) => !s.isActive && s.rightsStatus === 'approved' },
+    {
+      key: 'active',
+      label: 'Active',
+      filter: (s: (typeof sources)[number]) => s.isActive && s.rightsStatus === 'approved',
+    },
+    {
+      key: 'candidate',
+      label: 'Candidates — registered, not running',
+      filter: (s: (typeof sources)[number]) => s.rightsStatus !== 'approved',
+    },
+    {
+      key: 'inactive',
+      label: 'Approved but inactive',
+      filter: (s: (typeof sources)[number]) => !s.isActive && s.rightsStatus === 'approved',
+    },
   ];
 
   return (
@@ -41,10 +53,15 @@ export default async function SourcesPage() {
             <ul className="space-y-2">
               {items.map((source) => (
                 <Card as="li" key={source.slug} className="scroll-mt-20">
-                  <div id={source.slug} className="flex flex-wrap items-start justify-between gap-2">
+                  <div
+                    id={source.slug}
+                    className="flex flex-wrap items-start justify-between gap-2"
+                  >
                     <div className="min-w-0">
                       <p className="text-[14px] font-medium">{source.name}</p>
-                      <p className="text-[12px] text-[var(--text-subtle)]">{source.endpoint || '—'}</p>
+                      <p className="text-[12px] text-[var(--text-subtle)]">
+                        {source.endpoint || '—'}
+                      </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5">
                       <PerspectiveBadge perspective={source.perspective} />

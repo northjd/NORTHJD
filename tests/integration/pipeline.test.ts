@@ -94,7 +94,10 @@ describe('source rights enforcement', () => {
     const [row] = await db()
       .select({ n: sql<number>`count(*)::int` })
       .from(schema.rawDocuments)
-      .innerJoin(schema.sourcePolicies, eq(schema.sourcePolicies.sourceId, schema.rawDocuments.sourceId))
+      .innerJoin(
+        schema.sourcePolicies,
+        eq(schema.sourcePolicies.sourceId, schema.rawDocuments.sourceId),
+      )
       .where(sql`${schema.sourcePolicies.rightsStatus} = 'pending_review'`);
     expect(row?.n).toBe(0);
   });
@@ -111,7 +114,10 @@ describe('source rights enforcement', () => {
       const [row] = await db()
         .select({ n: sql<number>`count(*)::int` })
         .from(schema.documentVersions)
-        .innerJoin(schema.rawDocuments, eq(schema.rawDocuments.id, schema.documentVersions.documentId))
+        .innerJoin(
+          schema.rawDocuments,
+          eq(schema.rawDocuments.id, schema.documentVersions.documentId),
+        )
         .innerJoin(schema.sources, eq(schema.sources.id, schema.rawDocuments.sourceId))
         .where(
           and(
@@ -148,8 +154,12 @@ describe('the Companion', () => {
       userId,
       request: {
         question: 'What is happening with markdown and allocation in retail?',
-        mode: 'explore_it', depth: 'executive', length: 'standard',
-        conversationId: null, pageContext: null, selectedEntityIds: [],
+        mode: 'explore_it',
+        depth: 'executive',
+        length: 'standard',
+        conversationId: null,
+        pageContext: null,
+        selectedEntityIds: [],
       },
     });
 
@@ -173,8 +183,12 @@ describe('the Companion', () => {
       userId,
       request: {
         question: 'What was the exact quarterly revenue of an unlisted Uzbek textile mill in 2019?',
-        mode: 'explore_it', depth: 'executive', length: 'standard',
-        conversationId: null, pageContext: null, selectedEntityIds: [],
+        mode: 'explore_it',
+        depth: 'executive',
+        length: 'standard',
+        conversationId: null,
+        pageContext: null,
+        selectedEntityIds: [],
       },
     });
 
@@ -190,8 +204,12 @@ describe('the Companion', () => {
       userId,
       request: {
         question: 'What is happening with markdown and allocation in retail?',
-        mode: 'explore_it', depth: 'executive', length: 'standard',
-        conversationId: null, pageContext: null, selectedEntityIds: [],
+        mode: 'explore_it',
+        depth: 'executive',
+        length: 'standard',
+        conversationId: null,
+        pageContext: null,
+        selectedEntityIds: [],
       },
     });
     // The spoken summary is derived from the same object, so anything it says is
@@ -204,10 +222,16 @@ describe('the Companion', () => {
   it('always states an as-of date', async () => {
     if (!reachable || !workspaceId) return;
     const response = await answerQuestion({
-      workspaceId, userId,
+      workspaceId,
+      userId,
       request: {
-        question: 'Brief me', mode: 'brief_me', depth: 'executive', length: 'sixty_second_brief',
-        conversationId: null, pageContext: null, selectedEntityIds: [],
+        question: 'Brief me',
+        mode: 'brief_me',
+        depth: 'executive',
+        length: 'sixty_second_brief',
+        conversationId: null,
+        pageContext: null,
+        selectedEntityIds: [],
       },
     });
     expect(new Date(response.asOf).toString()).not.toBe('Invalid Date');

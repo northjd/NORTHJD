@@ -61,7 +61,8 @@ const config: NextConfig = {
               "default-src 'self'",
               // Next injects inline bootstrap scripts; 'unsafe-inline' is required for
               // them in dev and for the streaming runtime in production.
-              "script-src 'self' 'unsafe-inline'" + (process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''),
+              "script-src 'self' 'unsafe-inline'" +
+                (process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''),
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",

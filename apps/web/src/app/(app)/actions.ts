@@ -32,7 +32,10 @@ export async function completeBriefAction(briefId: string): Promise<void> {
 export async function markItemReadAction(briefId: string, itemId: string): Promise<void> {
   const user = await requireUser();
   const brief = await db().query.dailyBriefs.findFirst({
-    where: and(eq(schema.dailyBriefs.id, uuid.parse(briefId)), eq(schema.dailyBriefs.userId, user.userId)),
+    where: and(
+      eq(schema.dailyBriefs.id, uuid.parse(briefId)),
+      eq(schema.dailyBriefs.userId, user.userId),
+    ),
   });
   if (!brief) return;
   await markBriefItemRead(brief.id, uuid.parse(itemId));
@@ -129,7 +132,10 @@ async function advanceKnowledgeFromInsight(
 const NoteSchema = z.object({
   title: z.string().max(300).default(''),
   body: z.string().min(1).max(20_000),
-  attachedKind: z.enum(['insight', 'entity', 'industry', 'conversation', 'meeting']).nullable().default(null),
+  attachedKind: z
+    .enum(['insight', 'entity', 'industry', 'conversation', 'meeting'])
+    .nullable()
+    .default(null),
   attachedId: uuid.nullable().default(null),
 });
 
@@ -154,12 +160,17 @@ export async function saveNoteAction(input: unknown): Promise<{ ok: boolean; id?
   return { ok: true, id: note!.id };
 }
 
-export async function saveInsightAction(insightId: string): Promise<{ ok: boolean; saved: boolean }> {
+export async function saveInsightAction(
+  insightId: string,
+): Promise<{ ok: boolean; saved: boolean }> {
   const user = await requireUser();
   const id = uuid.parse(insightId);
 
   const existing = await db().query.savedInsights.findFirst({
-    where: and(eq(schema.savedInsights.userId, user.userId), eq(schema.savedInsights.insightId, id)),
+    where: and(
+      eq(schema.savedInsights.userId, user.userId),
+      eq(schema.savedInsights.insightId, id),
+    ),
   });
 
   if (existing) {

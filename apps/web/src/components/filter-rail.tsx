@@ -23,16 +23,31 @@ interface Props {
 
 /** Mirrors CONFIDENCE_LEVELS; kept as a plain array so this stays a client component. */
 const CONFIDENCE_CHOICES = [
-  { key: 'measured', label: 'Measured outcomes',
-    hint: 'A figure is claimed and at least one source is not the subject itself.' },
-  { key: 'deployed', label: 'Actually deployed',
-    hint: 'In production or at scale — not an announcement or a pilot.' },
-  { key: 'corroborated', label: 'Independently reported',
-    hint: 'Reported by someone other than the company it is about.' },
-  { key: 'announced', label: 'Announcements only',
-    hint: 'Stated intent with no implementation scope. Useful to see what is noise.' },
-  { key: 'reversed', label: 'Reversals',
-    hint: 'Stopped or rolled back — usually the most informative category.' },
+  {
+    key: 'measured',
+    label: 'Measured outcomes',
+    hint: 'A figure is claimed and at least one source is not the subject itself.',
+  },
+  {
+    key: 'deployed',
+    label: 'Actually deployed',
+    hint: 'In production or at scale — not an announcement or a pilot.',
+  },
+  {
+    key: 'corroborated',
+    label: 'Independently reported',
+    hint: 'Reported by someone other than the company it is about.',
+  },
+  {
+    key: 'announced',
+    label: 'Announcements only',
+    hint: 'Stated intent with no implementation scope. Useful to see what is noise.',
+  },
+  {
+    key: 'reversed',
+    label: 'Reversals',
+    hint: 'Stopped or rolled back — usually the most informative category.',
+  },
 ] as const;
 
 type Dimension = {

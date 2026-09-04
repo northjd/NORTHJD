@@ -47,19 +47,20 @@ test.
 
 ## Boundaries that are enforced, not just intended
 
-| Rule | Why | How it holds |
-|---|---|---|
-| No vendor SDK outside `packages/ai` | Provider independence has to be structural or it evaporates | `AnthropicProvider` is the only file that knows a vendor exists |
-| No domain logic in UI components | Otherwise the trust rules end up duplicated and drift | Pages read repositories and render; classification lives in `intelligence` |
-| No data access outside `packages/database` | Tenant scoping must be unavoidable | Every query goes through a workspace-scoped function |
-| `packages/domain` performs no I/O | It is imported by everything, including tests | Zod is its only dependency |
-| Zod at every boundary | HTTP bodies, connector output and model output are all untrusted | `CompanionRequestSchema`, `FetchedDocumentSchema`, `CompanionResponseSchema` |
+| Rule                                       | Why                                                              | How it holds                                                                 |
+| ------------------------------------------ | ---------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| No vendor SDK outside `packages/ai`        | Provider independence has to be structural or it evaporates      | `AnthropicProvider` is the only file that knows a vendor exists              |
+| No domain logic in UI components           | Otherwise the trust rules end up duplicated and drift            | Pages read repositories and render; classification lives in `intelligence`   |
+| No data access outside `packages/database` | Tenant scoping must be unavoidable                               | Every query goes through a workspace-scoped function                         |
+| `packages/domain` performs no I/O          | It is imported by everything, including tests                    | Zod is its only dependency                                                   |
+| Zod at every boundary                      | HTTP bodies, connector output and model output are all untrusted | `CompanionRequestSchema`, `FetchedDocumentSchema`, `CompanionResponseSchema` |
 
 ---
 
 ## Why these choices
 
 ### PostgreSQL, and PGlite locally
+
 The machine had no Docker and no PostgreSQL, and "runs locally from documented steps"
 is a hard requirement. PGlite is genuine PostgreSQL 18 compiled to WASM; fronted by
 `pglite-socket` it speaks the real wire protocol, so `pg`, Drizzle, drizzle-kit, the
@@ -72,6 +73,7 @@ The cost is real and documented: one connection, no `pg_trgm`, no `pgvector`. Th
 client serialises queries to match (see below).
 
 ### Relational tables, not a graph database
+
 The relationships the product needs — company operates in industry, event affects
 industry, technology enables capability — are known in advance and shallow. PostgreSQL
 joins handle them at this scale, and every edge carries the claim it was derived from,
@@ -80,12 +82,14 @@ operational component to answer questions two joins deep.
 See [`adr/0002-relational-knowledge-graph.md`](adr/0002-relational-knowledge-graph.md).
 
 ### Server components by default
+
 The product is read-heavy and evidence-dense. Rendering on the server keeps the
 citation chain on the server, where the authorisation already is, and sends markup
 rather than a query layer. Client components are used only where interaction demands
 them: the Companion panel, the feedback bar, the theme toggle, the knowledge check.
 
 ### Extractive generation as the floor, not the fallback
+
 `getTextProvider()` returns `null` when no model is configured, and callers must handle
 it by using the extractive path — never by substituting prose of their own. That
 inverts the usual arrangement: the honest, checkable path is the default, and a model
@@ -189,12 +193,12 @@ Detail in [`SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md). Structurally:
 
 ## Testing strategy
 
-| Layer | Tool | What it asserts |
-|---|---|---|
-| Unit | Vitest | Pure logic: offsets, classification, clustering, ranking, rights, SSRF ranges, feed parsing |
+| Layer       | Tool                   | What it asserts                                                                                                                                                   |
+| ----------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit        | Vitest                 | Pure logic: offsets, classification, clustering, ranking, rights, SSRF ranges, feed parsing                                                                       |
 | Integration | Vitest + live database | Properties of real data: no unevidenced FACT, quotes match their offsets, no active connector on an unapproved source, no first-party-only event marked validated |
-| Invariants | `packages/evaluation` | 15 properties the product claims about itself, runnable from CLI and rendered live in admin |
-| End-to-end | Playwright | Journeys, on desktop and mobile, against the **production** server |
+| Invariants  | `packages/evaluation`  | 15 properties the product claims about itself, runnable from CLI and rendered live in admin                                                                       |
+| End-to-end  | Playwright             | Journeys, on desktop and mobile, against the **production** server                                                                                                |
 
 E2E targets `next start` rather than `next dev` because the dev client runtime needs its
 HMR WebSocket to finish bootstrapping; where that upgrade is blocked, pages render but
@@ -216,5 +220,5 @@ Nothing here is designed for scale it does not have. The order in which it would
 5. **Tenancy** → the workspace scoping is present from the start, so multi-tenant
    isolation is configuration rather than migration.
 
-What would *not* help: splitting the monolith. The bottleneck in a product like this is
+What would _not_ help: splitting the monolith. The bottleneck in a product like this is
 source coverage and intelligence quality, not process boundaries.

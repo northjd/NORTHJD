@@ -38,8 +38,8 @@ user would have to rebuild it afterwards.
 
 Companies, industries, topics, technologies, with a `relationship` of account, prospect,
 competitor or interest. Accounts and prospects weigh more (2.6) than general interest
-(2.2), and the relationship is what appears in the ranking explanation — *"It involves
-one of your accounts."*
+(2.2), and the relationship is what appears in the ranking explanation — _"It involves
+one of your accounts."_
 
 Shared watchlists have a nullable `user_id` and an `is_shared` flag, so the team story
 needs no migration.
@@ -50,8 +50,8 @@ needs no migration.
 
 Concepts at `unseen`, `introduced` or `needs_refresh` count as gaps, and an event
 touching one gains 1.1. This is the mechanism by which the brief teaches rather than only
-informs — and the reason shown is *"It connects to a concept you have not covered
-yet."*
+informs — and the reason shown is _"It connects to a concept you have not covered
+yet."_
 
 ---
 
@@ -99,8 +99,8 @@ translate from.
 
 A new user with no profile still gets a working brief: `strategicImpact`,
 `evidenceStrength`, `freshness` and `novelty` apply to everyone. The reason shown is
-honest — *"It scored highly on strategic impact and recency, outside your stated
-interests."*
+honest — _"It scored highly on strategic impact and recency, outside your stated
+interests."_
 
 Onboarding then collects the baseline. The seeded demo profile shows what a configured
 one looks like.

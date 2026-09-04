@@ -100,7 +100,10 @@ describe('fingerprinting and similarity', () => {
   });
 
   it('scores overlapping text above unrelated text', () => {
-    const related = jaccard('H&M announces AI allocation rollout', 'H&M announces AI allocation platform');
+    const related = jaccard(
+      'H&M announces AI allocation rollout',
+      'H&M announces AI allocation platform',
+    );
     const unrelated = jaccard('H&M announces AI allocation', 'NVIDIA reports quarterly revenue');
     expect(related).toBeGreaterThan(unrelated);
   });
@@ -140,24 +143,41 @@ describe('case maturity ordering', () => {
 
 describe('evidence integrity gate', () => {
   const base: CompanionResponse = {
-    mode: 'explore_it', depth: 'executive', length: 'standard',
-    generator: 'deterministic_extractive', directAnswer: 'x',
-    verifiedFacts: [], interpretations: [], hypotheses: [], counterEvidence: [],
-    unknowns: [], coverageLimitations: [], suggestedFollowUps: [],
-    learningConnections: [], conversationStarters: [], citations: [],
-    asOf: new Date().toISOString(), coverageFrom: null, coverageTo: null,
-    contextUsed: [], voice: { spokenSummary: '', estimatedSeconds: 0, segments: [] },
+    mode: 'explore_it',
+    depth: 'executive',
+    length: 'standard',
+    generator: 'deterministic_extractive',
+    directAnswer: 'x',
+    verifiedFacts: [],
+    interpretations: [],
+    hypotheses: [],
+    counterEvidence: [],
+    unknowns: [],
+    coverageLimitations: [],
+    suggestedFollowUps: [],
+    learningConnections: [],
+    conversationStarters: [],
+    citations: [],
+    asOf: new Date().toISOString(),
+    coverageFrom: null,
+    coverageTo: null,
+    contextUsed: [],
+    voice: { spokenSummary: '', estimatedSeconds: 0, segments: [] },
     insufficientEvidence: false,
   };
 
   const citation = {
     claimId: '00000000-0000-4000-8000-000000000001',
     evidenceSpanId: '00000000-0000-4000-8000-000000000002',
-    documentTitle: 'Doc', sourceName: 'Source', sourceUrl: 'https://example.com/a',
+    documentTitle: 'Doc',
+    sourceName: 'Source',
+    sourceUrl: 'https://example.com/a',
     perspective: 'INDEPENDENT_BUSINESS_MEDIA' as const,
     evidenceStrength: 'SINGLE_CREDIBLE_SECONDARY_SOURCE' as const,
     verificationStatus: 'SINGLE_SOURCE' as const,
-    publishedAt: null, eventAt: null, quote: 'quoted text',
+    publishedAt: null,
+    eventAt: null,
+    quote: 'quoted text',
   };
 
   it('accepts a fact backed by a citation with a span', () => {

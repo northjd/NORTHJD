@@ -42,16 +42,16 @@ export default async function OnboardingPage() {
         What should NORTH be about, for you?
       </h1>
       <p className="mt-3 max-w-[64ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
-        Six questions. Every one is optional and every one is changeable later. What they
-        set is which developments reach your daily brief, how long that brief is, and how
-        much the Companion explains as it goes.
+        Six questions. Every one is optional and every one is changeable later. What they set is
+        which developments reach your daily brief, how long that brief is, and how much the
+        Companion explains as it goes.
       </p>
 
       {config().AUTH_MODE === 'open' ? (
         <p className="mt-4 max-w-[64ch] border-l border-caution-500/50 pl-4 text-[12.5px] leading-relaxed text-[var(--text-muted)]">
-          This deployment has no accounts, so preferences are shared: whatever you set here
-          replaces what the last person set. Fine while a few people are looking at it,
-          and the reason accounts exist.
+          This deployment has no accounts, so preferences are shared: whatever you set here replaces
+          what the last person set. Fine while a few people are looking at it, and the reason
+          accounts exist.
         </p>
       ) : null}
 
@@ -68,7 +68,10 @@ export default async function OnboardingPage() {
         {/* A plain anchor, not a Link: the target is a route handler, and Next's client
             router navigates to it without following the redirect or storing the cookie
             it sets — which sent you straight back here. */}
-        <a href="/onboarding/skip" className="underline underline-offset-2 hover:text-[var(--text)]">
+        <a
+          href="/onboarding/skip"
+          className="underline underline-offset-2 hover:text-[var(--text)]"
+        >
           Skip for now
         </a>{' '}
         — you will get a general brief, and can set this up later from your profile.

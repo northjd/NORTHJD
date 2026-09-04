@@ -30,7 +30,9 @@ export default async function TodayPage() {
   const feedback = await getFeedbackFor(user.userId, insightIds);
   const coverage = await getCoverage();
 
-  const activeSources = coverage.sources.filter((s) => s.isActive && s.health !== 'disabled').length;
+  const activeSources = coverage.sources.filter(
+    (s) => s.isActive && s.health !== 'disabled',
+  ).length;
   const blockedSources = coverage.sources.filter((s) => s.rightsStatus !== 'approved').length;
 
   const bySection = new Map<string, typeof items>();
@@ -72,7 +74,10 @@ export default async function TodayPage() {
             title="No new events were found in the currently monitored sources."
             body={`That is a statement about ${activeSources} monitored source${activeSources === 1 ? '' : 's'}, not about the world. Run the pipeline to fetch again, add a source, or ingest a specific URL.`}
             action={
-              <Link href="/admin/sources" className="mt-1 text-[13px] font-medium text-[var(--accent)] underline underline-offset-2">
+              <Link
+                href="/admin/sources"
+                className="mt-1 text-[13px] font-medium text-[var(--accent)] underline underline-offset-2"
+              >
                 Review source coverage
               </Link>
             }
@@ -98,7 +103,10 @@ export default async function TodayPage() {
                         </span>
                       </div>
                       <h3 className="text-[16px] font-semibold leading-snug">
-                        <Link href={`/learn/${item.learningUnitSlug}`} className="hover:underline underline-offset-2">
+                        <Link
+                          href={`/learn/${item.learningUnitSlug}`}
+                          className="hover:underline underline-offset-2"
+                        >
                           {item.learningUnitTitle}
                         </Link>
                       </h3>
@@ -127,7 +135,10 @@ export default async function TodayPage() {
                       </div>
 
                       <h3 className="text-[17px] font-semibold leading-snug tracking-tight">
-                        <Link href={`/insights/${item.insightId}`} className="hover:underline underline-offset-2">
+                        <Link
+                          href={`/insights/${item.insightId}`}
+                          className="hover:underline underline-offset-2"
+                        >
                           {item.headline}
                         </Link>
                       </h3>
@@ -143,7 +154,9 @@ export default async function TodayPage() {
                         <span title="When it was published">
                           Published: {formatAbsolute(item.firstReportedAt)}
                         </span>
-                        <span>{item.sourceCount} source{item.sourceCount === 1 ? '' : 's'}</span>
+                        <span>
+                          {item.sourceCount} source{item.sourceCount === 1 ? '' : 's'}
+                        </span>
                         <span>{item.estimatedMinutes} min</span>
                         <WhyShown reasons={item.whyShown} />
                       </div>
@@ -176,14 +189,17 @@ export default async function TodayPage() {
       */}
       <div className="no-print mt-10 border-t border-[var(--border)] pt-5">
         <p className="text-[12px] leading-relaxed text-[var(--text-subtle)]">
-          This brief reflects the monitored sources only. It is not a claim about everything
-          that happened.
+          This brief reflects the monitored sources only. It is not a claim about everything that
+          happened.
         </p>
 
         <details className="group mt-3">
           <summary className="cursor-pointer list-none text-[11.5px] text-[var(--text-subtle)] hover:text-[var(--text-muted)]">
             <span className="underline underline-offset-2">How this brief was assembled</span>
-            <span aria-hidden className="ml-1.5 inline-block transition-transform group-open:rotate-90">
+            <span
+              aria-hidden
+              className="ml-1.5 inline-block transition-transform group-open:rotate-90"
+            >
               ›
             </span>
           </summary>

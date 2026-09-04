@@ -42,11 +42,7 @@ function BandSection({ band }: { band: Band }) {
         <strong className="font-semibold">What would settle it:</strong> {band.falsifier}
       </p>
       <div className="mt-3">
-        {band.count === 0 ? (
-          <p className="t-meta">Nothing in this band right now.</p>
-        ) : (
-          band.body
-        )}
+        {band.count === 0 ? <p className="t-meta">Nothing in this band right now.</p> : band.body}
       </div>
     </section>
   );
@@ -173,7 +169,10 @@ export default async function WatchPage() {
               </div>
               <h3 className="t-heading">
                 {d.insightId ? (
-                  <Link href={`/insights/${d.insightId}`} className="hover:underline underline-offset-2">
+                  <Link
+                    href={`/insights/${d.insightId}`}
+                    className="hover:underline underline-offset-2"
+                  >
                     {d.title}
                   </Link>
                 ) : (
@@ -202,7 +201,10 @@ export default async function WatchPage() {
           {w.hypotheses.map((h, i) => (
             <Card as="li" key={i} className="card-lift pl-5">
               <div className="mb-2">
-                <Badge tone="caution" title="A testable proposition we are putting forward — not a fact.">
+                <Badge
+                  tone="caution"
+                  title="A testable proposition we are putting forward — not a fact."
+                >
                   Hypothesis
                 </Badge>
               </div>
@@ -251,7 +253,10 @@ export default async function WatchPage() {
           {w.quiet.map((q) => (
             <Card as="li" key={q.slug} className="card-lift pl-5">
               <h3 className="t-heading text-[15px]">
-                <Link href={`/explore/companies/${q.slug}`} className="hover:underline underline-offset-2">
+                <Link
+                  href={`/explore/companies/${q.slug}`}
+                  className="hover:underline underline-offset-2"
+                >
                   {q.name}
                 </Link>
               </h3>
@@ -282,9 +287,9 @@ export default async function WatchPage() {
         <p className="t-eyebrow">Watch</p>
         <h1 className="t-display mt-2">What to watch, and what would settle it</h1>
         <p className="t-lede mt-2 max-w-[70ch]">
-          Foresight derived from the evidence, not generated from it. There are no
-          probabilities here and no predicted outcomes — every band is a query over what the
-          sources actually said, and each one states the observation that would resolve it.
+          Foresight derived from the evidence, not generated from it. There are no probabilities
+          here and no predicted outcomes — every band is a query over what the sources actually
+          said, and each one states the observation that would resolve it.
         </p>
         <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-4 border-t border-[var(--border)] pt-5">
           {stats.map(([label, value]) => (
@@ -301,11 +306,11 @@ export default async function WatchPage() {
       <div className="mb-8">
         <InterpretationBlock label="What this deliberately does not do">
           <p>
-            It assigns no probabilities, predicts no prices or figures, and asserts no
-            outcomes. A confidence number this system could not justify would be more damaging
-            than no view at all — so what it offers instead is the set of things that are
-            unresolved, why each matters, and the specific observation that would resolve it.
-            That is what a good analyst hands you.
+            It assigns no probabilities, predicts no prices or figures, and asserts no outcomes. A
+            confidence number this system could not justify would be more damaging than no view at
+            all — so what it offers instead is the set of things that are unresolved, why each
+            matters, and the specific observation that would resolve it. That is what a good analyst
+            hands you.
           </p>
         </InterpretationBlock>
       </div>

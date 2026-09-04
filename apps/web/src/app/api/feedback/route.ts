@@ -20,15 +20,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Say something first.' }, { status: 400 });
   }
 
-  await db().insert(schema.productFeedback).values({
-    userId: user.userId,
-    workspaceId: user.workspaceId,
-    kind: parsed.data.kind,
-    message: parsed.data.message,
-    route: parsed.data.route,
-    // Truncated rather than rejected: a long user-agent should never lose the feedback.
-    userAgent: (request.headers.get('user-agent') ?? '').slice(0, 400),
-  });
+  await db()
+    .insert(schema.productFeedback)
+    .values({
+      userId: user.userId,
+      workspaceId: user.workspaceId,
+      kind: parsed.data.kind,
+      message: parsed.data.message,
+      route: parsed.data.route,
+      // Truncated rather than rejected: a long user-agent should never lose the feedback.
+      userAgent: (request.headers.get('user-agent') ?? '').slice(0, 400),
+    });
 
   return NextResponse.json({ ok: true });
 }

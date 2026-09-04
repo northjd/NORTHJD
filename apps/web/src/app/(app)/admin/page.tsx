@@ -27,9 +27,11 @@ export default async function AdminPage() {
 
       {coverage.totals.unevidencedFactClaims > 0 ? (
         <div className="rounded border border-alert-500 bg-alert-100 p-3 text-[13px] text-alert-700">
-          <strong>{coverage.totals.unevidencedFactClaims} FACT claims have no evidence span.</strong> This
-          breaks the core invariant and should be zero. Investigate before trusting anything derived
-          from them.
+          <strong>
+            {coverage.totals.unevidencedFactClaims} FACT claims have no evidence span.
+          </strong>{' '}
+          This breaks the core invariant and should be zero. Investigate before trusting anything
+          derived from them.
         </div>
       ) : null}
 
@@ -60,7 +62,9 @@ export default async function AdminPage() {
                 <span className="text-[13px] font-medium">{cap.label}</span>
                 <StatusBadge status={cap.status} />
               </div>
-              <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">{cap.detail}</p>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">
+                {cap.detail}
+              </p>
             </li>
           ))}
         </ul>
@@ -69,7 +73,10 @@ export default async function AdminPage() {
       <Card>
         <SectionHeading
           action={
-            <Link href="/admin/sources" className="text-[13px] text-[var(--accent)] underline underline-offset-2">
+            <Link
+              href="/admin/sources"
+              className="text-[13px] text-[var(--accent)] underline underline-offset-2"
+            >
               Source registry
             </Link>
           }
@@ -77,7 +84,8 @@ export default async function AdminPage() {
           Sources
         </SectionHeading>
         <p className="text-[13px] text-[var(--text-muted)]">
-          {coverage.sources.length} registered · {failing} failing · {pending} awaiting rights review
+          {coverage.sources.length} registered · {failing} failing · {pending} awaiting rights
+          review
         </p>
       </Card>
 
@@ -85,14 +93,26 @@ export default async function AdminPage() {
         <SectionHeading>Recent pipeline runs</SectionHeading>
         {runs.length === 0 ? (
           <p className="text-[13px] text-[var(--text-muted)]">
-            No runs yet. Run <code className="rounded bg-[var(--surface-inset)] px-1">npm run pipeline</code>.
+            No runs yet. Run{' '}
+            <code className="rounded bg-[var(--surface-inset)] px-1">npm run pipeline</code>.
           </p>
         ) : (
           <ul className="space-y-2">
             {runs.map((run) => (
-              <li key={run.id} className="flex flex-wrap items-center justify-between gap-2 text-[13px]">
+              <li
+                key={run.id}
+                className="flex flex-wrap items-center justify-between gap-2 text-[13px]"
+              >
                 <span className="flex items-center gap-1.5">
-                  <Badge tone={run.status === 'succeeded' ? 'verified' : run.status === 'failed' ? 'alert' : 'neutral'}>
+                  <Badge
+                    tone={
+                      run.status === 'succeeded'
+                        ? 'verified'
+                        : run.status === 'failed'
+                          ? 'alert'
+                          : 'neutral'
+                    }
+                  >
                     {run.status}
                   </Badge>
                   <span className="text-[var(--text-muted)]">{run.kind.replace(/_/g, ' ')}</span>
@@ -111,13 +131,22 @@ export default async function AdminPage() {
       </Card>
 
       <div className="flex flex-wrap gap-2">
-        <Link href="/admin/coverage" className="rounded border border-[var(--border)] px-3 py-2 text-[13px] font-medium hover:bg-[var(--surface-inset)]">
+        <Link
+          href="/admin/coverage"
+          className="rounded border border-[var(--border)] px-3 py-2 text-[13px] font-medium hover:bg-[var(--surface-inset)]"
+        >
           Coverage dashboard
         </Link>
-        <Link href="/admin/evaluation" className="rounded border border-[var(--border)] px-3 py-2 text-[13px] font-medium hover:bg-[var(--surface-inset)]">
+        <Link
+          href="/admin/evaluation"
+          className="rounded border border-[var(--border)] px-3 py-2 text-[13px] font-medium hover:bg-[var(--surface-inset)]"
+        >
           Evaluation
         </Link>
-        <Link href="/admin/capabilities" className="rounded border border-[var(--border)] px-3 py-2 text-[13px] font-medium hover:bg-[var(--surface-inset)]">
+        <Link
+          href="/admin/capabilities"
+          className="rounded border border-[var(--border)] px-3 py-2 text-[13px] font-medium hover:bg-[var(--surface-inset)]"
+        >
           Capabilities detail
         </Link>
       </div>

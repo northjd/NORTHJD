@@ -237,7 +237,13 @@ async function taxonomyFacet(
     .from(insights)
     .innerJoin(events, eq(events.id, insights.eventId))
     .innerJoin(eventTaxonomy, eq(eventTaxonomy.eventId, events.id))
-    .where(and(...baseConditions(workspaceId), eq(eventTaxonomy.kind, kind), ...filterConditions(scoped)))
+    .where(
+      and(
+        ...baseConditions(workspaceId),
+        eq(eventTaxonomy.kind, kind),
+        ...filterConditions(scoped),
+      ),
+    )
     .groupBy(eventTaxonomy.slug)
     .orderBy(desc(sql`count(distinct ${insights.id})`));
 
@@ -269,13 +275,13 @@ async function columnFacet<T extends string>(
 }
 
 export function humanise(value: string): string {
-  return value.replace(/_/g, ' ').toLowerCase().replace(/^./, (c) => c.toUpperCase());
+  return value
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/^./, (c) => c.toUpperCase());
 }
 
-export async function queryFacets(
-  workspaceId: string,
-  f: ExploreFilters,
-): Promise<ExploreFacets> {
+export async function queryFacets(workspaceId: string, f: ExploreFilters): Promise<ExploreFacets> {
   // Label lookups are small reference tables; fetched sequentially because the local
   // PGlite backend serialises anyway (ADR 0001).
   const industryLabels = new Map(
@@ -290,9 +296,9 @@ export async function queryFacets(
     ]),
   );
   const technologyLabels = new Map(
-    (await db().select({ slug: technologies.slug, name: technologies.name }).from(technologies)).map(
-      (r) => [r.slug, r.name],
-    ),
+    (
+      await db().select({ slug: technologies.slug, name: technologies.name }).from(technologies)
+    ).map((r) => [r.slug, r.name]),
   );
 
   /*
@@ -315,10 +321,7 @@ export async function queryFacets(
     })
     .from(schema.entities)
     .leftJoin(eventEntities, eq(eventEntities.entityId, schema.entities.id))
-    .leftJoin(
-      events,
-      and(eq(events.id, eventEntities.eventId), eq(events.isSuppressed, false)),
-    )
+    .leftJoin(events, and(eq(events.id, eventEntities.eventId), eq(events.isSuppressed, false)))
     .leftJoin(
       insights,
       and(
@@ -333,10 +336,22 @@ export async function queryFacets(
   return {
     industries: await taxonomyFacet(workspaceId, f, 'industry', 'industries', industryLabels),
     topics: await taxonomyFacet(workspaceId, f, 'topic', 'topics', topicLabels),
-    technologies: await taxonomyFacet(workspaceId, f, 'technology', 'technologies', technologyLabels),
+    technologies: await taxonomyFacet(
+      workspaceId,
+      f,
+      'technology',
+      'technologies',
+      technologyLabels,
+    ),
     companies,
     eventTypes: await columnFacet(workspaceId, f, 'eventTypes', events.eventType, EVENT_TYPES),
-    maturities: await columnFacet(workspaceId, f, 'maturities', events.caseMaturity, CASE_MATURITIES),
+    maturities: await columnFacet(
+      workspaceId,
+      f,
+      'maturities',
+      events.caseMaturity,
+      CASE_MATURITIES,
+    ),
     evidenceStrengths: await columnFacet(
       workspaceId,
       f,
@@ -374,7 +389,10 @@ export async function querySuggestedFilters(
   userId: string,
 ): Promise<SuggestedFilter[]> {
   const profile = await db().query.userProfiles.findFirst({
-    where: and(eq(schema.userProfiles.userId, userId), eq(schema.userProfiles.workspaceId, workspaceId)),
+    where: and(
+      eq(schema.userProfiles.userId, userId),
+      eq(schema.userProfiles.workspaceId, workspaceId),
+    ),
   });
 
   const watched = await db()
@@ -418,8 +436,10 @@ export async function querySuggestedFilters(
       icon: '★',
       name: 'My watchlist',
       detail:
-        watched.slice(0, 3).map((w) => w.name).join(', ') +
-        (watched.length > 3 ? ` +${watched.length - 3}` : ''),
+        watched
+          .slice(0, 3)
+          .map((w) => w.name)
+          .join(', ') + (watched.length > 3 ? ` +${watched.length - 3}` : ''),
       params: { company: watched.map((w) => w.slug).join(',') },
     });
   }

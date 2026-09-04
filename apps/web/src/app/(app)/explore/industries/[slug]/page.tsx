@@ -13,7 +13,6 @@ export async function generateStaticParams() {
   return rows.map((r) => ({ slug: r.slug }));
 }
 
-
 /**
  * Industry page — the Market Model layer made readable.
  *
@@ -67,7 +66,9 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
               {stages.map((stage, i) => (
                 <li key={stage.id} className="surface-flat rounded-md p-3">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-[12px] font-semibold text-[var(--text-subtle)]">{i + 1}</span>
+                    <span className="text-[12px] font-semibold text-[var(--text-subtle)]">
+                      {i + 1}
+                    </span>
                     <h3 className="text-[14px] font-semibold">{stage.name}</h3>
                   </div>
                   <p className="mt-1 text-[13px] leading-relaxed text-[var(--text-muted)]">
@@ -124,12 +125,16 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <h3 className="text-[14px] font-semibold">{kpi.name}</h3>
                       {kpi.typicalRange ? (
-                        <span className="text-[12px] text-[var(--text-subtle)]">{kpi.typicalRange}</span>
+                        <span className="text-[12px] text-[var(--text-subtle)]">
+                          {kpi.typicalRange}
+                        </span>
                       ) : null}
                     </div>
                     <p className="mt-1 text-[13px] text-[var(--text-muted)]">{kpi.definition}</p>
                     {kpi.formula ? (
-                      <p className="mt-1 font-mono text-[12px] text-[var(--text-subtle)]">{kpi.formula}</p>
+                      <p className="mt-1 font-mono text-[12px] text-[var(--text-subtle)]">
+                        {kpi.formula}
+                      </p>
                     ) : null}
                     <p className="mt-1.5 text-[13px] leading-relaxed">{kpi.whyItMatters}</p>
                   </div>
@@ -170,7 +175,10 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
               <ul className="space-y-1.5">
                 {paths.map((path) => (
                   <li key={path.id} className="text-[13px]">
-                    <Link href={`/learn?path=${path.slug}`} className="font-medium text-[var(--accent)] underline underline-offset-2">
+                    <Link
+                      href={`/learn?path=${path.slug}`}
+                      className="font-medium text-[var(--accent)] underline underline-offset-2"
+                    >
                       {path.name}
                     </Link>
                     <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">
@@ -183,7 +191,9 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           ) : null}
 
           <Card>
-            <SectionHeading hint="Events classified into this industry.">Current signals</SectionHeading>
+            <SectionHeading hint="Events classified into this industry.">
+              Current signals
+            </SectionHeading>
             {recentEvents.length === 0 ? (
               <p className="text-[13px] text-[var(--text-muted)]">
                 No events classified into this industry yet.

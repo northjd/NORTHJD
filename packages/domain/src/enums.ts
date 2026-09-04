@@ -43,8 +43,7 @@ export const FIRST_PARTY_PERSPECTIVES: readonly SourcePerspective[] = [
   'FIRST_PARTY_CLIENT',
 ];
 
-export const isFirstParty = (p: SourcePerspective): boolean =>
-  FIRST_PARTY_PERSPECTIVES.includes(p);
+export const isFirstParty = (p: SourcePerspective): boolean => FIRST_PARTY_PERSPECTIVES.includes(p);
 
 /**
  * Perspectives that can corroborate somebody else's claim.

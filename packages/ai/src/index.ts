@@ -34,7 +34,11 @@ export function resetProviderCacheForTests(): void {
 }
 
 /** One line for the UI: what is generating content right now, and what that means. */
-export function generationMode(): { generator: 'llm' | 'deterministic_extractive'; label: string; detail: string } {
+export function generationMode(): {
+  generator: 'llm' | 'deterministic_extractive';
+  label: string;
+  detail: string;
+} {
   const provider = getTextProvider();
   if (provider) {
     return {

@@ -11,7 +11,7 @@ discuss it.**
 Every day the platform must make the user better along three axes. These are
 requirements, not slogans: a feature that serves none of them is not built.
 
-### 1. Recency — *what changed?*
+### 1. Recency — _what changed?_
 
 - what happened today; what is new since the last visit
 - which companies moved (partnerships, products, investment, M&A, research,
@@ -21,7 +21,7 @@ requirements, not slogans: a feature that serves none of them is not built.
 - what is genuinely new vs. re-communicated
 - what was announced vs. what was actually implemented
 
-### 2. Depth — *how does this market really work?*
+### 2. Depth — _how does this market really work?_
 
 - how an industry earns money; where value is created and margin is captured
 - value chains, business models, customer segments, channels
@@ -32,7 +32,7 @@ requirements, not slogans: a feature that serves none of them is not built.
 - how today's event sits in a longer arc, and how the user's own understanding
   develops over weeks and months
 
-### 3. Applicability — *what do I say or ask next?*
+### 3. Applicability — _what do I say or ask next?_
 
 - concrete talking points and high-quality questions
 - strategic hypotheses and client implications
@@ -60,8 +60,8 @@ successfully, which regions/languages/topics are covered, which sources are stal
 failing, where the coverage gaps are, how confident a statement is, and whether a
 statement is a fact, an interpretation, a hypothesis or a forecast.
 
-"No new results" is rendered as *"No new events were found in the currently monitored
-sources"* — never as "nothing happened".
+"No new results" is rendered as _"No new events were found in the currently monitored
+sources"_ — never as "nothing happened".
 
 ## The measure of a good session
 

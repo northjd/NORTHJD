@@ -22,7 +22,9 @@ for (const arg of process.argv.slice(2)) {
 
 const ping = await pingDb();
 if (!ping.ok) {
-  console.error(`\n  Cannot reach the database.\n  ${ping.error}\n  Start it with:  npm run db:up\n`);
+  console.error(
+    `\n  Cannot reach the database.\n  ${ping.error}\n  Start it with:  npm run db:up\n`,
+  );
   process.exit(1);
 }
 

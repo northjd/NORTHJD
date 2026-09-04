@@ -28,8 +28,8 @@ export default async function PreferencesPage() {
         What NORTH is about, for you
       </h1>
       <p className="mt-3 max-w-[64ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
-        Changing these re-ranks tomorrow&rsquo;s brief. Today&rsquo;s is already assembled —
-        a brief is a decision made once, not a query re-run on every page load.
+        Changing these re-ranks tomorrow&rsquo;s brief. Today&rsquo;s is already assembled — a brief
+        is a decision made once, not a query re-run on every page load.
       </p>
 
       <div className="mt-10">

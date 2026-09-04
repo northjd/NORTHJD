@@ -20,7 +20,12 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { depthLevelEnum, membershipRoleEnum, notificationKindEnum, watchlistKindEnum } from './enums';
+import {
+  depthLevelEnum,
+  membershipRoleEnum,
+  notificationKindEnum,
+  watchlistKindEnum,
+} from './enums';
 
 const id = () => uuid('id').primaryKey().defaultRandom();
 const createdAt = () => timestamp('created_at', { withTimezone: true }).notNull().defaultNow();
@@ -108,7 +113,10 @@ export const sessions = pgTable(
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex('sessions_token_key').on(t.tokenHash), index('sessions_user_idx').on(t.userId)],
+  (t) => [
+    uniqueIndex('sessions_token_key').on(t.tokenHash),
+    index('sessions_user_idx').on(t.userId),
+  ],
 );
 
 /**
@@ -127,13 +135,34 @@ export const userProfiles = pgTable(
       .references(() => workspaces.id, { onDelete: 'cascade' }),
     role: varchar('role', { length: 120 }).notNull().default(''),
     seniority: varchar('seniority', { length: 60 }).notNull().default(''),
-    industrySlugs: jsonb('industry_slugs').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    functionSlugs: jsonb('function_slugs').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    technologySlugs: jsonb('technology_slugs').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    topicSlugs: jsonb('topic_slugs').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    geographySlugs: jsonb('geography_slugs').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    informationGoals: jsonb('information_goals').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    learningObjectives: jsonb('learning_objectives').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    industrySlugs: jsonb('industry_slugs')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    functionSlugs: jsonb('function_slugs')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    technologySlugs: jsonb('technology_slugs')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    topicSlugs: jsonb('topic_slugs')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    geographySlugs: jsonb('geography_slugs')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    informationGoals: jsonb('information_goals')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    learningObjectives: jsonb('learning_objectives')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     /** Minutes per day the brief must fit inside. The brief is finite because of this. */
     dailyReadingMinutes: integer('daily_reading_minutes').notNull().default(12),
     preferredDepth: depthLevelEnum('preferred_depth').notNull().default('executive'),
@@ -163,10 +192,22 @@ export const userMissions = pgTable(
       .references(() => workspaces.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 200 }).notNull(),
     description: text('description').notNull().default(''),
-    industrySlugs: jsonb('industry_slugs').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    topicSlugs: jsonb('topic_slugs').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    technologySlugs: jsonb('technology_slugs').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    entityIds: jsonb('entity_ids').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    industrySlugs: jsonb('industry_slugs')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    topicSlugs: jsonb('topic_slugs')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    technologySlugs: jsonb('technology_slugs')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    entityIds: jsonb('entity_ids')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     startsAt: timestamp('starts_at', { withTimezone: true }).notNull().defaultNow(),
     endsAt: timestamp('ends_at', { withTimezone: true }).notNull(),
     isPaused: boolean('is_paused').notNull().default(false),

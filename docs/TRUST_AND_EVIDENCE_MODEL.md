@@ -1,6 +1,6 @@
 # Trust and Evidence Model
 
-The mechanism by which the product's central promise — *evidence before eloquence* —
+The mechanism by which the product's central promise — _evidence before eloquence_ —
 is a property of the code rather than a claim in a document.
 
 ---
@@ -36,13 +36,13 @@ Only `FACT` may ever appear under "Verified facts". The classifier is deliberate
 cautious: an unrecognised sentence becomes `UNVERIFIED_SIGNAL`, because over-claiming is
 the failure that matters here.
 
-| Type | Meaning | Rendered as |
-|---|---|---|
-| `FACT` | Stated in the source, backed by an evidence span | Verified facts, green rule |
-| `INTERPRETATION` | A reading of the facts, stated by the source | "Also stated in the sources" |
-| `HYPOTHESIS` | A testable proposition we are putting forward | Interpretation block, amber rule |
-| `FORECAST` | A claim about the future, stated by the source | Labelled Forecast |
-| `UNVERIFIED_SIGNAL` | Noted, not established | Labelled Unverified |
+| Type                | Meaning                                          | Rendered as                      |
+| ------------------- | ------------------------------------------------ | -------------------------------- |
+| `FACT`              | Stated in the source, backed by an evidence span | Verified facts, green rule       |
+| `INTERPRETATION`    | A reading of the facts, stated by the source     | "Also stated in the sources"     |
+| `HYPOTHESIS`        | A testable proposition we are putting forward    | Interpretation block, amber rule |
+| `FORECAST`          | A claim about the future, stated by the source   | Labelled Forecast                |
+| `UNVERIFIED_SIGNAL` | Noted, not established                           | Labelled Unverified              |
 
 Ordering matters in the classifier: a sentence about the future is a `FORECAST` even
 when it uses a reporting verb. "Announced it will open fifty stores by 2030" is a
@@ -55,14 +55,14 @@ forecast about the stores, and presenting it as an accomplished fact would be wr
 Derived from source perspective and quantification — never from confidence or from how
 precise the wording is.
 
-| Strength | When |
-|---|---|
-| `QUANTIFIED_PRIMARY_EVIDENCE` | Regulator, public institution, academic, or an attested filing, **with** a figure |
-| `UNQUANTIFIED_PRIMARY_EVIDENCE` | The same, without a figure |
-| `MULTIPLE_CREDIBLE_SECONDARY_SOURCES` | Two or more independent outlets (computed at event level) |
-| `SINGLE_CREDIBLE_SECONDARY_SOURCE` | One credible independent outlet |
-| `COMPANY_SELF_REPORTING` | Any first-party perspective |
-| `WEAK_OR_UNVERIFIED_SIGNAL` | Everything else, including user-provided |
+| Strength                              | When                                                                              |
+| ------------------------------------- | --------------------------------------------------------------------------------- |
+| `QUANTIFIED_PRIMARY_EVIDENCE`         | Regulator, public institution, academic, or an attested filing, **with** a figure |
+| `UNQUANTIFIED_PRIMARY_EVIDENCE`       | The same, without a figure                                                        |
+| `MULTIPLE_CREDIBLE_SECONDARY_SOURCES` | Two or more independent outlets (computed at event level)                         |
+| `SINGLE_CREDIBLE_SECONDARY_SOURCE`    | One credible independent outlet                                                   |
+| `COMPANY_SELF_REPORTING`              | Any first-party perspective                                                       |
+| `WEAK_OR_UNVERIFIED_SIGNAL`           | Everything else, including user-provided                                          |
 
 **A company describing itself is `COMPANY_SELF_REPORTING` however precise the numbers
 are.** Precision is not independence. Regulatory filings and earnings releases are
@@ -75,9 +75,14 @@ justified exception, and it is keyed on `sourceType`, not on the company's own f
 
 ```ts
 INDEPENDENT_PERSPECTIVES = [
-  INDEPENDENT_BUSINESS_MEDIA, INDUSTRY_MEDIA, REGULATOR,
-  PUBLIC_INSTITUTION, RESEARCH_INSTITUTION, ACADEMIC_SOURCE, LICENSED_PREMIUM,
-]
+  INDEPENDENT_BUSINESS_MEDIA,
+  INDUSTRY_MEDIA,
+  REGULATOR,
+  PUBLIC_INSTITUTION,
+  RESEARCH_INSTITUTION,
+  ACADEMIC_SOURCE,
+  LICENSED_PREMIUM,
+];
 ```
 
 Deliberately an allow-list rather than "not first party". A user-submitted page and an
@@ -94,14 +99,14 @@ prevent. Unit-tested since.
 
 ## Verification status
 
-| Status | Meaning |
-|---|---|
-| `SINGLE_SOURCE` | One source |
-| `CORROBORATED` | Reported by more than one source |
-| `PRIMARY_SOURCE_CONFIRMED` | A primary source confirms it |
-| `DISPUTED` | Sources conflict — surfaced, never merged |
-| `CORRECTED` | The source issued a correction |
-| `RETRACTED` | The source withdrew it |
+| Status                     | Meaning                                   |
+| -------------------------- | ----------------------------------------- |
+| `SINGLE_SOURCE`            | One source                                |
+| `CORROBORATED`             | Reported by more than one source          |
+| `PRIMARY_SOURCE_CONFIRMED` | A primary source confirms it              |
+| `DISPUTED`                 | Sources conflict — surfaced, never merged |
+| `CORRECTED`                | The source issued a correction            |
+| `RETRACTED`                | The source withdrew it                    |
 
 Conflicts are shown as conflicts. Merging two figures into an apparent consensus would
 be the single most damaging thing this product could do, so `detectContradiction`
@@ -171,14 +176,14 @@ Current state: **0 violations across 369 claims.**
 
 Six, never merged:
 
-| Field | Question |
-|---|---|
-| `event_at` | When did it happen? |
-| `published_at` | When did the source publish? |
-| `source_updated_at` | When did the source last change it? |
-| `discovered_at` | When did we first see it? |
-| `processed_at` | When did we last process it? |
-| `last_verified_at` | When were the derived claims last confirmed? |
+| Field               | Question                                     |
+| ------------------- | -------------------------------------------- |
+| `event_at`          | When did it happen?                          |
+| `published_at`      | When did the source publish?                 |
+| `source_updated_at` | When did the source last change it?          |
+| `discovered_at`     | When did we first see it?                    |
+| `processed_at`      | When did we last process it?                 |
+| `last_verified_at`  | When were the derived claims last confirmed? |
 
 `event_at` is null whenever no source states it. Guessing would be the easy way to make
 a timeline look complete and the fastest way to make it wrong. Sorting prefers
@@ -217,9 +222,9 @@ as evidence bearing on the question. A claim must now contain a minimum share of
 query terms. Verified: that question now refuses.
 
 **Mode-aware judgement.** Insufficiency is decided on what a mode actually produced, not
-on whether claim retrieval returned rows. *Capture* needs no evidence; *Brief me* reads
-insights; *Explain it* and *Teach me* can answer from a learning unit; *Explore it* and
-*Prepare me* genuinely need claims; *Challenge me* may legitimately answer that nothing
+on whether claim retrieval returned rows. _Capture_ needs no evidence; _Brief me_ reads
+insights; _Explain it_ and _Teach me_ can answer from a learning unit; _Explore it_ and
+_Prepare me_ genuinely need claims; _Challenge me_ may legitimately answer that nothing
 contradicts the view — while saying that absence of contradiction is not confirmation.
 
 ---
@@ -228,7 +233,7 @@ contradicts the view — while saying that absence of contradiction is not confi
 
 "No results" is never rendered as "nothing happened".
 
-- Empty brief → *"No new events were found in the currently monitored sources."*
+- Empty brief → _"No new events were found in the currently monitored sources."_
 - Thin brief → the item count, and an explicit statement that nothing was added to fill
   the time
 - Empty company timeline → whether any source is monitored for that company, and a note

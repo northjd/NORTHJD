@@ -93,9 +93,9 @@ export default async function AccountPage({
             ) : null}
             {!market.industry.isModelled ? (
               <p className="mt-2 max-w-[64ch] text-[12px] leading-relaxed text-[var(--text-subtle)]">
-                NORTH recognises this sector for classification and search but has not built
-                a market model for it — no value chain, KPI tree or business models. Writing
-                one nobody has researched would be a fabrication, so it says so instead.
+                NORTH recognises this sector for classification and search but has not built a
+                market model for it — no value chain, KPI tree or business models. Writing one
+                nobody has researched would be a fabrication, so it says so instead.
               </p>
             ) : null}
 
@@ -125,9 +125,8 @@ export default async function AccountPage({
                 <Badge tone="muted">{market.companies.length}</Badge>
               </h2>
               <p className="mt-2 max-w-[72ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
-                Everything classified into this sector. A zero is a coverage statement, not
-                a claim that the company is quiet — open one and it names what would change
-                that.
+                Everything classified into this sector. A zero is a coverage statement, not a claim
+                that the company is quiet — open one and it names what would change that.
               </p>
               <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
                 {market.companies.map((c) => (
@@ -153,14 +152,14 @@ export default async function AccountPage({
               </h2>
               {market.newestAgeDays != null && market.newestAgeDays > 7 ? (
                 <p className="mt-1.5 text-[11.5px] text-caution-700 dark:text-caution-100">
-                  Nothing in the last week — the most recent here is {market.newestAgeDays}{' '}
-                  days old.
+                  Nothing in the last week — the most recent here is {market.newestAgeDays} days
+                  old.
                 </p>
               ) : null}
               {market.events.length === 0 ? (
                 <p className="mt-3 text-[13px] text-[var(--text-subtle)]">
-                  No event is classified under this sector. No source in the registry covers
-                  it yet — a gap in our monitoring rather than quiet in the market.
+                  No event is classified under this sector. No source in the registry covers it yet
+                  — a gap in our monitoring rather than quiet in the market.
                 </p>
               ) : (
                 <ul className="mt-3 grid gap-2.5">
@@ -178,9 +177,8 @@ export default async function AccountPage({
                   <Badge tone="muted">{market.regulatory.length}</Badge>
                 </h2>
                 <p className="mt-2 max-w-[72ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
-                  Published by regulators and public institutions. Keyed on the source
-                  rather than on subject tags: what a regulator publishes is regulatory by
-                  definition.
+                  Published by regulators and public institutions. Keyed on the source rather than
+                  on subject tags: what a regulator publishes is regulatory by definition.
                 </p>
                 <ul className="mt-3 grid gap-2.5">
                   {market.regulatory.map((e, i) => (
@@ -203,9 +201,9 @@ export default async function AccountPage({
           Get market and company insights
         </h1>
         <p className="mt-3 max-w-[64ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
-          Start with a market: what moved in the sector, who is in it, and what regulators
-          have said. Then narrow to a company — in that order, because a conversation needs
-          the market before it needs four press releases.
+          Start with a market: what moved in the sector, who is in it, and what regulators have
+          said. Then narrow to a company — in that order, because a conversation needs the market
+          before it needs four press releases.
         </p>
 
         <MarketSearchControls
@@ -221,8 +219,8 @@ export default async function AccountPage({
         <section className="mt-9">
           <h2 className="t-rule">Markets</h2>
           <p className="mt-2 max-w-[72ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
-            Counts are events published in each sector. A sector with none is one no source
-            in the registry covers yet.
+            Counts are events published in each sector. A sector with none is one no source in the
+            registry covers yet.
           </p>
           <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
             {markets.map((m) => (
@@ -351,17 +349,16 @@ export default async function AccountPage({
       <div className="mt-8">
         <InterpretationBlock label="What this view cannot do">
           <p>
-            It cannot tell you a company&rsquo;s internal position, its financials beyond
-            what is published, or what they think. It reports what monitored public sources
-            have said, widens its scope until it has something, and names the level it is
-            speaking at so you never mistake market context for news about your client.
+            It cannot tell you a company&rsquo;s internal position, its financials beyond what is
+            published, or what they think. It reports what monitored public sources have said,
+            widens its scope until it has something, and names the level it is speaking at so you
+            never mistake market context for news about your client.
           </p>
         </InterpretationBlock>
       </div>
     </div>
   );
 }
-
 
 function RungSection({ rung }: { rung: AccountRung }) {
   return (

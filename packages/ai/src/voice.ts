@@ -41,7 +41,10 @@ class DeepgramSpeechToText implements SpeechToTextProvider {
     this.available = Boolean(this.#key);
   }
 
-  async transcribe(audio: Uint8Array, mimeType: string): Promise<{ text: string; language: string }> {
+  async transcribe(
+    audio: Uint8Array,
+    mimeType: string,
+  ): Promise<{ text: string; language: string }> {
     if (!this.#key) throw new Error('DEEPGRAM_API_KEY is not set');
     const res = await fetch('https://api.deepgram.com/v1/listen?smart_format=true', {
       method: 'POST',

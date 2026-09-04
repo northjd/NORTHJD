@@ -52,7 +52,10 @@ createServer((req, res) => {
     resolve(root, `.${rel}.html`),
     resolve(root, `.${rel}`, 'index.html'),
     resolve(root, `.${rel.replace(/\/$/, '')}.html`),
-  ].find((candidate) => candidate.startsWith(root) && existsSync(candidate) && statSync(candidate).isFile());
+  ].find(
+    (candidate) =>
+      candidate.startsWith(root) && existsSync(candidate) && statSync(candidate).isFile(),
+  );
 
   if (!file) {
     res.writeHead(404, { 'content-type': 'text/plain' });

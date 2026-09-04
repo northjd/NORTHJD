@@ -101,8 +101,7 @@ export function FeedbackWidget() {
             ) : (
               <>
                 <p className="mt-2 text-[12.5px] leading-relaxed text-[var(--text-muted)]">
-                  Blunt is more useful than polite. The page you are on is recorded
-                  automatically.
+                  Blunt is more useful than polite. The page you are on is recorded automatically.
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-1.5">

@@ -29,7 +29,12 @@ const esc = (s) =>
 
 const date = (d) =>
   d
-    ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(d))
+    ? new Intl.DateTimeFormat('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+      }).format(new Date(d))
     : 'date not stated in source';
 
 // ── Data ─────────────────────────────────────────────────────────────────────
@@ -66,16 +71,20 @@ const brief = (
 // Prefer the demo insight that exercises the self-reporting rule, since it is the
 // clearest illustration of the trust model. Fall back to any well-evidenced insight.
 const featured =
-  (await q(`select i.*, e.case_maturity, e.evidence_strength, e.verification_status,
+  (
+    await q(`select i.*, e.case_maturity, e.evidence_strength, e.verification_status,
                    e.first_party_only, e.source_count, e.independent_source_count,
                    e.event_type, e.event_at, e.first_reported_at, e.strategic_impact
             from insights i join events e on e.id = i.event_id
-            where i.headline ilike '%Northwind Apparel reports%' limit 1`))[0] ??
-  (await q(`select i.*, e.case_maturity, e.evidence_strength, e.verification_status,
+            where i.headline ilike '%Northwind Apparel reports%' limit 1`)
+  )[0] ??
+  (
+    await q(`select i.*, e.case_maturity, e.evidence_strength, e.verification_status,
                    e.first_party_only, e.source_count, e.independent_source_count,
                    e.event_type, e.event_at, e.first_reported_at, e.strategic_impact
             from insights i join events e on e.id = i.event_id
-            order by e.source_count desc limit 1`))[0];
+            order by e.source_count desc limit 1`)
+  )[0];
 
 const facts = await q(
   `select c.id, c.text, c.claim_type, c.evidence_strength, c.quantified,
@@ -164,9 +173,21 @@ const MATURITY = {
   PILOT: ['Pilot', 'neutral', 'Bounded trial. Most pilots do not scale.'],
   LIMITED_DEPLOYMENT: ['Limited deployment', 'neutral', 'Live in selected locations.'],
   SCALED_DEPLOYMENT: ['Scaled', 'accent', 'Described as deployed across the organisation.'],
-  QUANTIFIED_BUSINESS_IMPACT: ['Quantified impact', 'accent', 'A measured outcome is claimed — check who is claiming it.'],
-  INDEPENDENTLY_VALIDATED_IMPACT: ['Independently validated', 'verified', 'A party other than the beneficiary reports the same outcome.'],
-  DISCONTINUED_OR_REVERSED: ['Discontinued', 'alert', 'Stopped or reversed. Often more informative than the announcement.'],
+  QUANTIFIED_BUSINESS_IMPACT: [
+    'Quantified impact',
+    'accent',
+    'A measured outcome is claimed — check who is claiming it.',
+  ],
+  INDEPENDENTLY_VALIDATED_IMPACT: [
+    'Independently validated',
+    'verified',
+    'A party other than the beneficiary reports the same outcome.',
+  ],
+  DISCONTINUED_OR_REVERSED: [
+    'Discontinued',
+    'alert',
+    'Stopped or reversed. Often more informative than the announcement.',
+  ],
 };
 
 const EVIDENCE = {
@@ -204,13 +225,22 @@ const maturityBadge = (m) => (MATURITY[m] ? badge(...MATURITY[m]) : badge(m));
 const evidenceBadge = (e) => (EVIDENCE[e] ? badge(...EVIDENCE[e]) : badge(e));
 
 const SECTIONS = {
-  executive_three: ['The three that matter', 'Highest combined relevance, impact and evidence strength today.'],
-  what_changed: ['Changed since your last visit', 'Only genuinely new, updated or corrected developments.'],
+  executive_three: [
+    'The three that matter',
+    'Highest combined relevance, impact and evidence strength today.',
+  ],
+  what_changed: [
+    'Changed since your last visit',
+    'Only genuinely new, updated or corrected developments.',
+  ],
   company_watch: ['Your companies', 'Developments at organisations on your watchlist.'],
   industry_signals: ['Your industries', 'Signals from the industries you follow.'],
   tech_radar: ['Technology radar', 'What providers announced, built or shipped.'],
   broader_market: ['Broader market', 'Developments beyond your stated focus.'],
-  adjacent_signal: ['One adjacent signal', 'Deliberately outside your interests, to keep the brief from closing in on itself.'],
+  adjacent_signal: [
+    'One adjacent signal',
+    'Deliberately outside your interests, to keep the brief from closing in on itself.',
+  ],
   learn_one_thing: ['Learn one thing', 'A short fundamentals unit.'],
 };
 
@@ -610,7 +640,10 @@ reviewed and dated, kept distinct from the news above it</p>
   <p class="hint" style="margin-bottom:8px">Announcements vs. things actually evidenced as deployed.</p>
   <table><tbody>
   ${maturityMix
-    .map((m) => `<tr><td>${maturityBadge(m.case_maturity)}</td><td style="text-align:right;font-weight:600">${m.n}</td></tr>`)
+    .map(
+      (m) =>
+        `<tr><td>${maturityBadge(m.case_maturity)}</td><td style="text-align:right;font-weight:600">${m.n}</td></tr>`,
+    )
     .join('')}
   </tbody></table>
   <p class="hint" style="margin:9px 0 0">Counting announcements is not a measure of market leadership.</p>
@@ -620,7 +653,10 @@ reviewed and dated, kept distinct from the news above it</p>
   <h2 class="sec">Documents by perspective</h2>
   <table><tbody>
   ${perspectiveMix
-    .map((p) => `<tr><td>${perspectiveBadge(p.perspective)}</td><td style="text-align:right;font-weight:600">${p.n}</td></tr>`)
+    .map(
+      (p) =>
+        `<tr><td>${perspectiveBadge(p.perspective)}</td><td style="text-align:right;font-weight:600">${p.n}</td></tr>`,
+    )
     .join('')}
   </tbody></table>
   <p class="hint" style="margin:9px 0 0">Roughly 70% first-party. A real limitation, visible rather than hidden.</p>

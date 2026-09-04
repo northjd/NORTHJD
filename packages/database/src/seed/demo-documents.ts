@@ -32,7 +32,8 @@ export const DEMO_FIRST_PARTY_DOCUMENTS: DemoDocument[] = [
     body: `Northwind Apparel today announced results from the group-wide rollout of its machine learning allocation platform. The company reported an 18% reduction in markdown rate across its European store estate in the spring/summer season compared with the prior year. Full-price sell-through improved by 4 percentage points over the same period. The platform has been deployed across all 1,240 stores in twelve markets following a pilot in Germany and the Netherlands during 2025. Chief Operating Officer Lena Farkas said the system now generates allocation proposals for every store and size curve twice weekly, replacing a manual process that ran fortnightly. The company said the improvement was driven primarily by earlier reallocation of slow-selling lines between stores. Northwind did not disclose the investment required or the baseline methodology used to calculate the comparison.`,
   },
   {
-    title: 'Meridian Retail Group and Halden AI announce strategic partnership on demand forecasting',
+    title:
+      'Meridian Retail Group and Halden AI announce strategic partnership on demand forecasting',
     url: 'https://demo.local/meridian/halden-partnership',
     publishedAt: '2026-08-29T09:00:00Z',
     author: 'Meridian Retail Group',

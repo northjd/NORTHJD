@@ -64,7 +64,8 @@ export function evaluateRights(policy: SourcePolicyView | null): RightsDecision 
       allowed: false,
       storageScope: 'metadata',
       aiProcessingAllowed: false,
-      reason: 'Rights review is still pending. Registered as a candidate; the connector stays disabled.',
+      reason:
+        'Rights review is still pending. Registered as a candidate; the connector stays disabled.',
     };
   }
 

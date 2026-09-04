@@ -67,7 +67,11 @@ export function PreferenceForm({
         title="Which industries?"
         why="Your brief leads with these. One slot is always kept for something outside them, so this narrows without sealing you in."
       >
-        <CheckGroup name="industries" options={options.industries} selected={current.industrySlugs} />
+        <CheckGroup
+          name="industries"
+          options={options.industries}
+          selected={current.industrySlugs}
+        />
       </Section>
 
       <Section
@@ -129,8 +133,8 @@ export function PreferenceForm({
           })}
           {matchingEntities.length === 0 ? (
             <p className="text-[12.5px] text-[var(--text-subtle)]">
-              No tracked company matches “{entityQuery}”. You can still add it later — the
-              coverage check will tell you what it would take to start monitoring them.
+              No tracked company matches “{entityQuery}”. You can still add it later — the coverage
+              check will tell you what it would take to start monitoring them.
             </p>
           ) : null}
         </div>
@@ -200,8 +204,8 @@ export function PreferenceForm({
           {submitLabel}
         </button>
         <p className="text-[11.5px] leading-relaxed text-[var(--text-subtle)]">
-          All of it is optional and all of it is changeable later. Leaving everything blank
-          gives you a general brief rather than a broken one.
+          All of it is optional and all of it is changeable later. Leaving everything blank gives
+          you a general brief rather than a broken one.
         </p>
       </div>
     </form>

@@ -137,11 +137,23 @@ export function EvidenceBadge({ strength }: { strength: EvidenceStrength }) {
 }
 
 const MATURITY_LABEL: Record<CaseMaturity, { text: string; tone: Tone; hint: string }> = {
-  ANNOUNCED: { text: 'Announced', tone: 'caution', hint: 'Stated intent. No implementation scope given.' },
+  ANNOUNCED: {
+    text: 'Announced',
+    tone: 'caution',
+    hint: 'Stated intent. No implementation scope given.',
+  },
   CONCEPT: { text: 'Concept', tone: 'caution', hint: 'Being explored; nothing built.' },
   PILOT: { text: 'Pilot', tone: 'neutral', hint: 'Bounded trial. Most pilots do not scale.' },
-  LIMITED_DEPLOYMENT: { text: 'Limited deployment', tone: 'neutral', hint: 'Live in selected locations or units.' },
-  SCALED_DEPLOYMENT: { text: 'Scaled', tone: 'accent', hint: 'Described as deployed across the organisation.' },
+  LIMITED_DEPLOYMENT: {
+    text: 'Limited deployment',
+    tone: 'neutral',
+    hint: 'Live in selected locations or units.',
+  },
+  SCALED_DEPLOYMENT: {
+    text: 'Scaled',
+    tone: 'accent',
+    hint: 'Described as deployed across the organisation.',
+  },
   QUANTIFIED_BUSINESS_IMPACT: {
     text: 'Quantified impact',
     tone: 'accent',
@@ -183,10 +195,26 @@ export function VerificationBadge({ status }: { status: VerificationStatus }) {
 }
 
 const CLAIM_TYPE_LABEL: Record<ClaimType, { text: string; tone: Tone; hint: string }> = {
-  FACT: { text: 'Fact', tone: 'verified', hint: 'Stated in the source and backed by an evidence span.' },
-  INTERPRETATION: { text: 'Interpretation', tone: 'caution', hint: 'A reading of the facts, not a fact.' },
-  HYPOTHESIS: { text: 'Hypothesis', tone: 'caution', hint: 'A testable proposition we are putting forward.' },
-  FORECAST: { text: 'Forecast', tone: 'caution', hint: 'A claim about the future, stated by the source.' },
+  FACT: {
+    text: 'Fact',
+    tone: 'verified',
+    hint: 'Stated in the source and backed by an evidence span.',
+  },
+  INTERPRETATION: {
+    text: 'Interpretation',
+    tone: 'caution',
+    hint: 'A reading of the facts, not a fact.',
+  },
+  HYPOTHESIS: {
+    text: 'Hypothesis',
+    tone: 'caution',
+    hint: 'A testable proposition we are putting forward.',
+  },
+  FORECAST: {
+    text: 'Forecast',
+    tone: 'caution',
+    hint: 'A claim about the future, stated by the source.',
+  },
   UNVERIFIED_SIGNAL: { text: 'Unverified', tone: 'alert', hint: 'Noted, but not established.' },
 };
 
@@ -201,7 +229,10 @@ export function ClaimTypeBadge({ type }: { type: ClaimType }) {
 
 export function DemoBadge() {
   return (
-    <Badge tone="alert" title="Illustrative fixture data written for this repository. Not real reporting.">
+    <Badge
+      tone="alert"
+      title="Illustrative fixture data written for this repository. Not real reporting."
+    >
       Demo data
     </Badge>
   );
@@ -233,7 +264,10 @@ export function NoveltyBadge({ novelty }: { novelty: NoveltyKind }) {
 export function GeneratorBadge({ generator }: { generator: Generator }) {
   if (generator === 'llm') {
     return (
-      <Badge tone="neutral" title="Model-generated, then schema-validated and checked against stored evidence.">
+      <Badge
+        tone="neutral"
+        title="Model-generated, then schema-validated and checked against stored evidence."
+      >
         Model-assisted
       </Badge>
     );

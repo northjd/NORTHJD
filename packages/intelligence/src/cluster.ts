@@ -163,7 +163,9 @@ export function clusterDocuments(
 }
 
 function toCluster(docs: ClusterableDocument[]): DocumentCluster {
-  const dated = docs.filter((d) => d.publishedAt).sort((a, b) => a.publishedAt!.getTime() - b.publishedAt!.getTime());
+  const dated = docs
+    .filter((d) => d.publishedAt)
+    .sort((a, b) => a.publishedAt!.getTime() - b.publishedAt!.getTime());
   const originating = dated[0] ?? docs[0]!;
 
   const sourceIds = [...new Set(docs.map((d) => d.sourceId))];
@@ -179,7 +181,8 @@ function toCluster(docs: ClusterableDocument[]): DocumentCluster {
     lastReportedAt: dated.at(-1)?.publishedAt ?? null,
     // Earliest stated event date: a later article restating an old event must not
     // make the event look newer than it is.
-    eventAt: eventDates.length > 0 ? new Date(Math.min(...eventDates.map((d) => d.getTime()))) : null,
+    eventAt:
+      eventDates.length > 0 ? new Date(Math.min(...eventDates.map((d) => d.getTime()))) : null,
     independentSourceCount: independentSources.size,
     firstPartyOnly: independentSources.size === 0,
   };
@@ -208,9 +211,10 @@ export function detectMaterialChange(
 ): { changed: boolean; similarity: number; likelyCorrection: boolean } {
   const similarity = jaccard(previousText, nextText);
   const changed = similarity < 0.98;
-  const correctionLanguage = /\b(correct(ion|ed)?|updated?|clarif(y|ied|ication)|amend(ed|ment)?|retract(ed|ion)?)\b/i.test(
-    nextText.slice(0, 600),
-  );
+  const correctionLanguage =
+    /\b(correct(ion|ed)?|updated?|clarif(y|ied|ication)|amend(ed|ment)?|retract(ed|ion)?)\b/i.test(
+      nextText.slice(0, 600),
+    );
   return {
     changed,
     similarity,
@@ -227,8 +231,8 @@ export function detectContradiction(
   b: string,
 ): { conflict: boolean; kind: string; explanation: string } | null {
   const numbersOf = (s: string) =>
-    [...s.matchAll(/(\d+(?:[.,]\d+)?)\s?(%|percent|million|billion|bn|m\b)/gi)].map((m) =>
-      `${m[1]}${(m[2] ?? '').toLowerCase()}`,
+    [...s.matchAll(/(\d+(?:[.,]\d+)?)\s?(%|percent|million|billion|bn|m\b)/gi)].map(
+      (m) => `${m[1]}${(m[2] ?? '').toLowerCase()}`,
     );
 
   const na = numbersOf(a);

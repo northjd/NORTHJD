@@ -3,7 +3,14 @@ import { notFound } from 'next/navigation';
 import { and, desc, eq } from 'drizzle-orm';
 import { db, schema } from '@mios/database';
 import { requireUser } from '@/lib/session';
-import { Badge, Card, GeneratorBadge, InterpretationBlock, KnownUnknowns, SectionHeading } from '@mios/ui';
+import {
+  Badge,
+  Card,
+  GeneratorBadge,
+  InterpretationBlock,
+  KnownUnknowns,
+  SectionHeading,
+} from '@mios/ui';
 import { formatAbsolute } from '@mios/domain';
 import { CopyButton } from '@/components/copy-button';
 
@@ -14,7 +21,6 @@ export async function generateStaticParams() {
   const rows = await db().select({ id: schema.meetings.id }).from(schema.meetings);
   return rows.map((r) => ({ id: r.id }));
 }
-
 
 interface BriefContent {
   sixtySecondBrief: string;
@@ -73,13 +79,17 @@ export default async function MeetingBriefPage({ params }: { params: Promise<{ i
     ...content.knownUnknowns.map((u) => `- ${u}`),
     '',
     'SOURCES',
-    ...content.citations.map((c, i) => `[${i + 1}] ${c.documentTitle} — ${c.sourceName} ${c.sourceUrl ?? ''}`),
+    ...content.citations.map(
+      (c, i) => `[${i + 1}] ${c.documentTitle} — ${c.sourceName} ${c.sourceUrl ?? ''}`,
+    ),
   ].join('\n');
 
   return (
     <article className="mx-auto max-w-[900px]">
       <nav className="no-print mb-4 text-[13px] text-[var(--text-subtle)]">
-        <Link href="/prepare" className="hover:underline underline-offset-2">Prepare</Link>
+        <Link href="/prepare" className="hover:underline underline-offset-2">
+          Prepare
+        </Link>
         <span className="mx-1.5">/</span>
         <span>Brief</span>
       </nav>
@@ -107,7 +117,9 @@ export default async function MeetingBriefPage({ params }: { params: Promise<{ i
 
         {content.whatChanged.length > 0 ? (
           <section>
-            <SectionHeading hint="From this company's own event timeline.">What changed</SectionHeading>
+            <SectionHeading hint="From this company's own event timeline.">
+              What changed
+            </SectionHeading>
             <div className="space-y-3">
               {content.whatChanged.map((group) => (
                 <div key={group.window} className="surface-flat rounded-md p-3">
@@ -198,7 +210,9 @@ export default async function MeetingBriefPage({ params }: { params: Promise<{ i
             <SectionHeading hint="Yours. Stored separately from source material and never cited as evidence.">
               Your notes
             </SectionHeading>
-            <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{content.personalNotes}</p>
+            <p className="whitespace-pre-wrap text-[14px] leading-relaxed">
+              {content.personalNotes}
+            </p>
           </Card>
         ) : null}
 

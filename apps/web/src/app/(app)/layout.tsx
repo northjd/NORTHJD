@@ -43,20 +43,55 @@ const NAV_GROUPS = [
     label: 'Intelligence',
     items: [
       { href: '/', label: 'Today', icon: '◎', hint: 'Your finite daily brief' },
-      { href: '/account', label: 'Market search', icon: '◆', hint: 'Look up a company and read it through its market — what moved, who moved it, and what the company itself has said' },
-      { href: '/watch', label: 'Watch', icon: '◇', hint: 'What is unresolved, and what would settle it' },
-      { href: '/deals', label: 'Key deals', icon: '⇄', hint: 'Publicly announced acquisitions, investments, partnerships and market entries' },
-      { href: '/explore', label: 'Explore', icon: '⊞', hint: 'Companies, industries, technologies' },
-      { href: '/ask', label: 'Ask', icon: '◧', hint: 'Find the evidence on a question, then reason over it in your own Claude' },
+      {
+        href: '/account',
+        label: 'Market search',
+        icon: '◆',
+        hint: 'Look up a company and read it through its market — what moved, who moved it, and what the company itself has said',
+      },
+      {
+        href: '/watch',
+        label: 'Watch',
+        icon: '◇',
+        hint: 'What is unresolved, and what would settle it',
+      },
+      {
+        href: '/deals',
+        label: 'Key deals',
+        icon: '⇄',
+        hint: 'Publicly announced acquisitions, investments, partnerships and market entries',
+      },
+      {
+        href: '/explore',
+        label: 'Explore',
+        icon: '⊞',
+        hint: 'Companies, industries, technologies',
+      },
+      {
+        href: '/ask',
+        label: 'Ask',
+        icon: '◧',
+        hint: 'Find the evidence on a question, then reason over it in your own Claude',
+      },
     ],
   },
   {
     label: 'Practice',
     items: [
-      { href: '/learn', label: 'Learn', icon: '▤', hint: 'Industry fundamentals and learning paths' },
+      {
+        href: '/learn',
+        label: 'Learn',
+        icon: '▤',
+        hint: 'Industry fundamentals and learning paths',
+      },
       { href: '/prepare', label: 'Prepare', icon: '◈', hint: 'Meeting preparation' },
       { href: '/library', label: 'Library', icon: '▢', hint: 'Saved insights, notes, collections' },
-      { href: '/you', label: 'Your numbers', icon: '◔', hint: 'What you have read, asked and learned' },
+      {
+        href: '/you',
+        label: 'Your numbers',
+        icon: '◔',
+        hint: 'What you have read, asked and learned',
+      },
     ],
   },
 ];
@@ -109,7 +144,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const isAdmin = user.role === 'owner' || user.role === 'admin';
   const corpus = await corpusStatus();
 
-
   // Saved views in the sidebar rather than only on Explore: they are how someone gets to
   // the slice they care about, and having to reach Explore first to find them made the
   // most personalised thing in the product the least reachable. Counts are live, so a
@@ -145,14 +179,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             );
             if (items.length === 0) return null;
             return (
-            <div key={group.label} className="pb-1.5">
-              <div className="t-eyebrow px-3.5 pb-1.5 pt-2.5">{group.label}</div>
-              {items.map((item) => (
-                <NavLink key={item.href} href={item.href} title={item.hint} icon={item.icon}>
-                  {item.label}
-                </NavLink>
-              ))}
-            </div>
+              <div key={group.label} className="pb-1.5">
+                <div className="t-eyebrow px-3.5 pb-1.5 pt-2.5">{group.label}</div>
+                {items.map((item) => (
+                  <NavLink key={item.href} href={item.href} title={item.hint} icon={item.icon}>
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
             );
           })}
 
@@ -166,7 +200,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                   title={v.detail}
                   className="mx-1.5 flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[12.5px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-inset)] hover:text-[var(--text)]"
                 >
-                  <span aria-hidden className="w-[15px] shrink-0 text-center text-[11px] opacity-70">
+                  <span
+                    aria-hidden
+                    className="w-[15px] shrink-0 text-center text-[11px] opacity-70"
+                  >
                     {v.icon}
                   </span>
                   <span className="truncate">{v.name}</span>
@@ -246,10 +283,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               className="h-1.5 w-1.5 rounded-full"
               style={{
                 background:
-                  corpus.unevidencedFacts === 0 ? 'var(--color-verified-500)' : 'var(--color-alert-500)',
+                  corpus.unevidencedFacts === 0
+                    ? 'var(--color-verified-500)'
+                    : 'var(--color-alert-500)',
               }}
             />
-            {corpus.unevidencedFacts === 0 ? 'evidence intact' : `${corpus.unevidencedFacts} unevidenced`}
+            {corpus.unevidencedFacts === 0
+              ? 'evidence intact'
+              : `${corpus.unevidencedFacts} unevidenced`}
           </span>
           <ThemeToggle />
         </div>
@@ -267,12 +308,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <span className="tabular-nums">
           {corpus.documents} docs · {corpus.claims} claims · {corpus.events} events
         </span>
-        <span className="hidden sm:inline">
-          {corpus.activeSources} active sources
-        </span>
-        <span className="ml-auto hidden md:inline">
-          Monitored sources only.
-        </span>
+        <span className="hidden sm:inline">{corpus.activeSources} active sources</span>
+        <span className="ml-auto hidden md:inline">Monitored sources only.</span>
       </footer>
 
       {/* The static build has no server to run set-up through, so it runs in the

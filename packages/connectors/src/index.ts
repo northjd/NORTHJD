@@ -51,7 +51,11 @@ const feedConnector: Connector = {
     const res = await safeFetch(ctx.endpoint, { etag: ctx.cursor });
 
     if (res.status === 304) {
-      return { documents: [], cursor: ctx.cursor, warnings: ['Feed unchanged since last sync (HTTP 304).'] };
+      return {
+        documents: [],
+        cursor: ctx.cursor,
+        warnings: ['Feed unchanged since last sync (HTTP 304).'],
+      };
     }
 
     const feed = parseFeed(res.body, res.finalUrl);
@@ -111,7 +115,9 @@ const manualUrlConnector: Connector = {
     const text = htmlToText(res.body);
 
     const titleMatch = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(res.body);
-    const ogTitle = /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i.exec(res.body);
+    const ogTitle = /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i.exec(
+      res.body,
+    );
     const title = htmlToText(ogTitle?.[1] ?? titleMatch?.[1] ?? '') || url;
 
     const publishedMeta =
@@ -136,7 +142,9 @@ const manualUrlConnector: Connector = {
         },
       ],
       cursor: null,
-      warnings: res.contentType.includes('html') ? [] : [`Unexpected content type: ${res.contentType}`],
+      warnings: res.contentType.includes('html')
+        ? []
+        : [`Unexpected content type: ${res.contentType}`],
     };
   },
 };
@@ -166,7 +174,11 @@ const demoConnector: Connector = {
     const raw = ctx.configuration['documents'];
     const parsed = z.array(DemoDocSchema).safeParse(raw);
     if (!parsed.success) {
-      return { documents: [], cursor: null, warnings: ['Demo connector has no valid fixtures configured.'] };
+      return {
+        documents: [],
+        cursor: null,
+        warnings: ['Demo connector has no valid fixtures configured.'],
+      };
     }
 
     return {
@@ -210,13 +222,22 @@ export function listConnectors(): Connector[] {
  * instead of leaving the reader to guess.
  */
 export const UNIMPLEMENTED_CONNECTOR_TYPES: { type: ConnectorType; reason: string }[] = [
-  { type: 'rest_api', reason: 'Interface defined; no source in the registry currently requires it.' },
+  {
+    type: 'rest_api',
+    reason: 'Interface defined; no source in the registry currently requires it.',
+  },
   { type: 'graphql_api', reason: 'Interface defined; not needed by any registered source.' },
-  { type: 'filing_api', reason: 'Planned for regulatory filings (e.g. EDGAR). Not implemented in this MVP.' },
+  {
+    type: 'filing_api',
+    reason: 'Planned for regulatory filings (e.g. EDGAR). Not implemented in this MVP.',
+  },
   { type: 'licensed_feed', reason: 'Requires a commercial licence. Deliberately not implemented.' },
   { type: 'sitemap_discovery', reason: 'Only permissible per-source; no source approved for it.' },
   { type: 'structured_page', reason: 'Only permissible per-source; no source approved for it.' },
-  { type: 'uploaded_document', reason: 'Planned. File upload handling is not implemented in this MVP.' },
+  {
+    type: 'uploaded_document',
+    reason: 'Planned. File upload handling is not implemented in this MVP.',
+  },
   { type: 'webhook', reason: 'Planned for push sources. Not implemented.' },
   { type: 'mcp', reason: 'Future connector surface. Not implemented.' },
 ];

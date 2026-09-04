@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { applyStorageScope, canExtractEvidence, evaluateRights, parseFeed, __testing } from '@mios/connectors';
+import {
+  applyStorageScope,
+  canExtractEvidence,
+  evaluateRights,
+  parseFeed,
+  __testing,
+} from '@mios/connectors';
 
 describe('SSRF guard', () => {
   const blocked = __testing.isBlockedAddress;
@@ -42,10 +48,15 @@ describe('SSRF guard', () => {
 
 describe('rights gate', () => {
   const policy = {
-    rightsStatus: 'approved' as const, allowedToIngest: true,
-    allowedToStoreMetadata: true, allowedToStoreExcerpts: true,
-    allowedToStoreFullText: false, allowedForAiProcessing: true,
-    storageScope: 'excerpt' as const, requiredAttribution: '', rateLimitPerHour: 10,
+    rightsStatus: 'approved' as const,
+    allowedToIngest: true,
+    allowedToStoreMetadata: true,
+    allowedToStoreExcerpts: true,
+    allowedToStoreFullText: false,
+    allowedForAiProcessing: true,
+    storageScope: 'excerpt' as const,
+    requiredAttribution: '',
+    rateLimitPerHour: 10,
   };
 
   it('refuses a source with no policy at all', () => {
@@ -53,7 +64,9 @@ describe('rights gate', () => {
   });
 
   it('refuses a source still in review', () => {
-    expect(evaluateRights({ ...policy, rightsStatus: 'pending_review', allowedToIngest: false }).allowed).toBe(false);
+    expect(
+      evaluateRights({ ...policy, rightsStatus: 'pending_review', allowedToIngest: false }).allowed,
+    ).toBe(false);
   });
 
   it('refuses a denied source', () => {
@@ -106,7 +119,9 @@ describe('feed parsing', () => {
   });
 
   it('rejects a document that is not a feed', () => {
-    expect(() => parseFeed('<html><body>not a feed</body></html>', 'https://example.com')).toThrow();
+    expect(() =>
+      parseFeed('<html><body>not a feed</body></html>', 'https://example.com'),
+    ).toThrow();
   });
 
   it('skips items with no usable link rather than inventing one', () => {

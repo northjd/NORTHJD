@@ -29,8 +29,8 @@ export function BriefProgress({
       <section className="surface mt-8 p-6 text-center">
         <p className="text-[18px] font-semibold">You are caught up.</p>
         <p className="mx-auto mt-1.5 max-w-md text-[14px] leading-relaxed text-[var(--text-muted)]">
-          That is the whole brief for today — {total} item{total === 1 ? '' : 's'}. Nothing more will
-          load here. Come back tomorrow, or go looking for something specific.
+          That is the whole brief for today — {total} item{total === 1 ? '' : 's'}. Nothing more
+          will load here. Come back tomorrow, or go looking for something specific.
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           <a

@@ -110,7 +110,10 @@ export function SetupGate() {
             className="group mt-16 inline-flex items-center gap-3 border border-[var(--border-strong)] px-8 py-3.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--text)] transition-colors hover:border-[var(--text)]"
           >
             Activate NORTH
-            <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">
+            <span
+              aria-hidden
+              className="transition-transform duration-300 group-hover:translate-x-1"
+            >
               →
             </span>
           </button>
@@ -123,8 +126,8 @@ export function SetupGate() {
             <MakersMark className="text-[7px] font-semibold leading-none" />
           </span>
           <p className="max-w-[52ch] text-[10.5px] leading-relaxed text-[var(--text-subtle)]">
-            Every fact carries the passage it came from. Where the evidence is not there,
-            NORTH says so rather than filling the gap.
+            Every fact carries the passage it came from. Where the evidence is not there, NORTH says
+            so rather than filling the gap.
           </p>
         </footer>
       </div>
@@ -159,9 +162,9 @@ export function SetupGate() {
           All optional, all changeable. What you pick becomes the filters you start from.
         </p>
         <p className="mt-3 max-w-[62ch] border-l border-[var(--border-strong)] pl-3.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">
-          This is a snapshot with no accounts, so your answers are kept in this browser and
-          belong to you alone. The daily brief itself was assembled when the site was built
-          and does not re-rank — these shape what you filter and where the saved views point.
+          This is a snapshot with no accounts, so your answers are kept in this browser and belong
+          to you alone. The daily brief itself was assembled when the site was built and does not
+          re-rank — these shape what you filter and where the saved views point.
         </p>
 
         <Section n="01" title="Which industries?" why="Your saved views start here.">
@@ -223,7 +226,11 @@ export function SetupGate() {
           </div>
         </Section>
 
-        <Section n="05" title="How much should we explain?" why="Sets the register of what you read.">
+        <Section
+          n="05"
+          title="How much should we explain?"
+          why="Sets the register of what you read."
+        >
           <div className="grid gap-2 sm:grid-cols-3">
             {DEPTHS.map((d) => (
               <button

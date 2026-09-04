@@ -27,7 +27,9 @@ await migrate(db(), { migrationsFolder: resolve(root, 'packages/database/migrati
 console.log('[migrate] table migrations applied');
 
 const sqlDir = resolve(root, 'packages/database/sql');
-for (const file of readdirSync(sqlDir).filter((f) => f.endsWith('.sql')).sort()) {
+for (const file of readdirSync(sqlDir)
+  .filter((f) => f.endsWith('.sql'))
+  .sort()) {
   const text = readFileSync(resolve(sqlDir, file), 'utf8');
   await db().execute(sql.raw(text));
   console.log(`[migrate] applied ${file}`);

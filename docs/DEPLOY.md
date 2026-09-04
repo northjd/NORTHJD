@@ -8,12 +8,12 @@ the data is never stale, and feedback from colleagues landing in the database.
 
 **What it costs: $20/month (~£16), all of it Vercel.**
 
-| | Plan | Cost |
-|---|---|---|
+|                           | Plan                 | Cost      |
+| ------------------------- | -------------------- | --------- |
 | App + scheduled ingestion | Vercel Pro, one seat | $20/month |
-| Database | Neon Free | £0 |
+| Database                  | Neon Free            | £0        |
 
-The seat is for *dashboard access*, which only you need. Colleagues sign in to NORTH
+The seat is for _dashboard access_, which only you need. Colleagues sign in to NORTH
 itself with their own accounts and cost nothing, however many of them there are.
 
 The database is Neon, created directly at [neon.com](https://neon.com) rather than through
@@ -87,17 +87,17 @@ which is the worst way for it to fail.
 
 ## 4. Set the environment variables
 
-Project → **Settings → Environment Variables**. Add these to *Production* (and *Preview*
+Project → **Settings → Environment Variables**. Add these to _Production_ (and _Preview_
 if you want deploy previews to work):
 
-| Variable | Value | Why |
-|---|---|---|
-| `NODE_ENV` | `production` | Enables secure cookies |
-| `DATABASE_URL` | the pooled Neon URL from step 3 | |
-| `DATABASE_POOL_MAX` | `5` | Real Postgres, so use a pool. Small per instance, because many instances exist |
-| `SIGNUP_INVITE_CODE` | something you invent | Colleagues need it to create an account. Rotate it any time |
-| `CRON_SECRET` | a long random string | Vercel sends this to the ingestion route. **Without it the route refuses every request**, which is deliberate |
-| `SESSION_SECRET` | a long random string | Signs session cookies |
+| Variable             | Value                           | Why                                                                                                           |
+| -------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`           | `production`                    | Enables secure cookies                                                                                        |
+| `DATABASE_URL`       | the pooled Neon URL from step 3 |                                                                                                               |
+| `DATABASE_POOL_MAX`  | `5`                             | Real Postgres, so use a pool. Small per instance, because many instances exist                                |
+| `SIGNUP_INVITE_CODE` | something you invent            | Colleagues need it to create an account. Rotate it any time                                                   |
+| `CRON_SECRET`        | a long random string            | Vercel sends this to the ingestion route. **Without it the route refuses every request**, which is deliberate |
+| `SESSION_SECRET`     | a long random string            | Signs session cookies                                                                                         |
 
 Generate the two secrets:
 

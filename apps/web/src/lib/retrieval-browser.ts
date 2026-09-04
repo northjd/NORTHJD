@@ -81,7 +81,10 @@ export async function retrieveInBrowser(
     .slice(0, limit)
     .map((s) => s.claim);
 
-  const coverage = assessCoverage(terms, scored.map((c) => c.text));
+  const coverage = assessCoverage(
+    terms,
+    scored.map((c) => c.text),
+  );
 
   // buildPrompt is shared with the server, so the prompt a colleague copies is identical
   // whichever build they are looking at.

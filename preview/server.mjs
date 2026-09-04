@@ -20,7 +20,10 @@ import { readFileSync } from 'node:fs';
 import pg from 'pg';
 
 const PORT = 4321;
-const pool = new pg.Pool({ connectionString: 'postgres://postgres@127.0.0.1:55432/postgres', max: 1 });
+const pool = new pg.Pool({
+  connectionString: 'postgres://postgres@127.0.0.1:55432/postgres',
+  max: 1,
+});
 const q = async (sql, params = []) => (await pool.query(sql, params)).rows;
 
 // ── Companion retrieval (mirrors packages/intelligence/src/companion.ts) ─────
@@ -38,18 +41,106 @@ const QUESTION_NOISE = new RegExp(
   '\\b(' +
     [
       // interrogatives and function words
-      'what', 'which', 'who', 'whom', 'whose', 'when', 'where', 'why', 'how',
-      'is', 'are', 'was', 'were', 'be', 'been', 'do', 'does', 'did', 'has', 'have', 'had',
-      'the', 'a', 'an', 'of', 'in', 'on', 'for', 'to', 'with', 'that', 'this', 'these',
-      'those', 'it', 'its', 'my', 'me', 'you', 'your', 'i', 'we', 'our', 'their', 'there',
-      'any', 'some', 'more', 'most', 'much', 'many', 'about', 'from', 'into', 'over',
-      'please', 'can', 'could', 'would', 'should', 'may', 'might', 'will',
+      'what',
+      'which',
+      'who',
+      'whom',
+      'whose',
+      'when',
+      'where',
+      'why',
+      'how',
+      'is',
+      'are',
+      'was',
+      'were',
+      'be',
+      'been',
+      'do',
+      'does',
+      'did',
+      'has',
+      'have',
+      'had',
+      'the',
+      'a',
+      'an',
+      'of',
+      'in',
+      'on',
+      'for',
+      'to',
+      'with',
+      'that',
+      'this',
+      'these',
+      'those',
+      'it',
+      'its',
+      'my',
+      'me',
+      'you',
+      'your',
+      'i',
+      'we',
+      'our',
+      'their',
+      'there',
+      'any',
+      'some',
+      'more',
+      'most',
+      'much',
+      'many',
+      'about',
+      'from',
+      'into',
+      'over',
+      'please',
+      'can',
+      'could',
+      'would',
+      'should',
+      'may',
+      'might',
+      'will',
       // imperatives directed at the assistant
-      'tell', 'show', 'give', 'explain', 'describe', 'summarise', 'summarize',
-      'brief', 'prepare', 'teach', 'challenge', 'compare', 'analyse', 'analyze',
-      'list', 'find', 'search', 'look', 'help', 'let', 'make', 'get', 'know',
-      'think', 'consider', 'assume', 'claim', 'claims', 'question', 'answer',
-      'view', 'take', 'walk', 'talk', 'say', 'said',
+      'tell',
+      'show',
+      'give',
+      'explain',
+      'describe',
+      'summarise',
+      'summarize',
+      'brief',
+      'prepare',
+      'teach',
+      'challenge',
+      'compare',
+      'analyse',
+      'analyze',
+      'list',
+      'find',
+      'search',
+      'look',
+      'help',
+      'let',
+      'make',
+      'get',
+      'know',
+      'think',
+      'consider',
+      'assume',
+      'claim',
+      'claims',
+      'question',
+      'answer',
+      'view',
+      'take',
+      'walk',
+      'talk',
+      'say',
+      'said',
     ].join('|') +
     ')\\b',
   'gi',
@@ -100,13 +191,19 @@ async function queryCoverage(terms) {
 
 const termOverlap = (text, terms) => {
   const hay = text.toLowerCase();
-  return terms.filter((t) => hay.includes(t.toLowerCase().slice(0, Math.max(4, t.length - 2)))).length;
+  return terms.filter((t) => hay.includes(t.toLowerCase().slice(0, Math.max(4, t.length - 2))))
+    .length;
 };
 
 const FIRST_PARTY = (p) => String(p).startsWith('FIRST_PARTY');
 const INDEPENDENT = new Set([
-  'INDEPENDENT_BUSINESS_MEDIA', 'INDUSTRY_MEDIA', 'REGULATOR',
-  'PUBLIC_INSTITUTION', 'RESEARCH_INSTITUTION', 'ACADEMIC_SOURCE', 'LICENSED_PREMIUM',
+  'INDEPENDENT_BUSINESS_MEDIA',
+  'INDUSTRY_MEDIA',
+  'REGULATOR',
+  'PUBLIC_INSTITUTION',
+  'RESEARCH_INSTITUTION',
+  'ACADEMIC_SOURCE',
+  'LICENSED_PREMIUM',
 ]);
 
 async function answer({ question, mode }) {
@@ -115,12 +212,19 @@ async function answer({ question, mode }) {
 
   if (mode === 'capture_reflect') {
     return {
-      mode, asOf,
+      mode,
+      asOf,
       directAnswer:
         'Captured. This is stored as your own note, kept separate from verified source material — it will never be cited as evidence.',
-      facts: [], interpretations: [question], hypotheses: [], counterEvidence: [],
-      unknowns: [], starters: [], followUps: ['What should I investigate next on this?'],
-      citations: [], insufficient: false,
+      facts: [],
+      interpretations: [question],
+      hypotheses: [],
+      counterEvidence: [],
+      unknowns: [],
+      starters: [],
+      followUps: ['What should I investigate next on this?'],
+      citations: [],
+      insufficient: false,
     };
   }
 
@@ -146,7 +250,9 @@ async function answer({ question, mode }) {
 
   // Coverage gate first: if the sources do not contain the question's vocabulary, no
   // amount of per-claim filtering will produce a real answer.
-  const { coverage, missing } = terms.length ? await queryCoverage(terms) : { coverage: 1, missing: [] };
+  const { coverage, missing } = terms.length
+    ? await queryCoverage(terms)
+    : { coverage: 1, missing: [] };
   const covered = coverage >= COVERAGE_THRESHOLD;
 
   const priority = { FACT: 0, FORECAST: 1, INTERPRETATION: 2, UNVERIFIED_SIGNAL: 3 };
@@ -157,7 +263,10 @@ async function answer({ question, mode }) {
         .filter((r) => r.span_id && !seen.has(r.id) && (seen.add(r.id), true))
         // One matched term is enough now — the coverage gate above does the real work.
         .filter((r) => terms.length === 0 || termOverlap(r.text, terms) >= 1)
-        .sort((a, b) => (priority[a.claim_type] ?? 9) - (priority[b.claim_type] ?? 9) || b.rank - a.rank)
+        .sort(
+          (a, b) =>
+            (priority[a.claim_type] ?? 9) - (priority[b.claim_type] ?? 9) || b.rank - a.rank,
+        )
         .slice(0, 10);
 
   // Mode-aware insufficiency, as in the real engine.
@@ -185,16 +294,19 @@ async function answer({ question, mode }) {
   }
 
   const needsClaims = mode === 'explore_it' || mode === 'prepare_me';
-  const produced =
-    cited.length > 0 || extra.units.length > 0 || extra.insights.length > 0;
+  const produced = cited.length > 0 || extra.units.length > 0 || extra.insights.length > 0;
   const insufficient = needsClaims ? cited.length === 0 : !produced;
 
   if (insufficient) {
     return {
-      mode, asOf,
+      mode,
+      asOf,
       directAnswer:
         'I do not have sufficient verified evidence in the monitored sources to answer this reliably. Rather than answer from general knowledge, here is what is missing.',
-      facts: [], interpretations: [], hypotheses: [], counterEvidence: [],
+      facts: [],
+      interpretations: [],
+      hypotheses: [],
+      counterEvidence: [],
       unknowns: [
         missing.length
           ? `No monitored source mentions: ${missing.slice(0, 6).join(', ')}.`
@@ -202,15 +314,22 @@ async function answer({ question, mode }) {
         `Only ${Math.round(coverage * 100)}% of this question's vocabulary appears anywhere in the monitored sources.`,
         'Adding a source, or ingesting a specific URL, would let me answer it.',
       ],
-      starters: [], followUps: ['Which sources are currently monitored?'],
-      citations: [], insufficient: true,
+      starters: [],
+      followUps: ['Which sources are currently monitored?'],
+      citations: [],
+      insufficient: true,
     };
   }
 
   const citations = cited.map((c) => ({
-    claimId: c.id, sourceName: c.source_name, perspective: c.perspective,
-    documentTitle: c.doc_title, sourceUrl: c.doc_url,
-    publishedAt: c.published_at, evidenceStrength: c.evidence_strength, quote: c.quote,
+    claimId: c.id,
+    sourceName: c.source_name,
+    perspective: c.perspective,
+    documentTitle: c.doc_title,
+    sourceUrl: c.doc_url,
+    publishedAt: c.published_at,
+    evidenceStrength: c.evidence_strength,
+    quote: c.quote,
   }));
 
   const facts = cited
@@ -223,18 +342,21 @@ async function answer({ question, mode }) {
   ).size;
 
   const unknowns = [];
-  if (firstPartyOnly) unknowns.push('Every source here is first-party. Nothing has been independently confirmed.');
-  if (!cited.some((c) => c.quantified)) unknowns.push('None of the retrieved claims states a quantified outcome.');
-  unknowns.push('Only the monitored sources were searched; developments outside them are not visible.');
+  if (firstPartyOnly)
+    unknowns.push('Every source here is first-party. Nothing has been independently confirmed.');
+  if (!cited.some((c) => c.quantified))
+    unknowns.push('None of the retrieved claims states a quantified outcome.');
+  unknowns.push(
+    'Only the monitored sources were searched; developments outside them are not visible.',
+  );
 
   const sourceCount = new Set(cited.map((c) => c.source_name)).size;
   const asOfLine = `As of ${asOf.toLocaleDateString('en-GB', { dateStyle: 'long' })}, based on ${cited.length} evidenced claim${cited.length === 1 ? '' : 's'} from ${sourceCount} source${sourceCount === 1 ? '' : 's'}.`;
 
   const contradictionRows = cited.length
-    ? await q(
-        `select explanation from contradictions where claim_a_id = any($1::uuid[]) limit 4`,
-        [cited.map((c) => c.id)],
-      )
+    ? await q(`select explanation from contradictions where claim_a_id = any($1::uuid[]) limit 4`, [
+        cited.map((c) => c.id),
+      ])
     : [];
 
   const starters = cited.length
@@ -248,9 +370,16 @@ async function answer({ question, mode }) {
     : [];
 
   const base = {
-    mode, asOf, citations,
-    facts, counterEvidence: contradictionRows.map((c) => ({ text: c.explanation, citationIndexes: [] })),
-    unknowns, starters: [], followUps: [], hypotheses: [], interpretations: [],
+    mode,
+    asOf,
+    citations,
+    facts,
+    counterEvidence: contradictionRows.map((c) => ({ text: c.explanation, citationIndexes: [] })),
+    unknowns,
+    starters: [],
+    followUps: [],
+    hypotheses: [],
+    interpretations: [],
     insufficient: false,
   };
 
@@ -276,7 +405,9 @@ async function answer({ question, mode }) {
         interpretations: u
           ? mode === 'teach_me'
             ? (u.key_terms ?? []).map((t) => `${t.term}: ${t.definition}`)
-            : (u.structured_model ?? []).flatMap((s) => s.points.map((p) => `${s.heading}: ${p}`)).slice(0, 6)
+            : (u.structured_model ?? [])
+                .flatMap((s) => s.points.map((p) => `${s.heading}: ${p}`))
+                .slice(0, 6)
           : [],
         unknowns: u ? [...(u.common_misconceptions ?? []).slice(0, 2), ...unknowns] : unknowns,
         followUps: u ? (u.practical_questions ?? []).slice(0, 3) : [],
@@ -299,12 +430,20 @@ async function answer({ question, mode }) {
     case 'challenge_me': {
       const assumptions = [];
       if (firstPartyOnly)
-        assumptions.push('Assumption: the company’s own description is accurate and complete. Nothing here tests that.');
+        assumptions.push(
+          'Assumption: the company’s own description is accurate and complete. Nothing here tests that.',
+        );
       if (cited.some((c) => c.quantified))
-        assumptions.push('Assumption: the reported figures use a stable baseline. None of the sources states the baseline method.');
+        assumptions.push(
+          'Assumption: the reported figures use a stable baseline. None of the sources states the baseline method.',
+        );
       if (cited.some((c) => c.claim_type === 'FORECAST'))
-        assumptions.push('Assumption: stated intent becomes delivery. Announcements and outcomes are different claims.');
-      assumptions.push('Alternative explanation: the observed change is driven by market conditions rather than by the initiative described.');
+        assumptions.push(
+          'Assumption: stated intent becomes delivery. Announcements and outcomes are different claims.',
+        );
+      assumptions.push(
+        'Alternative explanation: the observed change is driven by market conditions rather than by the initiative described.',
+      );
       return {
         ...base,
         directAnswer:
@@ -313,7 +452,10 @@ async function answer({ question, mode }) {
             : `No contradicting evidence exists in the monitored sources — which is not the same as confirmation. ${asOfLine}`,
         facts: facts.slice(0, 3),
         interpretations: assumptions,
-        unknowns: [...unknowns, 'Absence of contradiction in a limited source set is weak evidence of correctness.'],
+        unknowns: [
+          ...unknowns,
+          'Absence of contradiction in a limited source set is weak evidence of correctness.',
+        ],
         followUps: ['What would change my mind?', 'What is the weakest assumption here?'],
       };
     }
@@ -322,10 +464,18 @@ async function answer({ question, mode }) {
       return {
         ...base,
         directAnswer: `${facts.length} evidenced statement${facts.length === 1 ? '' : 's'} bear on this. ${asOfLine}`,
-        interpretations: cited.filter((c) => c.claim_type === 'INTERPRETATION').slice(0, 3).map((c) => c.text),
-        hypotheses: cited.filter((c) => c.claim_type === 'FORECAST').slice(0, 3)
+        interpretations: cited
+          .filter((c) => c.claim_type === 'INTERPRETATION')
+          .slice(0, 3)
+          .map((c) => c.text),
+        hypotheses: cited
+          .filter((c) => c.claim_type === 'FORECAST')
+          .slice(0, 3)
           .map((c) => `Stated as a forward-looking claim by the source: ${c.text}`),
-        followUps: ['Which of these is independently confirmed?', 'Show me the strongest evidence only.'],
+        followUps: [
+          'Which of these is independently confirmed?',
+          'Show me the strongest evidence only.',
+        ],
       };
   }
 }
@@ -403,25 +553,61 @@ async function filterInsights(f) {
     where.push(clause.replace('$?', `$${params.length}`));
   };
 
-  const list = (v) => String(v).split(',').map((x) => x.trim()).filter(Boolean);
+  const list = (v) =>
+    String(v)
+      .split(',')
+      .map((x) => x.trim())
+      .filter(Boolean);
 
-  if (f.industry) add(`exists (select 1 from event_taxonomy t where t.event_id = e.id and t.kind='industry' and t.slug = $?)`, f.industry);
-  if (f.industryIn) add(`exists (select 1 from event_taxonomy t where t.event_id = e.id and t.kind='industry' and t.slug = any($?::text[]))`, list(f.industryIn));
-  if (f.topicIn) add(`exists (select 1 from event_taxonomy t where t.event_id = e.id and t.kind='topic' and t.slug = any($?::text[]))`, list(f.topicIn));
-  if (f.entityIn) add(`exists (select 1 from event_entities ee join entities en on en.id = ee.entity_id where ee.event_id = e.id and en.slug = any($?::text[]))`, list(f.entityIn));
+  if (f.industry)
+    add(
+      `exists (select 1 from event_taxonomy t where t.event_id = e.id and t.kind='industry' and t.slug = $?)`,
+      f.industry,
+    );
+  if (f.industryIn)
+    add(
+      `exists (select 1 from event_taxonomy t where t.event_id = e.id and t.kind='industry' and t.slug = any($?::text[]))`,
+      list(f.industryIn),
+    );
+  if (f.topicIn)
+    add(
+      `exists (select 1 from event_taxonomy t where t.event_id = e.id and t.kind='topic' and t.slug = any($?::text[]))`,
+      list(f.topicIn),
+    );
+  if (f.entityIn)
+    add(
+      `exists (select 1 from event_entities ee join entities en on en.id = ee.entity_id where ee.event_id = e.id and en.slug = any($?::text[]))`,
+      list(f.entityIn),
+    );
   if (f.maturityIn) add(`e.case_maturity = any($?::case_maturity[])`, list(f.maturityIn));
   if (f.evidenceIn) add(`e.evidence_strength = any($?::evidence_strength[])`, list(f.evidenceIn));
   if (f.eventTypeIn) add(`e.event_type = any($?::event_type[])`, list(f.eventTypeIn));
   if (f.impactIn) add(`e.strategic_impact = any($?::strategic_impact[])`, list(f.impactIn));
-  if (f.topic) add(`exists (select 1 from event_taxonomy t where t.event_id = e.id and t.kind='topic' and t.slug = $?)`, f.topic);
-  if (f.technology) add(`exists (select 1 from event_taxonomy t where t.event_id = e.id and t.kind='technology' and t.slug = $?)`, f.technology);
-  if (f.entity) add(`exists (select 1 from event_entities ee join entities en on en.id = ee.entity_id where ee.event_id = e.id and en.slug = $?)`, f.entity);
+  if (f.topic)
+    add(
+      `exists (select 1 from event_taxonomy t where t.event_id = e.id and t.kind='topic' and t.slug = $?)`,
+      f.topic,
+    );
+  if (f.technology)
+    add(
+      `exists (select 1 from event_taxonomy t where t.event_id = e.id and t.kind='technology' and t.slug = $?)`,
+      f.technology,
+    );
+  if (f.entity)
+    add(
+      `exists (select 1 from event_entities ee join entities en on en.id = ee.entity_id where ee.event_id = e.id and en.slug = $?)`,
+      f.entity,
+    );
   if (f.eventType) add(`e.event_type = $?`, f.eventType);
   if (f.maturity) add(`e.case_maturity = $?`, f.maturity);
   if (f.evidence) add(`e.evidence_strength = $?`, f.evidence);
   if (f.impact) add(`e.strategic_impact = $?`, f.impact);
   if (f.novelty) add(`i.novelty = $?`, f.novelty);
-  if (f.days) add(`coalesce(e.event_at, e.first_reported_at) >= now() - ($? || ' days')::interval`, String(f.days));
+  if (f.days)
+    add(
+      `coalesce(e.event_at, e.first_reported_at) >= now() - ($? || ' days')::interval`,
+      String(f.days),
+    );
   if (f.maxMinutes) add(`i.estimated_reading_minutes <= $?`, Number(f.maxMinutes));
   if (f.independentOnly === 'true') where.push('e.independent_source_count > 0');
   if (f.excludeDemo === 'true') where.push('i.is_demo = false');
@@ -469,13 +655,27 @@ async function filterInsights(f) {
 
 async function facets() {
   const [industries, topics, technologies, entities, eventTypes, maturities, evidences] = [
-    await q(`select distinct t.slug, i.name from event_taxonomy t join industries i on i.slug=t.slug where t.kind='industry' order by i.name`),
-    await q(`select distinct t.slug, tp.name from event_taxonomy t join topics tp on tp.slug=t.slug where t.kind='topic' order by tp.name`),
-    await q(`select distinct t.slug, te.name from event_taxonomy t join technologies te on te.slug=t.slug where t.kind='technology' order by te.name`),
-    await q(`select en.slug, en.name, count(*)::int n from event_entities ee join entities en on en.id=ee.entity_id group by 1,2 order by n desc limit 24`),
-    await q(`select event_type slug, event_type name, count(*)::int n from events group by 1 order by n desc`),
-    await q(`select case_maturity slug, case_maturity name, count(*)::int n from events group by 1 order by n desc`),
-    await q(`select evidence_strength slug, evidence_strength name, count(*)::int n from events group by 1 order by n desc`),
+    await q(
+      `select distinct t.slug, i.name from event_taxonomy t join industries i on i.slug=t.slug where t.kind='industry' order by i.name`,
+    ),
+    await q(
+      `select distinct t.slug, tp.name from event_taxonomy t join topics tp on tp.slug=t.slug where t.kind='topic' order by tp.name`,
+    ),
+    await q(
+      `select distinct t.slug, te.name from event_taxonomy t join technologies te on te.slug=t.slug where t.kind='technology' order by te.name`,
+    ),
+    await q(
+      `select en.slug, en.name, count(*)::int n from event_entities ee join entities en on en.id=ee.entity_id group by 1,2 order by n desc limit 24`,
+    ),
+    await q(
+      `select event_type slug, event_type name, count(*)::int n from events group by 1 order by n desc`,
+    ),
+    await q(
+      `select case_maturity slug, case_maturity name, count(*)::int n from events group by 1 order by n desc`,
+    ),
+    await q(
+      `select evidence_strength slug, evidence_strength name, count(*)::int n from events group by 1 order by n desc`,
+    ),
   ];
   return { industries, topics, technologies, entities, eventTypes, maturities, evidences };
 }
@@ -507,11 +707,12 @@ createServer(async (req, res) => {
     if (url.pathname === '/api/facets') return json(await facets());
 
     if (url.pathname === '/api/profile') {
-      const profile = (
-        await q(`select role, industry_slugs, topic_slugs, technology_slugs,
+      const profile =
+        (
+          await q(`select role, industry_slugs, topic_slugs, technology_slugs,
                         daily_reading_minutes, preferred_depth
                  from user_profiles limit 1`)
-      )[0] ?? {};
+        )[0] ?? {};
       const watchlist = await q(
         `select en.slug, en.name from watchlist_items wi
          join entities en on en.id = wi.entity_id limit 12`,
@@ -718,8 +919,10 @@ createServer(async (req, res) => {
       const industryIsInferred = !industries.length && profileIndustries.length > 0;
 
       const [{ names: industryNames } = { names: null }] = industrySlugs.length
-        ? await q(`select string_agg(name, ', ') names from industries where slug = any($1::text[])`,
-                  [industrySlugs])
+        ? await q(
+            `select string_agg(name, ', ') names from industries where slug = any($1::text[])`,
+            [industrySlugs],
+          )
         : [{ names: null }];
 
       const EVENT_COLUMNS = `e.id, e.title, e.case_maturity, e.evidence_strength, e.event_at,
@@ -1021,11 +1224,22 @@ createServer(async (req, res) => {
           (select count(*)::int from claims where claim_type='FORECAST') forecasts`)
       )[0];
 
-      return json({ stated, awaitingScale, unconfirmed, disputed, hypotheses, reversals, quiet, counts });
+      return json({
+        stated,
+        awaitingScale,
+        unconfirmed,
+        disputed,
+        hypotheses,
+        reversals,
+        quiet,
+        counts,
+      });
     }
 
     if (url.pathname === '/api/learn') {
-      const paths = await q(`select id, slug, name, description from learning_paths order by position`);
+      const paths = await q(
+        `select id, slug, name, description from learning_paths order by position`,
+      );
       const units = await q(
         `select u.id, u.slug, u.title, u.objective, u.depth, u.estimated_minutes,
                 u.path_id, u.last_reviewed_at, (u.knowledge_check is not null) has_check,
@@ -1042,7 +1256,9 @@ createServer(async (req, res) => {
 
     if (url.pathname === '/api/library') {
       return json({
-        notes: await q(`select title, body, created_at from notes order by created_at desc limit 20`),
+        notes: await q(
+          `select title, body, created_at from notes order by created_at desc limit 20`,
+        ),
         saved: await q(
           `select i.id, i.headline, i.takeaway from saved_insights s
            join insights i on i.id = s.insight_id order by s.created_at desc limit 20`,
@@ -1140,7 +1356,11 @@ createServer(async (req, res) => {
     }
 
     if (url.pathname === '/api/maturity-mix') {
-      return json(await q(`select case_maturity slug, count(*)::int n from events group by 1 order by n desc`));
+      return json(
+        await q(
+          `select case_maturity slug, count(*)::int n from events group by 1 order by n desc`,
+        ),
+      );
     }
 
     if (url.pathname === '/api/insight' && url.searchParams.get('id')) {
@@ -1170,13 +1390,17 @@ createServer(async (req, res) => {
          where ec.event_id=$1 order by c.claim_type, c.confidence desc`,
         [insight.event_id],
       );
-      const apps = await q(`select kind, text from conversation_applications where insight_id=$1`, [id]);
+      const apps = await q(`select kind, text from conversation_applications where insight_id=$1`, [
+        id,
+      ]);
       const conns = await q(
         `select lc.explanation, c.name from learning_connections lc
          join learning_concepts c on c.id=lc.concept_id where lc.insight_id=$1 limit 6`,
         [id],
       );
-      const conflicts = await q(`select explanation from contradictions where event_id=$1`, [insight.event_id]);
+      const conflicts = await q(`select explanation from contradictions where event_id=$1`, [
+        insight.event_id,
+      ]);
       return json({ insight, claims, apps, conns, conflicts });
     }
 
@@ -1188,7 +1412,9 @@ createServer(async (req, res) => {
       });
       const { question, mode } = JSON.parse(body || '{}');
       if (!question || !String(question).trim()) return json({ error: 'empty question' }, 400);
-      return json(await answer({ question: String(question).slice(0, 2000), mode: mode || 'explore_it' }));
+      return json(
+        await answer({ question: String(question).slice(0, 2000), mode: mode || 'explore_it' }),
+      );
     }
 
     res.writeHead(404, { 'content-type': 'text/plain' });

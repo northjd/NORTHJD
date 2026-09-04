@@ -35,13 +35,13 @@ connector health to `disabled`, and records the reason.
 
 ## Rights statuses
 
-| Status | Fetch? | Retain |
-|---|---|---|
-| `approved` | yes | up to the policy's storage scope |
-| `metadata_only` | yes | headline, link, dates — no body |
-| `pending_review` | **no** | — |
-| `restricted` | **no** | — |
-| `denied` | **no** | — |
+| Status           | Fetch? | Retain                           |
+| ---------------- | ------ | -------------------------------- |
+| `approved`       | yes    | up to the policy's storage scope |
+| `metadata_only`  | yes    | headline, link, dates — no body  |
+| `pending_review` | **no** | —                                |
+| `restricted`     | **no** | —                                |
+| `denied`         | **no** | —                                |
 
 Belt and braces: the seed sets `isActive: connector.isActive && policy.allowedToIngest`,
 so a connector cannot be active on a source whose policy forbids ingestion even if the
@@ -52,14 +52,14 @@ combination.
 
 ## Storage scope caps what is written
 
-`applyStorageScope` is applied to every document *after* the connector returns, so what
+`applyStorageScope` is applied to every document _after_ the connector returns, so what
 gets written is capped by the policy regardless of what the connector produced:
 
-| Scope | `normalizedText` | Evidence spans possible? |
-|---|---|---|
-| `full_text` | the body | yes |
-| `excerpt` | a short extract | yes, short |
-| `metadata` | **empty** | **no** |
+| Scope       | `normalizedText` | Evidence spans possible? |
+| ----------- | ---------------- | ------------------------ |
+| `full_text` | the body         | yes                      |
+| `excerpt`   | a short extract  | yes, short               |
+| `metadata`  | **empty**        | **no**                   |
 
 `canExtractEvidence(scope)` returns false for `metadata`, and the pipeline skips claim
 extraction entirely for those documents. A metadata-only source can still produce an

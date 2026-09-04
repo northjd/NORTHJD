@@ -101,7 +101,7 @@ export async function searchEntities(term = '', limit = 60): Promise<EntityMatch
     where ${sql.param(term.trim())} = ''
        or ${compare('en.name')}
        or ${compare('en.slug')}
-       or ${compare('coalesce(en.legal_name, \'\')')}
+       or ${compare("coalesce(en.legal_name, '')")}
        or exists (
             select 1 from entity_aliases al
              where al.entity_id = en.id

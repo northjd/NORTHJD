@@ -78,7 +78,9 @@ const entityNames = sql<string | null>`(
   where ee.event_id = ${events.id}
 )`;
 
-const ageDays = sql<number | null>`extract(day from now() - coalesce(${events.eventAt}, ${events.firstReportedAt}))::int`;
+const ageDays = sql<
+  number | null
+>`extract(day from now() - coalesce(${events.eventAt}, ${events.firstReportedAt}))::int`;
 
 const watchEventColumns = {
   eventId: events.id,
@@ -168,7 +170,9 @@ export async function queryWatchBoard(workspaceId: string): Promise<WatchBoard> 
     })
     .from(conversationApplications)
     .innerJoin(insights, eq(insights.id, conversationApplications.insightId))
-    .where(and(eq(conversationApplications.kind, 'hypothesis'), eq(insights.workspaceId, workspaceId)))
+    .where(
+      and(eq(conversationApplications.kind, 'hypothesis'), eq(insights.workspaceId, workspaceId)),
+    )
     .limit(10);
 
   const reversals = await db()

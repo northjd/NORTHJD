@@ -13,13 +13,48 @@ import type { CompanionMode, CompanionResponse, DepthLevel, ResponseLength } fro
  */
 
 const MODES: { mode: CompanionMode; label: string; hint: string; placeholder: string }[] = [
-  { mode: 'brief_me', label: 'Brief me', hint: 'A time-boxed update', placeholder: 'Brief me on what changed since yesterday' },
-  { mode: 'explain_it', label: 'Explain it', hint: 'Fundamentals and mechanics', placeholder: 'How do fashion retailers make money?' },
-  { mode: 'explore_it', label: 'Explore it', hint: 'Evidence-grounded research', placeholder: 'Which companies are scaling AI beyond pilots?' },
-  { mode: 'prepare_me', label: 'Prepare me', hint: 'For a specific conversation', placeholder: 'Prepare me for a discussion with a fashion retail COO' },
-  { mode: 'challenge_me', label: 'Challenge me', hint: 'Counter-arguments and weak assumptions', placeholder: 'Challenge the idea that AI allocation reduces markdown' },
-  { mode: 'teach_me', label: 'Teach me', hint: 'Structured learning', placeholder: 'Teach me the economics of fashion retail' },
-  { mode: 'capture_reflect', label: 'Capture', hint: 'Save a thought as your own note', placeholder: 'My view: the constraint is decision rights, not models' },
+  {
+    mode: 'brief_me',
+    label: 'Brief me',
+    hint: 'A time-boxed update',
+    placeholder: 'Brief me on what changed since yesterday',
+  },
+  {
+    mode: 'explain_it',
+    label: 'Explain it',
+    hint: 'Fundamentals and mechanics',
+    placeholder: 'How do fashion retailers make money?',
+  },
+  {
+    mode: 'explore_it',
+    label: 'Explore it',
+    hint: 'Evidence-grounded research',
+    placeholder: 'Which companies are scaling AI beyond pilots?',
+  },
+  {
+    mode: 'prepare_me',
+    label: 'Prepare me',
+    hint: 'For a specific conversation',
+    placeholder: 'Prepare me for a discussion with a fashion retail COO',
+  },
+  {
+    mode: 'challenge_me',
+    label: 'Challenge me',
+    hint: 'Counter-arguments and weak assumptions',
+    placeholder: 'Challenge the idea that AI allocation reduces markdown',
+  },
+  {
+    mode: 'teach_me',
+    label: 'Teach me',
+    hint: 'Structured learning',
+    placeholder: 'Teach me the economics of fashion retail',
+  },
+  {
+    mode: 'capture_reflect',
+    label: 'Capture',
+    hint: 'Save a thought as your own note',
+    placeholder: 'My view: the constraint is decision rights, not models',
+  },
 ];
 
 const LENGTHS: { value: ResponseLength; label: string }[] = [
@@ -116,8 +151,7 @@ export function CompanionPanel({
       });
 
       const payload = (await res.json()) as
-        | { conversationId: string; response: CompanionResponse }
-        | { error: string };
+        { conversationId: string; response: CompanionResponse } | { error: string };
 
       if (!res.ok || 'error' in payload) {
         setError('error' in payload ? payload.error : 'The Companion could not answer that.');
@@ -265,8 +299,8 @@ export function CompanionPanel({
 
       {!voiceSupported ? (
         <p className="text-[12px] text-[var(--text-subtle)]">
-          Voice input is not available in this browser. The Companion works the same by typing — voice
-          and text share one answering path and one evidence model.
+          Voice input is not available in this browser. The Companion works the same by typing —
+          voice and text share one answering path and one evidence model.
         </p>
       ) : null}
 
@@ -284,7 +318,10 @@ export function CompanionPanel({
       <div className={`space-y-4 ${compact ? 'max-h-[50vh] overflow-y-auto' : ''}`}>
         {turns.map((turn, i) =>
           turn.role === 'user' ? (
-            <p key={i} className="rounded bg-[var(--surface-inset)] px-3 py-2 text-[14px] font-medium">
+            <p
+              key={i}
+              className="rounded bg-[var(--surface-inset)] px-3 py-2 text-[14px] font-medium"
+            >
               {turn.text}
             </p>
           ) : (
@@ -341,7 +378,9 @@ function AnswerView({
             onClick={speaking ? onStop : onSpeak}
             className="rounded border border-[var(--border)] px-2 py-1 text-[12px]"
           >
-            {speaking ? `Stop (${response.voice.estimatedSeconds}s)` : `Read aloud (${response.voice.estimatedSeconds}s)`}
+            {speaking
+              ? `Stop (${response.voice.estimatedSeconds}s)`
+              : `Read aloud (${response.voice.estimatedSeconds}s)`}
           </button>
         ) : null}
       </div>
@@ -477,11 +516,16 @@ function AnswerView({
                 <span className="text-[var(--text-subtle)]">
                   — {citation.sourceName} ·{' '}
                   {citation.publishedAt
-                    ? new Date(citation.publishedAt).toLocaleDateString('en-GB', { dateStyle: 'medium' })
+                    ? new Date(citation.publishedAt).toLocaleDateString('en-GB', {
+                        dateStyle: 'medium',
+                      })
                     : 'undated'}{' '}
                   · {citation.evidenceStrength.replace(/_/g, ' ').toLowerCase()}
                 </span>{' '}
-                <a href={`/evidence/${citation.claimId}`} className="text-[var(--accent)] underline underline-offset-2">
+                <a
+                  href={`/evidence/${citation.claimId}`}
+                  className="text-[var(--accent)] underline underline-offset-2"
+                >
                   passage
                 </a>
               </li>

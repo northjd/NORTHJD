@@ -48,9 +48,10 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const inputMode = typeof (body as { inputMode?: unknown }).inputMode === 'string'
-    ? String((body as { inputMode: string }).inputMode)
-    : 'text';
+  const inputMode =
+    typeof (body as { inputMode?: unknown }).inputMode === 'string'
+      ? String((body as { inputMode: string }).inputMode)
+      : 'text';
 
   const started = Date.now();
   let response;

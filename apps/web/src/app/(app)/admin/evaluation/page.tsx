@@ -35,7 +35,9 @@ export default async function EvaluationPage() {
             {results.passed}/{results.total}
           </p>
           <Badge tone={results.passed === results.total ? 'verified' : 'alert'}>
-            {results.passed === results.total ? 'All checks pass' : `${results.total - results.passed} failing`}
+            {results.passed === results.total
+              ? 'All checks pass'
+              : `${results.total - results.passed} failing`}
           </Badge>
         </div>
       </Card>
@@ -50,7 +52,9 @@ export default async function EvaluationPage() {
                   <span className="text-[13px] font-medium">{c.name}</span>
                   <Badge tone={c.passed ? 'verified' : 'alert'}>{c.passed ? 'pass' : 'fail'}</Badge>
                 </div>
-                <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">{c.detail}</p>
+                <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">
+                  {c.detail}
+                </p>
               </li>
             ))}
           </ul>

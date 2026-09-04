@@ -33,8 +33,8 @@ export default async function CompanionPage() {
           <h1 className="text-[24px] font-semibold tracking-tight">Companion</h1>
           <p className="mt-1 max-w-[70ch] text-[14px] leading-relaxed text-[var(--text-muted)]">
             Ask about anything in the monitored sources. Answers separate verified facts from
-            interpretation, cite the exact passage behind every factual line, and say so plainly when
-            the evidence is not there.
+            interpretation, cite the exact passage behind every factual line, and say so plainly
+            when the evidence is not there.
           </p>
         </header>
         <CompanionPanel />
@@ -50,7 +50,9 @@ export default async function CompanionPage() {
                   <span className="text-[13px] font-medium">{cap.label}</span>
                   <StatusBadge status={cap.status} />
                 </div>
-                <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">{cap.detail}</p>
+                <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">
+                  {cap.detail}
+                </p>
               </li>
             ))}
           </ul>
@@ -66,7 +68,10 @@ export default async function CompanionPage() {
             <ul className="space-y-2">
               {conversations.map((c) => (
                 <li key={c.id} className="text-[13px]">
-                  <Link href={`/library/conversations/${c.id}`} className="hover:underline underline-offset-2">
+                  <Link
+                    href={`/library/conversations/${c.id}`}
+                    className="hover:underline underline-offset-2"
+                  >
                     {c.title || 'Untitled'}
                   </Link>
                   <p className="text-[11px] text-[var(--text-subtle)]">

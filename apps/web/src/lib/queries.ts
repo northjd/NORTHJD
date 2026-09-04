@@ -10,11 +10,36 @@ import { db, schema } from '@mios/database';
 import type { RankableItem, UserRankingContext } from '@mios/ranking';
 
 const {
-  briefItems, claimEvidence, claims, conversationApplications, dailyBriefs, documentVersions,
-  entities, eventClaims, eventEntities, eventTaxonomy, events, evidenceSpans, industries,
-  insights, kpis, learningConcepts, learningConnections, learningPaths, learningUnits,
-  rawDocuments, sourceConnectors, sourcePolicies, sources, userFeedback, userKnowledgeStates,
-  userProfiles, userMissions, valueChainStages, watchlistItems, watchlists,
+  briefItems,
+  claimEvidence,
+  claims,
+  conversationApplications,
+  dailyBriefs,
+  documentVersions,
+  entities,
+  eventClaims,
+  eventEntities,
+  eventTaxonomy,
+  events,
+  evidenceSpans,
+  industries,
+  insights,
+  kpis,
+  learningConcepts,
+  learningConnections,
+  learningPaths,
+  learningUnits,
+  rawDocuments,
+  sourceConnectors,
+  sourcePolicies,
+  sources,
+  userFeedback,
+  userKnowledgeStates,
+  userProfiles,
+  userMissions,
+  valueChainStages,
+  watchlistItems,
+  watchlists,
 } = schema;
 
 export async function getProfile(userId: string, workspaceId: string) {
@@ -48,7 +73,12 @@ export async function getWatchedEntityIds(
     .select({ entityId: watchlistItems.entityId, relationship: watchlistItems.relationship })
     .from(watchlistItems)
     .innerJoin(watchlists, eq(watchlists.id, watchlistItems.watchlistId))
-    .where(and(eq(watchlists.workspaceId, workspaceId), or(eq(watchlists.userId, userId), isNull(watchlists.userId))));
+    .where(
+      and(
+        eq(watchlists.workspaceId, workspaceId),
+        or(eq(watchlists.userId, userId), isNull(watchlists.userId)),
+      ),
+    );
 
   const all = rows.map((r) => r.entityId).filter((id): id is string => id !== null);
   const accounts = rows
@@ -72,7 +102,10 @@ export async function getKnowledgeGapSlugs(userId: string, workspaceId: string):
       ),
     );
   return known
-    .filter((k) => !k.state || k.state === 'unseen' || k.state === 'introduced' || k.state === 'needs_refresh')
+    .filter(
+      (k) =>
+        !k.state || k.state === 'unseen' || k.state === 'introduced' || k.state === 'needs_refresh',
+    )
     .map((k) => k.slug);
 }
 
@@ -85,7 +118,10 @@ export interface InsightListRow extends RankableItem {
 }
 
 /** Candidate pool for ranking. Bounded, recent, and never another workspace's. */
-export async function getCandidateInsights(workspaceId: string, limit = 150): Promise<InsightListRow[]> {
+export async function getCandidateInsights(
+  workspaceId: string,
+  limit = 150,
+): Promise<InsightListRow[]> {
   const rows = await db()
     .select({
       insightId: insights.id,
@@ -144,9 +180,18 @@ export async function getCandidateInsights(workspaceId: string, limit = 150): Pr
     return map;
   };
 
-  const industryMap = byEvent(taxonomy.filter((t) => t.kind === 'industry'), (r: { slug: string }) => r.slug);
-  const topicMap = byEvent(taxonomy.filter((t) => t.kind === 'topic'), (r: { slug: string }) => r.slug);
-  const techMap = byEvent(taxonomy.filter((t) => t.kind === 'technology'), (r: { slug: string }) => r.slug);
+  const industryMap = byEvent(
+    taxonomy.filter((t) => t.kind === 'industry'),
+    (r: { slug: string }) => r.slug,
+  );
+  const topicMap = byEvent(
+    taxonomy.filter((t) => t.kind === 'topic'),
+    (r: { slug: string }) => r.slug,
+  );
+  const techMap = byEvent(
+    taxonomy.filter((t) => t.kind === 'technology'),
+    (r: { slug: string }) => r.slug,
+  );
   const entityMap = byEvent(entityRows, (r: { entityId: string }) => r.entityId);
   const conceptMap = byEvent(conceptRows, (r: { slug: string }) => r.slug);
 
@@ -271,7 +316,13 @@ export async function getInsightDetail(workspaceId: string, insightId: string) {
     .where(eq(learningConnections.insightId, insight.id));
 
   const entityRows = await db()
-    .select({ id: entities.id, name: entities.name, slug: entities.slug, kind: entities.kind, role: eventEntities.role })
+    .select({
+      id: entities.id,
+      name: entities.name,
+      slug: entities.slug,
+      kind: entities.kind,
+      role: eventEntities.role,
+    })
     .from(eventEntities)
     .innerJoin(entities, eq(entities.id, eventEntities.entityId))
     .where(eq(eventEntities.eventId, insight.eventId));
@@ -370,7 +421,13 @@ export async function getIndustryPage(slug: string) {
     })
     .from(eventTaxonomy)
     .innerJoin(events, eq(events.id, eventTaxonomy.eventId))
-    .where(and(eq(eventTaxonomy.kind, 'industry'), eq(eventTaxonomy.slug, slug), eq(events.isSuppressed, false)))
+    .where(
+      and(
+        eq(eventTaxonomy.kind, 'industry'),
+        eq(eventTaxonomy.slug, slug),
+        eq(events.isSuppressed, false),
+      ),
+    )
     .orderBy(desc(sql`coalesce(${events.eventAt}, ${events.firstReportedAt})`))
     .limit(12);
 
@@ -407,9 +464,15 @@ export async function getCoverage() {
     .leftJoin(sourceConnectors, eq(sourceConnectors.sourceId, sources.id))
     .orderBy(sources.name);
 
-  const [docCount] = await db().select({ n: sql<number>`count(*)::int` }).from(rawDocuments);
-  const [claimCount] = await db().select({ n: sql<number>`count(*)::int` }).from(claims);
-  const [eventCount] = await db().select({ n: sql<number>`count(*)::int` }).from(events);
+  const [docCount] = await db()
+    .select({ n: sql<number>`count(*)::int` })
+    .from(rawDocuments);
+  const [claimCount] = await db()
+    .select({ n: sql<number>`count(*)::int` })
+    .from(claims);
+  const [eventCount] = await db()
+    .select({ n: sql<number>`count(*)::int` })
+    .from(events);
   const [unevidenced] = await db()
     .select({ n: sql<number>`count(*)::int` })
     .from(claims)

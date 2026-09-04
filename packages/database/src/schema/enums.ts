@@ -64,7 +64,10 @@ export const classificationOriginEnum = pgEnum('classification_origin', CLASSIFI
 
 export const depthLevelEnum = pgEnum('depth_level', DEPTH_LEVELS);
 export const knowledgeStateEnum = pgEnum('knowledge_state', KNOWLEDGE_STATES);
-export const knowledgeEvidenceKindEnum = pgEnum('knowledge_evidence_kind', KNOWLEDGE_EVIDENCE_KINDS);
+export const knowledgeEvidenceKindEnum = pgEnum(
+  'knowledge_evidence_kind',
+  KNOWLEDGE_EVIDENCE_KINDS,
+);
 export const learningConnectionKindEnum = pgEnum(
   'learning_connection_kind',
   LEARNING_CONNECTION_KINDS,

@@ -39,7 +39,10 @@ export default defineConfig({
     locale: 'en-GB',
   },
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 960 } } },
+    {
+      name: 'desktop',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 960 } },
+    },
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
   ],
   webServer: {

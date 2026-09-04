@@ -47,7 +47,10 @@ export async function POST(request: Request) {
     },
   });
 
-  const coverage = assessCoverage(queryTerms(question), claims.map((c) => c.text));
+  const coverage = assessCoverage(
+    queryTerms(question),
+    claims.map((c) => c.text),
+  );
   const prompt = buildPrompt(question, claims, mode);
 
   const worthAnswering = isWorthAnswering(claims.length, coverage.ratio);

@@ -156,9 +156,8 @@ export function AskPanel({ initialQuestion = '' }: { initialQuestion?: string })
               {result.coverage.missing.length > 0
                 ? ` Nothing mentions: ${result.coverage.missing.join(', ')}.`
                 : ''}{' '}
-              A prompt built on nothing would invite a confident answer assembled from
-              memory, which is the failure this product exists to prevent — so there is
-              no prompt to copy.
+              A prompt built on nothing would invite a confident answer assembled from memory, which
+              is the failure this product exists to prevent — so there is no prompt to copy.
             </p>
             <p className="mt-2 text-[12.5px] text-[var(--text-subtle)]">
               Registering a source for this would change it.{' '}
@@ -195,10 +194,10 @@ export function AskPanel({ initialQuestion = '' }: { initialQuestion?: string })
             </div>
 
             <p className="mt-3 max-w-[72ch] text-[12.5px] leading-relaxed text-[var(--text-subtle)]">
-              Paste it into Claude. The prompt carries only these sourced claims and tells
-              Claude to cite them, to separate evidence from inference, to treat
-              self-reported items as claims rather than findings, and to say plainly when
-              the evidence does not answer the question.
+              Paste it into Claude. The prompt carries only these sourced claims and tells Claude to
+              cite them, to separate evidence from inference, to treat self-reported items as claims
+              rather than findings, and to say plainly when the evidence does not answer the
+              question.
             </p>
 
             <h3 className="t-rule mt-7">What Claude will be given</h3>

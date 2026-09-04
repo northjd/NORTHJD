@@ -8,33 +8,33 @@ diagnosable rather than mysterious.
 
 ## Stages
 
-| # | Stage | State | Method |
-|---|---|---|---|
-| 1 | Source discovery | Manual | Feeds probed and reviewed by hand; recorded in the registry |
-| 2 | Rights validation | **Implemented** | `evaluateRights` before any fetch |
-| 3 | Ingestion | **Implemented** | SSRF-guarded fetcher, conditional GET via ETag |
-| 4 | Document versioning | **Implemented** | Content hash; new version on material change |
-| 5 | Metadata extraction | **Implemented** | Feed fields; og/meta tags for manual URLs |
-| 6 | Language detection | Partial | Source-declared; no per-document detection |
-| 7 | Content normalisation | **Implemented** | `normalizeText`, idempotent, offset-defining |
-| 8 | Duplicate detection | **Implemented** | Token fingerprint plus per-source URL uniqueness |
-| 9 | Entity extraction | **Implemented** | Alias matching against the seeded entity set |
-| 10 | Entity resolution | **Implemented** | Ambiguity guard requiring corroboration |
-| 11 | Topic classification | **Implemented** | Whole-word taxonomy matching |
-| 12 | Capability classification | **Implemented** | Same mechanism |
-| 13 | Claim extraction | **Implemented** | Sentence-level, verbatim, offset-exact |
-| 14 | Evidence-span linking | **Implemented** | Written in the same transaction as the claim |
-| 15 | Event extraction | **Implemented** | Type and maturity classification |
-| 16 | Event clustering | **Implemented** | Shared entities + time window + text overlap |
-| 17 | Contradiction detection | **Implemented** | Numeric and negation conflicts |
-| 18 | Maturity classification | **Implemented** | Asymmetric hype filter |
-| 19 | Signal generation | Partial | Placement recorded; **no curated trends to attach to** |
-| 20 | Insight generation | **Implemented** | Assembled from claims and taxonomy |
-| 21 | Learning connection | **Implemented** | Taxonomy match → concept |
-| 22 | Conversation application | **Implemented** | Parameterised templates |
-| 23 | Personalisation | **Implemented** | At brief-composition time, in `packages/ranking` |
-| 24 | Briefing generation | **Implemented** | Finite, stored once per day |
-| 25 | Quality evaluation | **Implemented** | 15 invariants, CLI and admin |
+| #   | Stage                     | State           | Method                                                      |
+| --- | ------------------------- | --------------- | ----------------------------------------------------------- |
+| 1   | Source discovery          | Manual          | Feeds probed and reviewed by hand; recorded in the registry |
+| 2   | Rights validation         | **Implemented** | `evaluateRights` before any fetch                           |
+| 3   | Ingestion                 | **Implemented** | SSRF-guarded fetcher, conditional GET via ETag              |
+| 4   | Document versioning       | **Implemented** | Content hash; new version on material change                |
+| 5   | Metadata extraction       | **Implemented** | Feed fields; og/meta tags for manual URLs                   |
+| 6   | Language detection        | Partial         | Source-declared; no per-document detection                  |
+| 7   | Content normalisation     | **Implemented** | `normalizeText`, idempotent, offset-defining                |
+| 8   | Duplicate detection       | **Implemented** | Token fingerprint plus per-source URL uniqueness            |
+| 9   | Entity extraction         | **Implemented** | Alias matching against the seeded entity set                |
+| 10  | Entity resolution         | **Implemented** | Ambiguity guard requiring corroboration                     |
+| 11  | Topic classification      | **Implemented** | Whole-word taxonomy matching                                |
+| 12  | Capability classification | **Implemented** | Same mechanism                                              |
+| 13  | Claim extraction          | **Implemented** | Sentence-level, verbatim, offset-exact                      |
+| 14  | Evidence-span linking     | **Implemented** | Written in the same transaction as the claim                |
+| 15  | Event extraction          | **Implemented** | Type and maturity classification                            |
+| 16  | Event clustering          | **Implemented** | Shared entities + time window + text overlap                |
+| 17  | Contradiction detection   | **Implemented** | Numeric and negation conflicts                              |
+| 18  | Maturity classification   | **Implemented** | Asymmetric hype filter                                      |
+| 19  | Signal generation         | Partial         | Placement recorded; **no curated trends to attach to**      |
+| 20  | Insight generation        | **Implemented** | Assembled from claims and taxonomy                          |
+| 21  | Learning connection       | **Implemented** | Taxonomy match → concept                                    |
+| 22  | Conversation application  | **Implemented** | Parameterised templates                                     |
+| 23  | Personalisation           | **Implemented** | At brief-composition time, in `packages/ranking`            |
+| 24  | Briefing generation       | **Implemented** | Finite, stored once per day                                 |
+| 25  | Quality evaluation        | **Implemented** | 15 invariants, CLI and admin                                |
 
 ---
 
@@ -49,7 +49,7 @@ testable and cannot hallucinate.
 
 What a model would genuinely add is prose quality in the interpretive sections, better
 conversation starters, and paraphrase-tolerant clustering. Those are the parts currently
-served by templates and lexical overlap — and the parts labelled *Extractive*.
+served by templates and lexical overlap — and the parts labelled _Extractive_.
 
 ---
 

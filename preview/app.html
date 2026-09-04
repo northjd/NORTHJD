@@ -1,677 +1,1828 @@
 <!doctype html>
 <html lang="en" data-theme="light">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Market Intelligence OS</title>
-<style>
-/* ─── Tokens ─────────────────────────────────────────────────────────────── */
-:root{
-  --bg:#f6f7f9; --panel:#fff; --panel-2:#fbfbfc; --inset:#f0f2f5;
-  --line:#e3e6eb; --line-2:#d3d8e0;
-  --ink:#0f1420; --ink-2:#414a5c; --ink-3:#6b7488;
-  --brand:#3455d1; --brand-2:#5b7cf0; --brand-soft:#edf2ff; --brand-line:#c8d7fb;
-  --good:#0f7a52; --good-soft:#e6f5ee;
-  --warn:#9a6212; --warn-soft:#fdf2e0;
-  --bad:#b3372c; --bad-soft:#fceceb;
-  --r:12px; --r-sm:8px;
-  --sh-1:0 1px 2px rgb(15 20 32/.05), 0 1px 3px rgb(15 20 32/.04);
-  --sh-2:0 2px 4px rgb(15 20 32/.05), 0 8px 24px -8px rgb(15 20 32/.12);
-  --sh-3:0 12px 48px -12px rgb(15 20 32/.28);
-}
-html[data-theme=dark]{
-  --bg:#0a0d14; --panel:#12161f; --panel-2:#161b26; --inset:#1c222f;
-  --line:#242b3a; --line-2:#333c4e;
-  --ink:#e9ecf2; --ink-2:#b0b8c8; --ink-3:#7d879b;
-  --brand:#7d9bff; --brand-2:#9db4ff; --brand-soft:#18223a; --brand-line:#2c3a5c;
-  --good:#4fc98d; --good-soft:#102a1f;
-  --warn:#e3a862; --warn-soft:#2b2113;
-  --bad:#f0796b; --bad-soft:#2c1614;
-  --sh-1:0 1px 2px rgb(0 0 0/.4);
-  --sh-2:0 2px 4px rgb(0 0 0/.3), 0 8px 24px -8px rgb(0 0 0/.6);
-  --sh-3:0 12px 48px -12px rgb(0 0 0/.8);
-}
-*{box-sizing:border-box}
-/* The hidden attribute must beat any explicit display rule — .cols sets display:grid,
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Market Intelligence OS</title>
+    <style>
+      /* ─── Tokens ─────────────────────────────────────────────────────────────── */
+      :root {
+        --bg: #f6f7f9;
+        --panel: #fff;
+        --panel-2: #fbfbfc;
+        --inset: #f0f2f5;
+        --line: #e3e6eb;
+        --line-2: #d3d8e0;
+        --ink: #0f1420;
+        --ink-2: #414a5c;
+        --ink-3: #6b7488;
+        --brand: #3455d1;
+        --brand-2: #5b7cf0;
+        --brand-soft: #edf2ff;
+        --brand-line: #c8d7fb;
+        --good: #0f7a52;
+        --good-soft: #e6f5ee;
+        --warn: #9a6212;
+        --warn-soft: #fdf2e0;
+        --bad: #b3372c;
+        --bad-soft: #fceceb;
+        --r: 12px;
+        --r-sm: 8px;
+        --sh-1: 0 1px 2px rgb(15 20 32/0.05), 0 1px 3px rgb(15 20 32/0.04);
+        --sh-2: 0 2px 4px rgb(15 20 32/0.05), 0 8px 24px -8px rgb(15 20 32/0.12);
+        --sh-3: 0 12px 48px -12px rgb(15 20 32/0.28);
+      }
+      html[data-theme='dark'] {
+        --bg: #0a0d14;
+        --panel: #12161f;
+        --panel-2: #161b26;
+        --inset: #1c222f;
+        --line: #242b3a;
+        --line-2: #333c4e;
+        --ink: #e9ecf2;
+        --ink-2: #b0b8c8;
+        --ink-3: #7d879b;
+        --brand: #7d9bff;
+        --brand-2: #9db4ff;
+        --brand-soft: #18223a;
+        --brand-line: #2c3a5c;
+        --good: #4fc98d;
+        --good-soft: #102a1f;
+        --warn: #e3a862;
+        --warn-soft: #2b2113;
+        --bad: #f0796b;
+        --bad-soft: #2c1614;
+        --sh-1: 0 1px 2px rgb(0 0 0/0.4);
+        --sh-2: 0 2px 4px rgb(0 0 0/0.3), 0 8px 24px -8px rgb(0 0 0/0.6);
+        --sh-3: 0 12px 48px -12px rgb(0 0 0/0.8);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      /* The hidden attribute must beat any explicit display rule — .cols sets display:grid,
    which otherwise wins and leaves a "hidden" section on screen. */
-[hidden]{display:none!important}
-::selection{background:var(--brand-soft);color:var(--brand)}
-body{margin:0;background:var(--bg);color:var(--ink);
-  font:15px/1.55 ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,system-ui,sans-serif;
-  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
-  font-feature-settings:'cv02','cv03','ss01';overflow-x:hidden}
-a{color:inherit;text-decoration:none}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer;background:none;border:0}
-:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
-
-/* ─── Chrome ─────────────────────────────────────────────────────────────── */
-.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--panel) 88%,transparent);
-  backdrop-filter:blur(16px) saturate(1.4);border-bottom:1px solid var(--line)}
-.top-in{max-width:1380px;margin:0 auto;padding:0 22px;height:56px;display:flex;align-items:center;gap:14px}
-.mark{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;
-  font-weight:700;font-size:13px;letter-spacing:-.02em;flex:0 0 auto;
-  background:linear-gradient(145deg,var(--brand-2),var(--brand));box-shadow:0 2px 8px -2px var(--brand)}
-.wordmark{font-size:14.5px;font-weight:600;letter-spacing:-.015em;white-space:nowrap}
-.tabs{display:flex;gap:1px;margin-left:8px}
-.tab{padding:6px 11px;border-radius:7px;font-size:13.5px;font-weight:500;color:var(--ink-2);
-  transition:background .15s,color .15s}
-.tab:hover{background:var(--inset);color:var(--ink)}
-.tab.on{background:var(--brand-soft);color:var(--brand)}
-.spacer{flex:1}
-.icon-btn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;
-  color:var(--ink-2);transition:background .15s,color .15s}
-.icon-btn:hover{background:var(--inset);color:var(--ink)}
-
-.notice{background:linear-gradient(90deg,var(--warn-soft),color-mix(in srgb,var(--warn-soft) 40%,transparent));
-  border-bottom:1px solid color-mix(in srgb,var(--warn) 25%,transparent);
-  color:var(--warn);padding:7px 22px;font-size:12.5px;text-align:center}
-.wrap{max-width:1380px;margin:0 auto;padding:26px 22px 96px}
-
-/* ─── Hero ───────────────────────────────────────────────────────────────── */
-.hero{position:relative;border-radius:16px;padding:30px 32px;margin-bottom:24px;overflow:hidden;
-  background:
-    radial-gradient(900px 300px at 8% -30%, color-mix(in srgb,var(--brand) 16%,transparent), transparent 70%),
-    radial-gradient(700px 260px at 92% 130%, color-mix(in srgb,var(--brand-2) 12%,transparent), transparent 70%),
-    var(--panel);
-  border:1px solid var(--line);box-shadow:var(--sh-1)}
-.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.11em;font-weight:650;color:var(--brand)}
-h1{font-size:clamp(26px,3.4vw,36px);line-height:1.08;letter-spacing:-.028em;font-weight:660;margin:8px 0 6px}
-.lede{font-size:15.5px;line-height:1.6;color:var(--ink-2);max-width:62ch;margin:0}
-.stat-row{display:flex;gap:26px;flex-wrap:wrap;margin-top:22px;padding-top:20px;
-  border-top:1px solid var(--line)}
-.stat .n{font-size:25px;font-weight:660;letter-spacing:-.025em;font-variant-numeric:tabular-nums;
-  line-height:1.1}
-.stat .n.good{color:var(--good)}
-.stat .l{font-size:11px;text-transform:uppercase;letter-spacing:.075em;color:var(--ink-3);
-  font-weight:600;margin-top:3px}
-
-/* ─── Layout ─────────────────────────────────────────────────────────────── */
-.cols{display:grid;gap:22px;grid-template-columns:246px minmax(0,1fr)}
-@media(max-width:1080px){.cols{grid-template-columns:1fr}.rail{order:2}}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-1)}
-.pad{padding:16px 17px}
-h2.sec{font-size:11px;text-transform:uppercase;letter-spacing:.085em;color:var(--ink-3);
-  font-weight:650;margin:0 0 3px}
-.hint{font-size:12.5px;line-height:1.5;color:var(--ink-3);margin:0 0 12px}
-hr.rule{border:0;border-top:1px solid var(--line);margin:34px 0 26px}
-
-/* ─── Filters ────────────────────────────────────────────────────────────── */
-.rail{position:sticky;top:74px;align-self:start;max-height:calc(100dvh - 96px);overflow-y:auto;
-  scrollbar-width:thin}
-.fgroup{border-bottom:1px solid var(--line);padding:13px 15px}
-.fgroup:last-child{border-bottom:0}
-.fgroup > .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.075em;font-weight:650;
-  color:var(--ink-3);margin-bottom:9px;display:flex;justify-content:space-between;align-items:center}
-.chips{display:flex;flex-wrap:wrap;gap:5px}
-.chip{padding:4px 9px;border-radius:999px;border:1px solid var(--line-2);font-size:12px;
-  font-weight:500;color:var(--ink-2);background:var(--panel);
-  transition:all .14s cubic-bezier(.3,.7,.4,1);white-space:nowrap}
-.chip:hover{border-color:var(--brand);color:var(--brand);transform:translateY(-1px)}
-.chip.on{background:var(--brand);border-color:var(--brand);color:#fff;
-  box-shadow:0 2px 8px -2px var(--brand)}
-.chip .ct{opacity:.6;font-variant-numeric:tabular-nums;margin-left:3px;font-size:11px}
-select{width:100%;padding:7px 9px;border:1px solid var(--line-2);border-radius:var(--r-sm);
-  background:var(--panel);font-size:13px;transition:border-color .14s}
-select:hover{border-color:var(--brand)}
-.switch{display:flex;align-items:center;justify-content:space-between;font-size:13px;
-  color:var(--ink-2);padding:5px 0;cursor:pointer}
-.track{width:34px;height:19px;border-radius:999px;background:var(--line-2);position:relative;
-  transition:background .18s;flex:0 0 auto}
-.track::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;
-  background:#fff;transition:transform .18s cubic-bezier(.3,.7,.4,1);box-shadow:0 1px 3px rgb(0 0 0/.25)}
-.switch.on .track{background:var(--brand)}
-.switch.on .track::after{transform:translateX(15px)}
-.range{width:100%;accent-color:var(--brand)}
-.clear{font-size:11.5px;color:var(--brand);font-weight:550}
-
-/* ─── Result cards ───────────────────────────────────────────────────────── */
-.bar{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:13px;
-  flex-wrap:wrap}
-.count{font-size:13.5px;color:var(--ink-2)}
-.count b{color:var(--ink);font-variant-numeric:tabular-nums}
-.cards{display:grid;gap:11px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px;
-  box-shadow:var(--sh-1);transition:box-shadow .2s,border-color .2s,transform .2s;
-  cursor:pointer;position:relative;animation:rise .34s cubic-bezier(.2,.8,.3,1) backwards}
-.card:hover{box-shadow:var(--sh-2);border-color:var(--line-2);transform:translateY(-1px)}
-.card::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:2.5px;border-radius:0 3px 3px 0;
-  background:var(--line-2);transition:background .2s}
-.card:hover::before{background:var(--brand)}
-.card.strong::before{background:var(--good)}
-.card.weak::before{background:var(--warn)}
-@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
-.card h3{font-size:16.5px;line-height:1.32;letter-spacing:-.011em;font-weight:600;margin:7px 0 5px}
-.card p{font-size:13.5px;line-height:1.62;color:var(--ink-2);margin:0}
-.badges{display:flex;flex-wrap:wrap;gap:4px}
-.b{display:inline-flex;align-items:center;gap:3px;border:1px solid transparent;border-radius:5px;
-  padding:2px 6.5px;font-size:11px;font-weight:550;line-height:1.5;white-space:nowrap}
-.b.n{background:var(--inset);color:var(--ink-2);border-color:var(--line)}
-.b.a{background:var(--brand-soft);color:var(--brand);border-color:var(--brand-line)}
-.b.g{background:var(--good-soft);color:var(--good)}
-.b.w{background:var(--warn-soft);color:var(--warn)}
-.b.r{background:var(--bad-soft);color:var(--bad)}
-.b.m{background:transparent;color:var(--ink-3);border-color:var(--line)}
-.meta{display:flex;gap:13px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-3);margin-top:10px}
-.empty{text-align:center;padding:56px 24px;color:var(--ink-3)}
-.empty .big{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:6px}
-.skeleton{height:112px;border-radius:var(--r);background:
-  linear-gradient(100deg,var(--inset) 20%,var(--panel-2) 40%,var(--inset) 60%);
-  background-size:220% 100%;animation:shimmer 1.3s infinite linear}
-@keyframes shimmer{from{background-position:180% 0}to{background-position:-40% 0}}
-
-/* ─── Mix bar ────────────────────────────────────────────────────────────── */
-.mix{display:flex;height:7px;border-radius:999px;overflow:hidden;gap:1.5px;margin:10px 0 9px}
-.mix i{display:block;transition:flex-grow .5s cubic-bezier(.3,.7,.4,1)}
-.legend{display:grid;gap:4px}
-.legend .row{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2)}
-.dot{width:7px;height:7px;border-radius:2px;flex:0 0 auto}
-.legend .v{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink)}
-
-/* ─── Ask ────────────────────────────────────────────────────────────────── */
-.ask-fab{position:fixed;right:22px;bottom:22px;z-index:50;display:flex;align-items:center;gap:9px;
-  padding:12px 18px;border-radius:999px;color:#fff;font-size:13.5px;font-weight:600;
-  background:linear-gradient(145deg,var(--brand-2),var(--brand));box-shadow:var(--sh-3);
-  transition:transform .18s cubic-bezier(.3,.7,.4,1),box-shadow .18s}
-.ask-fab:hover{transform:translateY(-2px) scale(1.02)}
-.ask-fab kbd{font:inherit;font-size:11px;opacity:.75;background:rgb(255 255 255/.2);
-  padding:1px 5px;border-radius:4px}
-.scrim{position:fixed;inset:0;z-index:60;background:rgb(8 11 18/.5);backdrop-filter:blur(3px);
-  display:flex;align-items:flex-end;justify-content:center;padding:0;animation:fade .18s}
-@media(min-width:640px){.scrim{align-items:center;padding:28px}}
-@keyframes fade{from{opacity:0}to{opacity:1}}
-.sheet{background:var(--panel);border:1px solid var(--line);border-radius:16px 16px 0 0;
-  width:100%;max-width:820px;max-height:92dvh;display:flex;flex-direction:column;
-  box-shadow:var(--sh-3);animation:slide .26s cubic-bezier(.2,.85,.3,1)}
-@media(min-width:640px){.sheet{border-radius:16px}}
-@keyframes slide{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
-.sheet-hd{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
-.sheet-bd{padding:16px 18px;overflow-y:auto;flex:1}
-.sheet-ft{padding:13px 18px;border-top:1px solid var(--line);background:var(--panel-2);
-  border-radius:0 0 16px 16px}
-.modes{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:11px}
-.mode{padding:5px 10px;border-radius:7px;border:1px solid var(--line-2);font-size:12.5px;
-  font-weight:550;color:var(--ink-2);transition:all .14s}
-.mode:hover{border-color:var(--brand);color:var(--brand)}
-.mode.on{background:var(--brand);border-color:var(--brand);color:#fff}
-.inputrow{display:flex;gap:8px;align-items:flex-end}
-textarea.ask{flex:1;min-height:46px;max-height:150px;padding:12px 14px;border:1px solid var(--line-2);
-  border-radius:11px;background:var(--panel);resize:none;font-size:14.5px;line-height:1.5;
-  transition:border-color .15s,box-shadow .15s}
-textarea.ask:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-soft)}
-.send,.mic{height:46px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;
-  transition:all .16s}
-.send{width:46px;background:linear-gradient(145deg,var(--brand-2),var(--brand));color:#fff;
-  box-shadow:0 2px 10px -3px var(--brand)}
-.send:hover{transform:translateY(-1px)}
-.send:disabled{opacity:.4;transform:none;box-shadow:none;cursor:default}
-.mic{width:46px;border:1px solid var(--line-2);color:var(--ink-2)}
-.mic:hover{border-color:var(--brand);color:var(--brand)}
-.mic.live{background:var(--bad);border-color:var(--bad);color:#fff;animation:pulse 1.3s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--bad) 55%,transparent)}
-  50%{box-shadow:0 0 0 9px transparent}}
-.warn-strip{margin-top:9px;font-size:11.5px;line-height:1.5;color:var(--warn);
-  background:var(--warn-soft);border-radius:7px;padding:7px 10px}
-.turn{margin-bottom:15px;animation:rise .3s cubic-bezier(.2,.8,.3,1)}
-.turn.me{background:var(--inset);border-radius:11px;padding:11px 14px;font-weight:520;font-size:14px}
-.ans{border:1px solid var(--line);border-radius:12px;padding:15px 16px;background:var(--panel-2)}
-.ans .hd{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:11px;font-size:11px;
-  color:var(--ink-3)}
-.blk{border-left:2.5px solid;padding-left:12px;margin:13px 0}
-.blk.f{border-color:var(--good)}
-.blk.i{border-color:var(--warn)}
-.blk.c{border-color:var(--bad)}
-.blk .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.085em;font-weight:650;
-  margin-bottom:6px}
-.blk.f .lbl{color:var(--good)} .blk.i .lbl{color:var(--warn)} .blk.c .lbl{color:var(--bad)}
-.blk li,.blk p{font-size:13.5px;line-height:1.65;color:var(--ink-2)}
-.blk.f li{color:var(--ink)}
-sup a{color:var(--brand);font-weight:650;font-size:10.5px;padding:0 1px}
-.cites{margin-top:13px;padding-top:11px;border-top:1px solid var(--line)}
-.cites li{font-size:11.5px;line-height:1.6;color:var(--ink-3);margin-bottom:5px}
-.cites b{color:var(--ink-2)}
-.followups{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px;padding-top:11px;
-  border-top:1px solid var(--line)}
-.fu{padding:5px 10px;border:1px solid var(--line-2);border-radius:999px;font-size:12px;
-  color:var(--ink-2);transition:all .14s}
-.fu:hover{border-color:var(--brand);color:var(--brand)}
-.thinking{display:flex;gap:5px;padding:14px 0}
-.thinking i{width:6px;height:6px;border-radius:50%;background:var(--brand);
-  animation:bounce 1.1s infinite}
-.thinking i:nth-child(2){animation-delay:.14s} .thinking i:nth-child(3){animation-delay:.28s}
-@keyframes bounce{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-5px)}}
-ul,ol{margin:0;padding-left:18px}
-li{margin-bottom:4px}
-mark{background:var(--warn-soft);color:var(--ink);padding:.1em 0;
-  box-shadow:0 0 0 .18em var(--warn-soft);border-radius:2px}
-.excerpt{background:var(--inset);border-radius:9px;padding:14px 16px;
-  font-family:'Iowan Old Style',Georgia,serif;font-size:14px;line-height:1.72;margin:10px 0}
-.serif{font-family:'Iowan Old Style',Georgia,serif;font-size:15px;line-height:1.7;max-width:66ch}
-.dim{color:var(--ink-3)}
-
-/* ─── Quick filters ──────────────────────────────────────────────────────── */
-.quick{margin-bottom:18px}
-.quick .qhd{display:flex;align-items:baseline;gap:9px;margin-bottom:10px;flex-wrap:wrap}
-.quick .qhd strong{font-size:12.5px;font-weight:650;letter-spacing:-.005em}
-.quick .qhd span{font-size:12px;color:var(--ink-3)}
-.qrow{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
-.qrow::-webkit-scrollbar{height:5px}
-.qrow::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:9px}
-.q{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:11px;
-  border:1px solid var(--line);background:var(--panel);box-shadow:var(--sh-1);
-  transition:all .16s cubic-bezier(.3,.7,.4,1);text-align:left;max-width:250px}
-.q:hover{border-color:var(--brand);transform:translateY(-2px);box-shadow:var(--sh-2)}
-.q.on{border-color:var(--brand);background:var(--brand-soft)}
-.q .qi{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:0 0 auto;
-  font-size:13px;background:var(--inset)}
-.q.on .qi{background:var(--brand);color:#fff}
-.q .qt{min-width:0}
-.q .qn{font-size:13px;font-weight:600;letter-spacing:-.005em;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis}
-.q .qs{font-size:11px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.q.on .qs{color:var(--brand)}
-
-/* ─── Rail toggle (narrow screens) ───────────────────────────────────────── */
-.rail-toggle{display:none;width:100%;padding:11px 14px;border:1px solid var(--line);
-  border-radius:var(--r);background:var(--panel);box-shadow:var(--sh-1);font-size:13.5px;
-  font-weight:600;text-align:left;margin-bottom:11px}
-.rail-toggle span{color:var(--brand);font-weight:550}
-@media(max-width:1080px){
-  .rail-toggle{display:block;order:0}
-  .rail{order:1;display:none}
-  .rail.open{display:block}
-  main{order:2}
-}
-
-/* ─── Secondary views ────────────────────────────────────────────────────── */
-.vgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
-.depth{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:650}
-.kpi{border-left:2px solid var(--brand);padding-left:12px;margin-bottom:14px}
-.kpi.child{margin-left:18px;border-color:var(--line-2)}
-.formula{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px;
-  color:var(--ink-3);background:var(--inset);padding:2px 6px;border-radius:4px;
-  display:inline-block;margin-top:4px}
-.stage{display:flex;gap:11px;margin-bottom:13px}
-.stage .num{width:22px;height:22px;border-radius:7px;background:var(--brand-soft);
-  color:var(--brand);display:grid;place-items:center;font-size:11.5px;font-weight:650;flex:0 0 auto}
-</style>
-</head>
-<body>
-
-<div class="notice">
-  <strong>Interactive preview.</strong> Reads the live database over TCP because endpoint policy is blocking
-  repository access. Extractive mode — no language model configured, so nothing is paraphrased.
-</div>
-
-<header class="top"><div class="top-in">
-  <div class="mark">M</div>
-  <span class="wordmark">Market Intelligence OS</span>
-  <div class="tabs" id="tabs">
-    <a class="tab on" data-view="today">Today</a>
-    <a class="tab" data-view="watch">Watch</a>
-    <a class="tab" data-view="companion">Companion</a>
-    <a class="tab" data-view="learn">Learn</a>
-    <a class="tab" data-view="prepare">Prepare</a>
-    <a class="tab" data-view="explore">Explore</a>
-    <a class="tab" data-view="library">Library</a>
-  </div>
-  <div class="spacer"></div>
-  <button class="icon-btn" id="theme" title="Toggle theme">◐</button>
-</div></header>
-
-<div class="wrap">
-
-  <section class="hero" id="hero">
-    <div class="eyebrow" id="hero-eyebrow">Today</div>
-    <h1 id="hero-title">Loading…</h1>
-    <p class="lede" id="hero-lede"></p>
-    <div class="stat-row" id="stats"></div>
-  </section>
-
-  <section class="quick" id="quick"></section>
-
-  <div class="cols">
-    <button class="rail-toggle" id="rail-toggle">Filters <span id="rail-count"></span></button>
-    <aside class="rail panel" id="rail"></aside>
-    <main>
-      <div class="bar">
-        <div class="count" id="count"></div>
-        <div class="badges" id="active-filters"></div>
-      </div>
-      <div class="cards" id="results">
-        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
-      </div>
-    </main>
-  </div>
-
-  <hr class="rule" id="rule">
-  <div id="detail"></div>
-</div>
-
-<div class="wrap" id="other-views" hidden></div>
-
-<button class="ask-fab" id="fab">Ask the Companion <kbd>⌘K</kbd></button>
-
-<script>
-const $ = (s,r=document)=>r.querySelector(s);
-const el = (t,c,h)=>{const n=document.createElement(t);if(c)n.className=c;if(h!==undefined)n.innerHTML=h;return n};
-const esc = s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fmt = d=>d?new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(d)):'undated';
-const api = async(p,o)=>(await fetch(p,o)).json();
-
-/* ── Badge vocabulary — mirrors packages/ui ───────────────────────────────── */
-const MAT={
-  ANNOUNCED:['Announced','w','Stated intent. No implementation scope given.'],
-  CONCEPT:['Concept','w','Being explored; nothing built.'],
-  PILOT:['Pilot','n','Bounded trial. Most pilots do not scale.'],
-  LIMITED_DEPLOYMENT:['Limited deployment','n','Live in selected locations.'],
-  SCALED_DEPLOYMENT:['Scaled','a','Described as deployed across the organisation.'],
-  QUANTIFIED_BUSINESS_IMPACT:['Quantified impact','a','A measured outcome is claimed — check who is claiming it.'],
-  INDEPENDENTLY_VALIDATED_IMPACT:['Independently validated','g','A party other than the beneficiary reports the same outcome.'],
-  DISCONTINUED_OR_REVERSED:['Discontinued','r','Stopped or reversed. Often more informative than the announcement.']};
-const EV={
-  QUANTIFIED_PRIMARY_EVIDENCE:['Quantified primary evidence','g'],
-  UNQUANTIFIED_PRIMARY_EVIDENCE:['Primary evidence','g'],
-  MULTIPLE_CREDIBLE_SECONDARY_SOURCES:['Multiple independent sources','g'],
-  SINGLE_CREDIBLE_SECONDARY_SOURCE:['One independent source','n'],
-  COMPANY_SELF_REPORTING:['Company self-reporting','w'],
-  WEAK_OR_UNVERIFIED_SIGNAL:['Weak signal','r']};
-const PER={FIRST_PARTY_COMPANY:'Company itself',FIRST_PARTY_TECH_PROVIDER:'Vendor itself',
-  FIRST_PARTY_CONSULTING_FIRM:'Consulting firm itself',INDEPENDENT_BUSINESS_MEDIA:'Independent media',
-  INDUSTRY_MEDIA:'Trade press',REGULATOR:'Regulator',PUBLIC_INSTITUTION:'Public institution',
-  USER_PROVIDED:'User-provided'};
-const MIXC={ANNOUNCED:'var(--warn)',CONCEPT:'var(--ink-3)',PILOT:'var(--brand-2)',
-  LIMITED_DEPLOYMENT:'var(--brand)',SCALED_DEPLOYMENT:'var(--good)',
-  QUANTIFIED_BUSINESS_IMPACT:'var(--good)',INDEPENDENTLY_VALIDATED_IMPACT:'var(--good)',
-  DISCONTINUED_OR_REVERSED:'var(--bad)'};
-const b=(t,k='n',ti='')=>`<span class="b ${k}"${ti?` title="${esc(ti)}"`:''}>${esc(t)}</span>`;
-const bMat=m=>MAT[m]?b(...MAT[m]):b(m);
-const bEv=e=>EV[e]?b(...EV[e]):b(e);
-const bPer=p=>b((String(p).startsWith('FIRST_PARTY')?'◑ ':'○ ')+(PER[p]||p),
-  String(p).startsWith('FIRST_PARTY')?'w':'n',
-  String(p).startsWith('FIRST_PARTY')?'Self-reported. The subject of the story is also the source of it.':'Reported by a party other than the subject.');
-
-/* ── Filters — the §15 dimensions ─────────────────────────────────────────── */
-const F={};
-let facets={}, stats={};
-
-const FILTERS=[
-  {key:'industry',   label:'Industry',    kind:'chips', src:'industries'},
-  {key:'entity',     label:'Company',     kind:'select',src:'entities'},
-  {key:'topic',      label:'Topic',       kind:'chips', src:'topics'},
-  {key:'technology', label:'Technology',  kind:'chips', src:'technologies'},
-  {key:'eventType',  label:'Event type',  kind:'select',src:'eventTypes'},
-  {key:'maturity',   label:'Implementation maturity', kind:'chips', src:'maturities', pretty:true},
-  {key:'evidence',   label:'Evidence strength',       kind:'select',src:'evidences', pretty:true},
-  {key:'perspective',label:'Source perspective',      kind:'chips', fixed:[
-      ['OFFICIAL_COMPANY','Company'],['TECHNOLOGY_PROVIDERS','Vendors'],
-      ['INDEPENDENT_MEDIA','Independent'],['REGULATORS','Regulators'],
-      ['CONSULTING','Consulting'],['RESEARCH','Research']]},
-  {key:'impact',     label:'Strategic impact', kind:'chips', fixed:[
-      ['very_high','Very high'],['high','High'],['moderate','Moderate'],['low','Low']]},
-  {key:'novelty',    label:'Novelty', kind:'chips', fixed:[
-      ['new_to_world','New'],['updated_event','Updated'],['repeated_announcement','Restated']]},
-  {key:'days',       label:'Published within', kind:'chips', fixed:[
-      ['7','7 days'],['30','30 days'],['90','90 days'],['365','12 months']]},
-];
-
-const pretty=s=>String(s).replace(/_/g,' ').toLowerCase().replace(/^./,c=>c.toUpperCase());
-
-function buildRail(){
-  const rail=$('#rail'); rail.innerHTML='';
-
-  const head=el('div','fgroup');
-  head.append(el('div','lbl',`<span>Filters</span><button class="clear" id="clearall">Clear all</button>`));
-  head.append(el('div','hint','Eighteen filter dimensions are stored and indexed. These are the twelve that matter most day to day.'));
-  rail.append(head);
-
-  for(const f of FILTERS){
-    const g=el('div','fgroup');
-    g.append(el('div','lbl',`<span>${f.label}</span>`));
-    const opts = f.fixed ? f.fixed
-      : (facets[f.src]||[]).map(o=>[o.slug, f.pretty?pretty(o.name||o.slug):(o.name||o.slug), o.n]);
-
-    if(f.kind==='chips'){
-      const box=el('div','chips');
-      for(const [val,lab,n] of opts){
-        const c=el('button','chip'+(F[f.key]===val?' on':''),
-          esc(lab)+(n?`<span class="ct">${n}</span>`:''));
-        c.onclick=()=>{F[f.key]=F[f.key]===val?undefined:val;refresh()};
-        box.append(c);
+      [hidden] {
+        display: none !important;
       }
-      g.append(box);
-    } else {
-      const s=el('select');
-      s.append(el('option','',`All ${f.label.toLowerCase()}`));
-      for(const [val,lab,n] of opts){
-        const o=el('option','',esc(lab)+(n?` (${n})`:''));
-        o.value=val; if(F[f.key]===val)o.selected=true; s.append(o);
+      ::selection {
+        background: var(--brand-soft);
+        color: var(--brand);
       }
-      s.onchange=()=>{F[f.key]=s.value||undefined;refresh()};
-      g.append(s);
-    }
-    rail.append(g);
-  }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.55 ui-sans-serif,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Inter,
+          system-ui,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        font-feature-settings: 'cv02', 'cv03', 'ss01';
+        overflow-x: hidden;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+        color: inherit;
+      }
+      button {
+        cursor: pointer;
+        background: none;
+        border: 0;
+      }
+      :focus-visible {
+        outline: 2px solid var(--brand);
+        outline-offset: 2px;
+        border-radius: 6px;
+      }
 
-  const g2=el('div','fgroup');
-  g2.append(el('div','lbl','<span>Reading time</span>'));
-  const r=el('input','range'); r.type='range'; r.min=1; r.max=12; r.value=F.maxMinutes||12;
-  const out=el('div','hint',`Up to ${F.maxMinutes||12} min`);
-  r.oninput=()=>{out.textContent=`Up to ${r.value} min`};
-  r.onchange=()=>{F.maxMinutes=r.value==='12'?undefined:r.value;refresh()};
-  g2.append(r,out);
-  rail.append(g2);
+      /* ─── Chrome ─────────────────────────────────────────────────────────────── */
+      .top {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        background: color-mix(in srgb, var(--panel) 88%, transparent);
+        backdrop-filter: blur(16px) saturate(1.4);
+        border-bottom: 1px solid var(--line);
+      }
+      .top-in {
+        max-width: 1380px;
+        margin: 0 auto;
+        padding: 0 22px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .mark {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-weight: 700;
+        font-size: 13px;
+        letter-spacing: -0.02em;
+        flex: 0 0 auto;
+        background: linear-gradient(145deg, var(--brand-2), var(--brand));
+        box-shadow: 0 2px 8px -2px var(--brand);
+      }
+      .wordmark {
+        font-size: 14.5px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        white-space: nowrap;
+      }
+      .tabs {
+        display: flex;
+        gap: 1px;
+        margin-left: 8px;
+      }
+      .tab {
+        padding: 6px 11px;
+        border-radius: 7px;
+        font-size: 13.5px;
+        font-weight: 500;
+        color: var(--ink-2);
+        transition:
+          background 0.15s,
+          color 0.15s;
+      }
+      .tab:hover {
+        background: var(--inset);
+        color: var(--ink);
+      }
+      .tab.on {
+        background: var(--brand-soft);
+        color: var(--brand);
+      }
+      .spacer {
+        flex: 1;
+      }
+      .icon-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        color: var(--ink-2);
+        transition:
+          background 0.15s,
+          color 0.15s;
+      }
+      .icon-btn:hover {
+        background: var(--inset);
+        color: var(--ink);
+      }
 
-  const g3=el('div','fgroup');
-  for(const [key,lab] of [['independentOnly','Independently reported only'],['excludeDemo','Hide demo data']]){
-    const sw=el('button','switch'+(F[key]==='true'?' on':''),`<span>${lab}</span><span class="track"></span>`);
-    sw.onclick=()=>{F[key]=F[key]==='true'?undefined:'true';refresh()};
-    g3.append(sw);
-  }
-  rail.append(g3);
+      .notice {
+        background: linear-gradient(
+          90deg,
+          var(--warn-soft),
+          color-mix(in srgb, var(--warn-soft) 40%, transparent)
+        );
+        border-bottom: 1px solid color-mix(in srgb, var(--warn) 25%, transparent);
+        color: var(--warn);
+        padding: 7px 22px;
+        font-size: 12.5px;
+        text-align: center;
+      }
+      .wrap {
+        max-width: 1380px;
+        margin: 0 auto;
+        padding: 26px 22px 96px;
+      }
 
-  const g4=el('div','fgroup');
-  g4.append(el('div','lbl','<span>Implementation mix</span>'));
-  g4.append(el('div','hint','Announcements vs. things actually evidenced as deployed.'));
-  const mix=el('div','mix'), leg=el('div','legend');
-  (window.__mix||[]).forEach(m=>{
-    const i=el('i'); i.style.flexGrow=m.n; i.style.background=MIXC[m.slug]||'var(--ink-3)';
-    i.title=`${pretty(m.slug)}: ${m.n}`; mix.append(i);
-    leg.append(el('div','row',
-      `<span class="dot" style="background:${MIXC[m.slug]||'var(--ink-3)'}"></span>
-       <span>${esc(pretty(m.slug))}</span><span class="v">${m.n}</span>`));
-  });
-  g4.append(mix,leg);
-  rail.append(g4);
+      /* ─── Hero ───────────────────────────────────────────────────────────────── */
+      .hero {
+        position: relative;
+        border-radius: 16px;
+        padding: 30px 32px;
+        margin-bottom: 24px;
+        overflow: hidden;
+        background:
+          radial-gradient(
+            900px 300px at 8% -30%,
+            color-mix(in srgb, var(--brand) 16%, transparent),
+            transparent 70%
+          ),
+          radial-gradient(
+            700px 260px at 92% 130%,
+            color-mix(in srgb, var(--brand-2) 12%, transparent),
+            transparent 70%
+          ),
+          var(--panel);
+        border: 1px solid var(--line);
+        box-shadow: var(--sh-1);
+      }
+      .eyebrow {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.11em;
+        font-weight: 650;
+        color: var(--brand);
+      }
+      h1 {
+        font-size: clamp(26px, 3.4vw, 36px);
+        line-height: 1.08;
+        letter-spacing: -0.028em;
+        font-weight: 660;
+        margin: 8px 0 6px;
+      }
+      .lede {
+        font-size: 15.5px;
+        line-height: 1.6;
+        color: var(--ink-2);
+        max-width: 62ch;
+        margin: 0;
+      }
+      .stat-row {
+        display: flex;
+        gap: 26px;
+        flex-wrap: wrap;
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid var(--line);
+      }
+      .stat .n {
+        font-size: 25px;
+        font-weight: 660;
+        letter-spacing: -0.025em;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.1;
+      }
+      .stat .n.good {
+        color: var(--good);
+      }
+      .stat .l {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.075em;
+        color: var(--ink-3);
+        font-weight: 600;
+        margin-top: 3px;
+      }
 
-  $('#clearall').onclick=()=>{Object.keys(F).forEach(k=>delete F[k]);refresh()};
-}
+      /* ─── Layout ─────────────────────────────────────────────────────────────── */
+      .cols {
+        display: grid;
+        gap: 22px;
+        grid-template-columns: 246px minmax(0, 1fr);
+      }
+      @media (max-width: 1080px) {
+        .cols {
+          grid-template-columns: 1fr;
+        }
+        .rail {
+          order: 2;
+        }
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        box-shadow: var(--sh-1);
+      }
+      .pad {
+        padding: 16px 17px;
+      }
+      h2.sec {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.085em;
+        color: var(--ink-3);
+        font-weight: 650;
+        margin: 0 0 3px;
+      }
+      .hint {
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: var(--ink-3);
+        margin: 0 0 12px;
+      }
+      hr.rule {
+        border: 0;
+        border-top: 1px solid var(--line);
+        margin: 34px 0 26px;
+      }
 
-/**
- * Suggested quick filters, derived from the signed-in user's stored profile and
- * watchlist rather than hardcoded. Each one sets several filter dimensions at once,
- * because "my industries" is three industries and "quantified outcomes" is two
- * maturity levels.
- */
-let PROFILE=null;
+      /* ─── Filters ────────────────────────────────────────────────────────────── */
+      .rail {
+        position: sticky;
+        top: 74px;
+        align-self: start;
+        max-height: calc(100dvh - 96px);
+        overflow-y: auto;
+        scrollbar-width: thin;
+      }
+      .fgroup {
+        border-bottom: 1px solid var(--line);
+        padding: 13px 15px;
+      }
+      .fgroup:last-child {
+        border-bottom: 0;
+      }
+      .fgroup > .lbl {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.075em;
+        font-weight: 650;
+        color: var(--ink-3);
+        margin-bottom: 9px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .chip {
+        padding: 4px 9px;
+        border-radius: 999px;
+        border: 1px solid var(--line-2);
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--ink-2);
+        background: var(--panel);
+        transition: all 0.14s cubic-bezier(0.3, 0.7, 0.4, 1);
+        white-space: nowrap;
+      }
+      .chip:hover {
+        border-color: var(--brand);
+        color: var(--brand);
+        transform: translateY(-1px);
+      }
+      .chip.on {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+        box-shadow: 0 2px 8px -2px var(--brand);
+      }
+      .chip .ct {
+        opacity: 0.6;
+        font-variant-numeric: tabular-nums;
+        margin-left: 3px;
+        font-size: 11px;
+      }
+      select {
+        width: 100%;
+        padding: 7px 9px;
+        border: 1px solid var(--line-2);
+        border-radius: var(--r-sm);
+        background: var(--panel);
+        font-size: 13px;
+        transition: border-color 0.14s;
+      }
+      select:hover {
+        border-color: var(--brand);
+      }
+      .switch {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13px;
+        color: var(--ink-2);
+        padding: 5px 0;
+        cursor: pointer;
+      }
+      .track {
+        width: 34px;
+        height: 19px;
+        border-radius: 999px;
+        background: var(--line-2);
+        position: relative;
+        transition: background 0.18s;
+        flex: 0 0 auto;
+      }
+      .track::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: #fff;
+        transition: transform 0.18s cubic-bezier(0.3, 0.7, 0.4, 1);
+        box-shadow: 0 1px 3px rgb(0 0 0/0.25);
+      }
+      .switch.on .track {
+        background: var(--brand);
+      }
+      .switch.on .track::after {
+        transform: translateX(15px);
+      }
+      .range {
+        width: 100%;
+        accent-color: var(--brand);
+      }
+      .clear {
+        font-size: 11.5px;
+        color: var(--brand);
+        font-weight: 550;
+      }
 
-function quickFilters(){
-  const p=PROFILE||{}; const pr=p.profile||{};
-  const inds=(p.industries||[]).map(i=>i.slug);
-  const tops=(p.topics||[]).map(t=>t.slug);
-  const watch=(p.watchlist||[]).map(w=>w.slug);
-  const budget=pr.daily_reading_minutes||12;
+      /* ─── Result cards ───────────────────────────────────────────────────────── */
+      .bar {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 13px;
+        flex-wrap: wrap;
+      }
+      .count {
+        font-size: 13.5px;
+        color: var(--ink-2);
+      }
+      .count b {
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+      }
+      .cards {
+        display: grid;
+        gap: 11px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        padding: 16px 17px;
+        box-shadow: var(--sh-1);
+        transition:
+          box-shadow 0.2s,
+          border-color 0.2s,
+          transform 0.2s;
+        cursor: pointer;
+        position: relative;
+        animation: rise 0.34s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+      }
+      .card:hover {
+        box-shadow: var(--sh-2);
+        border-color: var(--line-2);
+        transform: translateY(-1px);
+      }
+      .card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 14px;
+        bottom: 14px;
+        width: 2.5px;
+        border-radius: 0 3px 3px 0;
+        background: var(--line-2);
+        transition: background 0.2s;
+      }
+      .card:hover::before {
+        background: var(--brand);
+      }
+      .card.strong::before {
+        background: var(--good);
+      }
+      .card.weak::before {
+        background: var(--warn);
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(9px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .card h3 {
+        font-size: 16.5px;
+        line-height: 1.32;
+        letter-spacing: -0.011em;
+        font-weight: 600;
+        margin: 7px 0 5px;
+      }
+      .card p {
+        font-size: 13.5px;
+        line-height: 1.62;
+        color: var(--ink-2);
+        margin: 0;
+      }
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .b {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        border: 1px solid transparent;
+        border-radius: 5px;
+        padding: 2px 6.5px;
+        font-size: 11px;
+        font-weight: 550;
+        line-height: 1.5;
+        white-space: nowrap;
+      }
+      .b.n {
+        background: var(--inset);
+        color: var(--ink-2);
+        border-color: var(--line);
+      }
+      .b.a {
+        background: var(--brand-soft);
+        color: var(--brand);
+        border-color: var(--brand-line);
+      }
+      .b.g {
+        background: var(--good-soft);
+        color: var(--good);
+      }
+      .b.w {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+      .b.r {
+        background: var(--bad-soft);
+        color: var(--bad);
+      }
+      .b.m {
+        background: transparent;
+        color: var(--ink-3);
+        border-color: var(--line);
+      }
+      .meta {
+        display: flex;
+        gap: 13px;
+        flex-wrap: wrap;
+        font-size: 11.5px;
+        color: var(--ink-3);
+        margin-top: 10px;
+      }
+      .empty {
+        text-align: center;
+        padding: 56px 24px;
+        color: var(--ink-3);
+      }
+      .empty .big {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: 6px;
+      }
+      .skeleton {
+        height: 112px;
+        border-radius: var(--r);
+        background: linear-gradient(100deg, var(--inset) 20%, var(--panel-2) 40%, var(--inset) 60%);
+        background-size: 220% 100%;
+        animation: shimmer 1.3s infinite linear;
+      }
+      @keyframes shimmer {
+        from {
+          background-position: 180% 0;
+        }
+        to {
+          background-position: -40% 0;
+        }
+      }
 
-  const out=[];
+      /* ─── Mix bar ────────────────────────────────────────────────────────────── */
+      .mix {
+        display: flex;
+        height: 7px;
+        border-radius: 999px;
+        overflow: hidden;
+        gap: 1.5px;
+        margin: 10px 0 9px;
+      }
+      .mix i {
+        display: block;
+        transition: flex-grow 0.5s cubic-bezier(0.3, 0.7, 0.4, 1);
+      }
+      .legend {
+        display: grid;
+        gap: 4px;
+      }
+      .legend .row {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 2px;
+        flex: 0 0 auto;
+      }
+      .legend .v {
+        margin-left: auto;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        color: var(--ink);
+      }
 
-  if(inds.length) out.push({id:'mine',icon:'◆',name:'My industries',
-    sub:(p.industries||[]).map(i=>i.name).join(', '),
-    set:{industryIn:inds.join(',')}});
+      /* ─── Ask ────────────────────────────────────────────────────────────────── */
+      .ask-fab {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 18px;
+        border-radius: 999px;
+        color: #fff;
+        font-size: 13.5px;
+        font-weight: 600;
+        background: linear-gradient(145deg, var(--brand-2), var(--brand));
+        box-shadow: var(--sh-3);
+        transition:
+          transform 0.18s cubic-bezier(0.3, 0.7, 0.4, 1),
+          box-shadow 0.18s;
+      }
+      .ask-fab:hover {
+        transform: translateY(-2px) scale(1.02);
+      }
+      .ask-fab kbd {
+        font: inherit;
+        font-size: 11px;
+        opacity: 0.75;
+        background: rgb(255 255 255/0.2);
+        padding: 1px 5px;
+        border-radius: 4px;
+      }
+      .scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgb(8 11 18/0.5);
+        backdrop-filter: blur(3px);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 0;
+        animation: fade 0.18s;
+      }
+      @media (min-width: 640px) {
+        .scrim {
+          align-items: center;
+          padding: 28px;
+        }
+      }
+      @keyframes fade {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .sheet {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px 16px 0 0;
+        width: 100%;
+        max-width: 820px;
+        max-height: 92dvh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--sh-3);
+        animation: slide 0.26s cubic-bezier(0.2, 0.85, 0.3, 1);
+      }
+      @media (min-width: 640px) {
+        .sheet {
+          border-radius: 16px;
+        }
+      }
+      @keyframes slide {
+        from {
+          opacity: 0;
+          transform: translateY(22px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .sheet-hd {
+        padding: 15px 18px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .sheet-bd {
+        padding: 16px 18px;
+        overflow-y: auto;
+        flex: 1;
+      }
+      .sheet-ft {
+        padding: 13px 18px;
+        border-top: 1px solid var(--line);
+        background: var(--panel-2);
+        border-radius: 0 0 16px 16px;
+      }
+      .modes {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        margin-bottom: 11px;
+      }
+      .mode {
+        padding: 5px 10px;
+        border-radius: 7px;
+        border: 1px solid var(--line-2);
+        font-size: 12.5px;
+        font-weight: 550;
+        color: var(--ink-2);
+        transition: all 0.14s;
+      }
+      .mode:hover {
+        border-color: var(--brand);
+        color: var(--brand);
+      }
+      .mode.on {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+      }
+      .inputrow {
+        display: flex;
+        gap: 8px;
+        align-items: flex-end;
+      }
+      textarea.ask {
+        flex: 1;
+        min-height: 46px;
+        max-height: 150px;
+        padding: 12px 14px;
+        border: 1px solid var(--line-2);
+        border-radius: 11px;
+        background: var(--panel);
+        resize: none;
+        font-size: 14.5px;
+        line-height: 1.5;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+      }
+      textarea.ask:focus {
+        outline: 0;
+        border-color: var(--brand);
+        box-shadow: 0 0 0 3.5px var(--brand-soft);
+      }
+      .send,
+      .mic {
+        height: 46px;
+        border-radius: 11px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        transition: all 0.16s;
+      }
+      .send {
+        width: 46px;
+        background: linear-gradient(145deg, var(--brand-2), var(--brand));
+        color: #fff;
+        box-shadow: 0 2px 10px -3px var(--brand);
+      }
+      .send:hover {
+        transform: translateY(-1px);
+      }
+      .send:disabled {
+        opacity: 0.4;
+        transform: none;
+        box-shadow: none;
+        cursor: default;
+      }
+      .mic {
+        width: 46px;
+        border: 1px solid var(--line-2);
+        color: var(--ink-2);
+      }
+      .mic:hover {
+        border-color: var(--brand);
+        color: var(--brand);
+      }
+      .mic.live {
+        background: var(--bad);
+        border-color: var(--bad);
+        color: #fff;
+        animation: pulse 1.3s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 color-mix(in srgb, var(--bad) 55%, transparent);
+        }
+        50% {
+          box-shadow: 0 0 0 9px transparent;
+        }
+      }
+      .warn-strip {
+        margin-top: 9px;
+        font-size: 11.5px;
+        line-height: 1.5;
+        color: var(--warn);
+        background: var(--warn-soft);
+        border-radius: 7px;
+        padding: 7px 10px;
+      }
+      .turn {
+        margin-bottom: 15px;
+        animation: rise 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+      }
+      .turn.me {
+        background: var(--inset);
+        border-radius: 11px;
+        padding: 11px 14px;
+        font-weight: 520;
+        font-size: 14px;
+      }
+      .ans {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 15px 16px;
+        background: var(--panel-2);
+      }
+      .ans .hd {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 11px;
+        font-size: 11px;
+        color: var(--ink-3);
+      }
+      .blk {
+        border-left: 2.5px solid;
+        padding-left: 12px;
+        margin: 13px 0;
+      }
+      .blk.f {
+        border-color: var(--good);
+      }
+      .blk.i {
+        border-color: var(--warn);
+      }
+      .blk.c {
+        border-color: var(--bad);
+      }
+      .blk .lbl {
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.085em;
+        font-weight: 650;
+        margin-bottom: 6px;
+      }
+      .blk.f .lbl {
+        color: var(--good);
+      }
+      .blk.i .lbl {
+        color: var(--warn);
+      }
+      .blk.c .lbl {
+        color: var(--bad);
+      }
+      .blk li,
+      .blk p {
+        font-size: 13.5px;
+        line-height: 1.65;
+        color: var(--ink-2);
+      }
+      .blk.f li {
+        color: var(--ink);
+      }
+      sup a {
+        color: var(--brand);
+        font-weight: 650;
+        font-size: 10.5px;
+        padding: 0 1px;
+      }
+      .cites {
+        margin-top: 13px;
+        padding-top: 11px;
+        border-top: 1px solid var(--line);
+      }
+      .cites li {
+        font-size: 11.5px;
+        line-height: 1.6;
+        color: var(--ink-3);
+        margin-bottom: 5px;
+      }
+      .cites b {
+        color: var(--ink-2);
+      }
+      .followups {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+        padding-top: 11px;
+        border-top: 1px solid var(--line);
+      }
+      .fu {
+        padding: 5px 10px;
+        border: 1px solid var(--line-2);
+        border-radius: 999px;
+        font-size: 12px;
+        color: var(--ink-2);
+        transition: all 0.14s;
+      }
+      .fu:hover {
+        border-color: var(--brand);
+        color: var(--brand);
+      }
+      .thinking {
+        display: flex;
+        gap: 5px;
+        padding: 14px 0;
+      }
+      .thinking i {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--brand);
+        animation: bounce 1.1s infinite;
+      }
+      .thinking i:nth-child(2) {
+        animation-delay: 0.14s;
+      }
+      .thinking i:nth-child(3) {
+        animation-delay: 0.28s;
+      }
+      @keyframes bounce {
+        0%,
+        60%,
+        100% {
+          opacity: 0.25;
+          transform: translateY(0);
+        }
+        30% {
+          opacity: 1;
+          transform: translateY(-5px);
+        }
+      }
+      ul,
+      ol {
+        margin: 0;
+        padding-left: 18px;
+      }
+      li {
+        margin-bottom: 4px;
+      }
+      mark {
+        background: var(--warn-soft);
+        color: var(--ink);
+        padding: 0.1em 0;
+        box-shadow: 0 0 0 0.18em var(--warn-soft);
+        border-radius: 2px;
+      }
+      .excerpt {
+        background: var(--inset);
+        border-radius: 9px;
+        padding: 14px 16px;
+        font-family: 'Iowan Old Style', Georgia, serif;
+        font-size: 14px;
+        line-height: 1.72;
+        margin: 10px 0;
+      }
+      .serif {
+        font-family: 'Iowan Old Style', Georgia, serif;
+        font-size: 15px;
+        line-height: 1.7;
+        max-width: 66ch;
+      }
+      .dim {
+        color: var(--ink-3);
+      }
 
-  if(watch.length) out.push({id:'watch',icon:'★',name:'My watchlist',
-    sub:(p.watchlist||[]).slice(0,3).map(w=>w.name).join(', ')+(watch.length>3?` +${watch.length-3}`:''),
-    set:{entityIn:watch.join(',')}});
+      /* ─── Quick filters ──────────────────────────────────────────────────────── */
+      .quick {
+        margin-bottom: 18px;
+      }
+      .quick .qhd {
+        display: flex;
+        align-items: baseline;
+        gap: 9px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      .quick .qhd strong {
+        font-size: 12.5px;
+        font-weight: 650;
+        letter-spacing: -0.005em;
+      }
+      .quick .qhd span {
+        font-size: 12px;
+        color: var(--ink-3);
+      }
+      .qrow {
+        display: flex;
+        gap: 7px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: thin;
+      }
+      .qrow::-webkit-scrollbar {
+        height: 5px;
+      }
+      .qrow::-webkit-scrollbar-thumb {
+        background: var(--line-2);
+        border-radius: 9px;
+      }
+      .q {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 13px;
+        border-radius: 11px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        box-shadow: var(--sh-1);
+        transition: all 0.16s cubic-bezier(0.3, 0.7, 0.4, 1);
+        text-align: left;
+        max-width: 250px;
+      }
+      .q:hover {
+        border-color: var(--brand);
+        transform: translateY(-2px);
+        box-shadow: var(--sh-2);
+      }
+      .q.on {
+        border-color: var(--brand);
+        background: var(--brand-soft);
+      }
+      .q .qi {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        font-size: 13px;
+        background: var(--inset);
+      }
+      .q.on .qi {
+        background: var(--brand);
+        color: #fff;
+      }
+      .q .qt {
+        min-width: 0;
+      }
+      .q .qn {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: -0.005em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .q .qs {
+        font-size: 11px;
+        color: var(--ink-3);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .q.on .qs {
+        color: var(--brand);
+      }
 
-  if(tops.length) out.push({id:'topics',icon:'◈',name:'My topics',
-    sub:(p.topics||[]).map(t=>t.name).join(', '),
-    set:{topicIn:tops.join(',')}});
+      /* ─── Rail toggle (narrow screens) ───────────────────────────────────────── */
+      .rail-toggle {
+        display: none;
+        width: 100%;
+        padding: 11px 14px;
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        background: var(--panel);
+        box-shadow: var(--sh-1);
+        font-size: 13.5px;
+        font-weight: 600;
+        text-align: left;
+        margin-bottom: 11px;
+      }
+      .rail-toggle span {
+        color: var(--brand);
+        font-weight: 550;
+      }
+      @media (max-width: 1080px) {
+        .rail-toggle {
+          display: block;
+          order: 0;
+        }
+        .rail {
+          order: 1;
+          display: none;
+        }
+        .rail.open {
+          display: block;
+        }
+        main {
+          order: 2;
+        }
+      }
 
-  out.push({id:'fresh',icon:'●',name:'This week',sub:'Published in the last 7 days',
-    set:{days:'7'}});
+      /* ─── Secondary views ────────────────────────────────────────────────────── */
+      .vgrid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      }
+      .depth {
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 650;
+      }
+      .kpi {
+        border-left: 2px solid var(--brand);
+        padding-left: 12px;
+        margin-bottom: 14px;
+      }
+      .kpi.child {
+        margin-left: 18px;
+        border-color: var(--line-2);
+      }
+      .formula {
+        font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+        font-size: 11.5px;
+        color: var(--ink-3);
+        background: var(--inset);
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-top: 4px;
+      }
+      .stage {
+        display: flex;
+        gap: 11px;
+        margin-bottom: 13px;
+      }
+      .stage .num {
+        width: 22px;
+        height: 22px;
+        border-radius: 7px;
+        background: var(--brand-soft);
+        color: var(--brand);
+        display: grid;
+        place-items: center;
+        font-size: 11.5px;
+        font-weight: 650;
+        flex: 0 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="notice">
+      <strong>Interactive preview.</strong> Reads the live database over TCP because endpoint policy
+      is blocking repository access. Extractive mode — no language model configured, so nothing is
+      paraphrased.
+    </div>
 
-  out.push({id:'confirmed',icon:'✓',name:'Independently confirmed',
-    sub:'At least one non-first-party source',set:{independentOnly:'true'}});
+    <header class="top">
+      <div class="top-in">
+        <div class="mark">M</div>
+        <span class="wordmark">Market Intelligence OS</span>
+        <div class="tabs" id="tabs">
+          <a class="tab on" data-view="today">Today</a>
+          <a class="tab" data-view="watch">Watch</a>
+          <a class="tab" data-view="companion">Companion</a>
+          <a class="tab" data-view="learn">Learn</a>
+          <a class="tab" data-view="prepare">Prepare</a>
+          <a class="tab" data-view="explore">Explore</a>
+          <a class="tab" data-view="library">Library</a>
+        </div>
+        <div class="spacer"></div>
+        <button class="icon-btn" id="theme" title="Toggle theme">◐</button>
+      </div>
+    </header>
 
-  out.push({id:'outcomes',icon:'▲',name:'Measured outcomes',
-    sub:'Quantified or independently validated',
-    set:{maturityIn:'QUANTIFIED_BUSINESS_IMPACT,INDEPENDENTLY_VALIDATED_IMPACT'}});
+    <div class="wrap">
+      <section class="hero" id="hero">
+        <div class="eyebrow" id="hero-eyebrow">Today</div>
+        <h1 id="hero-title">Loading…</h1>
+        <p class="lede" id="hero-lede"></p>
+        <div class="stat-row" id="stats"></div>
+      </section>
 
-  out.push({id:'reversals',icon:'▼',name:'Reversals',
-    sub:'Discontinued or rolled back — often the most informative',
-    set:{maturity:'DISCONTINUED_OR_REVERSED'}});
+      <section class="quick" id="quick"></section>
 
-  out.push({id:'budget',icon:'◷',name:`Fits my ${budget} min`,
-    sub:'Short enough for today\u2019s budget',set:{maxMinutes:'3'}});
+      <div class="cols">
+        <button class="rail-toggle" id="rail-toggle">Filters <span id="rail-count"></span></button>
+        <aside class="rail panel" id="rail"></aside>
+        <main>
+          <div class="bar">
+            <div class="count" id="count"></div>
+            <div class="badges" id="active-filters"></div>
+          </div>
+          <div class="cards" id="results">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+          </div>
+        </main>
+      </div>
 
-  out.push({id:'nofluff',icon:'◐',name:'Skip self-reported',
-    sub:'Hide announcements only the company has made',
-    set:{independentOnly:'true',excludeDemo:'true'}});
+      <hr class="rule" id="rule" />
+      <div id="detail"></div>
+    </div>
 
-  return out;
-}
+    <div class="wrap" id="other-views" hidden></div>
 
-let QUICK_COUNTS={};
+    <button class="ask-fab" id="fab">Ask the Companion <kbd>⌘K</kbd></button>
 
-/**
- * Counts are fetched and shown on each pill.
- *
- * Not decoration: a suggested filter that returns everything is telling you the profile
- * is too broad for the current coverage, and a filter that returns two is telling you
- * where the scarce signal is. Hiding that would make the suggestions look better and be
- * worth less.
- */
-async function loadQuickCounts(){
-  const items=quickFilters();
-  const results=await Promise.all(items.map(async qf=>{
-    const qs=new URLSearchParams(qf.set).toString();
-    try{ const j=await api('/api/insights?'+qs); return [qf.id,j.total]; }
-    catch{ return [qf.id,null]; }
-  }));
-  QUICK_COUNTS=Object.fromEntries(results);
-}
+    <script>
+      const $ = (s, r = document) => r.querySelector(s);
+      const el = (t, c, h) => {
+        const n = document.createElement(t);
+        if (c) n.className = c;
+        if (h !== undefined) n.innerHTML = h;
+        return n;
+      };
+      const esc = (s) =>
+        String(s ?? '').replace(
+          /[&<>"]/g,
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c],
+        );
+      const fmt = (d) =>
+        d
+          ? new Intl.DateTimeFormat('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              timeZone: 'UTC',
+            }).format(new Date(d))
+          : 'undated';
+      const api = async (p, o) => (await fetch(p, o)).json();
 
-function renderQuick(){
-  const box=$('#quick'); if(!box)return;
-  const items=quickFilters();
-  const total=stats.insights||0;
-  const active=id=>{
-    const q=items.find(x=>x.id===id);
-    return q && Object.entries(q.set).every(([k,v])=>F[k]===v);
-  };
-  box.innerHTML=`<div class="qhd"><strong>Suggested for you</strong>
-    <span>${esc((PROFILE?.profile?.role)||'Your profile')} \u00b7 one tap sets several filters \u00b7 counts are live</span></div>
+      /* ── Badge vocabulary — mirrors packages/ui ───────────────────────────────── */
+      const MAT = {
+        ANNOUNCED: ['Announced', 'w', 'Stated intent. No implementation scope given.'],
+        CONCEPT: ['Concept', 'w', 'Being explored; nothing built.'],
+        PILOT: ['Pilot', 'n', 'Bounded trial. Most pilots do not scale.'],
+        LIMITED_DEPLOYMENT: ['Limited deployment', 'n', 'Live in selected locations.'],
+        SCALED_DEPLOYMENT: ['Scaled', 'a', 'Described as deployed across the organisation.'],
+        QUANTIFIED_BUSINESS_IMPACT: [
+          'Quantified impact',
+          'a',
+          'A measured outcome is claimed — check who is claiming it.',
+        ],
+        INDEPENDENTLY_VALIDATED_IMPACT: [
+          'Independently validated',
+          'g',
+          'A party other than the beneficiary reports the same outcome.',
+        ],
+        DISCONTINUED_OR_REVERSED: [
+          'Discontinued',
+          'r',
+          'Stopped or reversed. Often more informative than the announcement.',
+        ],
+      };
+      const EV = {
+        QUANTIFIED_PRIMARY_EVIDENCE: ['Quantified primary evidence', 'g'],
+        UNQUANTIFIED_PRIMARY_EVIDENCE: ['Primary evidence', 'g'],
+        MULTIPLE_CREDIBLE_SECONDARY_SOURCES: ['Multiple independent sources', 'g'],
+        SINGLE_CREDIBLE_SECONDARY_SOURCE: ['One independent source', 'n'],
+        COMPANY_SELF_REPORTING: ['Company self-reporting', 'w'],
+        WEAK_OR_UNVERIFIED_SIGNAL: ['Weak signal', 'r'],
+      };
+      const PER = {
+        FIRST_PARTY_COMPANY: 'Company itself',
+        FIRST_PARTY_TECH_PROVIDER: 'Vendor itself',
+        FIRST_PARTY_CONSULTING_FIRM: 'Consulting firm itself',
+        INDEPENDENT_BUSINESS_MEDIA: 'Independent media',
+        INDUSTRY_MEDIA: 'Trade press',
+        REGULATOR: 'Regulator',
+        PUBLIC_INSTITUTION: 'Public institution',
+        USER_PROVIDED: 'User-provided',
+      };
+      const MIXC = {
+        ANNOUNCED: 'var(--warn)',
+        CONCEPT: 'var(--ink-3)',
+        PILOT: 'var(--brand-2)',
+        LIMITED_DEPLOYMENT: 'var(--brand)',
+        SCALED_DEPLOYMENT: 'var(--good)',
+        QUANTIFIED_BUSINESS_IMPACT: 'var(--good)',
+        INDEPENDENTLY_VALIDATED_IMPACT: 'var(--good)',
+        DISCONTINUED_OR_REVERSED: 'var(--bad)',
+      };
+      const b = (t, k = 'n', ti = '') =>
+        `<span class="b ${k}"${ti ? ` title="${esc(ti)}"` : ''}>${esc(t)}</span>`;
+      const bMat = (m) => (MAT[m] ? b(...MAT[m]) : b(m));
+      const bEv = (e) => (EV[e] ? b(...EV[e]) : b(e));
+      const bPer = (p) =>
+        b(
+          (String(p).startsWith('FIRST_PARTY') ? '◑ ' : '○ ') + (PER[p] || p),
+          String(p).startsWith('FIRST_PARTY') ? 'w' : 'n',
+          String(p).startsWith('FIRST_PARTY')
+            ? 'Self-reported. The subject of the story is also the source of it.'
+            : 'Reported by a party other than the subject.',
+        );
+
+      /* ── Filters — the §15 dimensions ─────────────────────────────────────────── */
+      const F = {};
+      let facets = {},
+        stats = {};
+
+      const FILTERS = [
+        { key: 'industry', label: 'Industry', kind: 'chips', src: 'industries' },
+        { key: 'entity', label: 'Company', kind: 'select', src: 'entities' },
+        { key: 'topic', label: 'Topic', kind: 'chips', src: 'topics' },
+        { key: 'technology', label: 'Technology', kind: 'chips', src: 'technologies' },
+        { key: 'eventType', label: 'Event type', kind: 'select', src: 'eventTypes' },
+        {
+          key: 'maturity',
+          label: 'Implementation maturity',
+          kind: 'chips',
+          src: 'maturities',
+          pretty: true,
+        },
+        {
+          key: 'evidence',
+          label: 'Evidence strength',
+          kind: 'select',
+          src: 'evidences',
+          pretty: true,
+        },
+        {
+          key: 'perspective',
+          label: 'Source perspective',
+          kind: 'chips',
+          fixed: [
+            ['OFFICIAL_COMPANY', 'Company'],
+            ['TECHNOLOGY_PROVIDERS', 'Vendors'],
+            ['INDEPENDENT_MEDIA', 'Independent'],
+            ['REGULATORS', 'Regulators'],
+            ['CONSULTING', 'Consulting'],
+            ['RESEARCH', 'Research'],
+          ],
+        },
+        {
+          key: 'impact',
+          label: 'Strategic impact',
+          kind: 'chips',
+          fixed: [
+            ['very_high', 'Very high'],
+            ['high', 'High'],
+            ['moderate', 'Moderate'],
+            ['low', 'Low'],
+          ],
+        },
+        {
+          key: 'novelty',
+          label: 'Novelty',
+          kind: 'chips',
+          fixed: [
+            ['new_to_world', 'New'],
+            ['updated_event', 'Updated'],
+            ['repeated_announcement', 'Restated'],
+          ],
+        },
+        {
+          key: 'days',
+          label: 'Published within',
+          kind: 'chips',
+          fixed: [
+            ['7', '7 days'],
+            ['30', '30 days'],
+            ['90', '90 days'],
+            ['365', '12 months'],
+          ],
+        },
+      ];
+
+      const pretty = (s) =>
+        String(s)
+          .replace(/_/g, ' ')
+          .toLowerCase()
+          .replace(/^./, (c) => c.toUpperCase());
+
+      function buildRail() {
+        const rail = $('#rail');
+        rail.innerHTML = '';
+
+        const head = el('div', 'fgroup');
+        head.append(
+          el(
+            'div',
+            'lbl',
+            `<span>Filters</span><button class="clear" id="clearall">Clear all</button>`,
+          ),
+        );
+        head.append(
+          el(
+            'div',
+            'hint',
+            'Eighteen filter dimensions are stored and indexed. These are the twelve that matter most day to day.',
+          ),
+        );
+        rail.append(head);
+
+        for (const f of FILTERS) {
+          const g = el('div', 'fgroup');
+          g.append(el('div', 'lbl', `<span>${f.label}</span>`));
+          const opts = f.fixed
+            ? f.fixed
+            : (facets[f.src] || []).map((o) => [
+                o.slug,
+                f.pretty ? pretty(o.name || o.slug) : o.name || o.slug,
+                o.n,
+              ]);
+
+          if (f.kind === 'chips') {
+            const box = el('div', 'chips');
+            for (const [val, lab, n] of opts) {
+              const c = el(
+                'button',
+                'chip' + (F[f.key] === val ? ' on' : ''),
+                esc(lab) + (n ? `<span class="ct">${n}</span>` : ''),
+              );
+              c.onclick = () => {
+                F[f.key] = F[f.key] === val ? undefined : val;
+                refresh();
+              };
+              box.append(c);
+            }
+            g.append(box);
+          } else {
+            const s = el('select');
+            s.append(el('option', '', `All ${f.label.toLowerCase()}`));
+            for (const [val, lab, n] of opts) {
+              const o = el('option', '', esc(lab) + (n ? ` (${n})` : ''));
+              o.value = val;
+              if (F[f.key] === val) o.selected = true;
+              s.append(o);
+            }
+            s.onchange = () => {
+              F[f.key] = s.value || undefined;
+              refresh();
+            };
+            g.append(s);
+          }
+          rail.append(g);
+        }
+
+        const g2 = el('div', 'fgroup');
+        g2.append(el('div', 'lbl', '<span>Reading time</span>'));
+        const r = el('input', 'range');
+        r.type = 'range';
+        r.min = 1;
+        r.max = 12;
+        r.value = F.maxMinutes || 12;
+        const out = el('div', 'hint', `Up to ${F.maxMinutes || 12} min`);
+        r.oninput = () => {
+          out.textContent = `Up to ${r.value} min`;
+        };
+        r.onchange = () => {
+          F.maxMinutes = r.value === '12' ? undefined : r.value;
+          refresh();
+        };
+        g2.append(r, out);
+        rail.append(g2);
+
+        const g3 = el('div', 'fgroup');
+        for (const [key, lab] of [
+          ['independentOnly', 'Independently reported only'],
+          ['excludeDemo', 'Hide demo data'],
+        ]) {
+          const sw = el(
+            'button',
+            'switch' + (F[key] === 'true' ? ' on' : ''),
+            `<span>${lab}</span><span class="track"></span>`,
+          );
+          sw.onclick = () => {
+            F[key] = F[key] === 'true' ? undefined : 'true';
+            refresh();
+          };
+          g3.append(sw);
+        }
+        rail.append(g3);
+
+        const g4 = el('div', 'fgroup');
+        g4.append(el('div', 'lbl', '<span>Implementation mix</span>'));
+        g4.append(el('div', 'hint', 'Announcements vs. things actually evidenced as deployed.'));
+        const mix = el('div', 'mix'),
+          leg = el('div', 'legend');
+        (window.__mix || []).forEach((m) => {
+          const i = el('i');
+          i.style.flexGrow = m.n;
+          i.style.background = MIXC[m.slug] || 'var(--ink-3)';
+          i.title = `${pretty(m.slug)}: ${m.n}`;
+          mix.append(i);
+          leg.append(
+            el(
+              'div',
+              'row',
+              `<span class="dot" style="background:${MIXC[m.slug] || 'var(--ink-3)'}"></span>
+       <span>${esc(pretty(m.slug))}</span><span class="v">${m.n}</span>`,
+            ),
+          );
+        });
+        g4.append(mix, leg);
+        rail.append(g4);
+
+        $('#clearall').onclick = () => {
+          Object.keys(F).forEach((k) => delete F[k]);
+          refresh();
+        };
+      }
+
+      /**
+       * Suggested quick filters, derived from the signed-in user's stored profile and
+       * watchlist rather than hardcoded. Each one sets several filter dimensions at once,
+       * because "my industries" is three industries and "quantified outcomes" is two
+       * maturity levels.
+       */
+      let PROFILE = null;
+
+      function quickFilters() {
+        const p = PROFILE || {};
+        const pr = p.profile || {};
+        const inds = (p.industries || []).map((i) => i.slug);
+        const tops = (p.topics || []).map((t) => t.slug);
+        const watch = (p.watchlist || []).map((w) => w.slug);
+        const budget = pr.daily_reading_minutes || 12;
+
+        const out = [];
+
+        if (inds.length)
+          out.push({
+            id: 'mine',
+            icon: '◆',
+            name: 'My industries',
+            sub: (p.industries || []).map((i) => i.name).join(', '),
+            set: { industryIn: inds.join(',') },
+          });
+
+        if (watch.length)
+          out.push({
+            id: 'watch',
+            icon: '★',
+            name: 'My watchlist',
+            sub:
+              (p.watchlist || [])
+                .slice(0, 3)
+                .map((w) => w.name)
+                .join(', ') + (watch.length > 3 ? ` +${watch.length - 3}` : ''),
+            set: { entityIn: watch.join(',') },
+          });
+
+        if (tops.length)
+          out.push({
+            id: 'topics',
+            icon: '◈',
+            name: 'My topics',
+            sub: (p.topics || []).map((t) => t.name).join(', '),
+            set: { topicIn: tops.join(',') },
+          });
+
+        out.push({
+          id: 'fresh',
+          icon: '●',
+          name: 'This week',
+          sub: 'Published in the last 7 days',
+          set: { days: '7' },
+        });
+
+        out.push({
+          id: 'confirmed',
+          icon: '✓',
+          name: 'Independently confirmed',
+          sub: 'At least one non-first-party source',
+          set: { independentOnly: 'true' },
+        });
+
+        out.push({
+          id: 'outcomes',
+          icon: '▲',
+          name: 'Measured outcomes',
+          sub: 'Quantified or independently validated',
+          set: { maturityIn: 'QUANTIFIED_BUSINESS_IMPACT,INDEPENDENTLY_VALIDATED_IMPACT' },
+        });
+
+        out.push({
+          id: 'reversals',
+          icon: '▼',
+          name: 'Reversals',
+          sub: 'Discontinued or rolled back — often the most informative',
+          set: { maturity: 'DISCONTINUED_OR_REVERSED' },
+        });
+
+        out.push({
+          id: 'budget',
+          icon: '◷',
+          name: `Fits my ${budget} min`,
+          sub: 'Short enough for today\u2019s budget',
+          set: { maxMinutes: '3' },
+        });
+
+        out.push({
+          id: 'nofluff',
+          icon: '◐',
+          name: 'Skip self-reported',
+          sub: 'Hide announcements only the company has made',
+          set: { independentOnly: 'true', excludeDemo: 'true' },
+        });
+
+        return out;
+      }
+
+      let QUICK_COUNTS = {};
+
+      /**
+       * Counts are fetched and shown on each pill.
+       *
+       * Not decoration: a suggested filter that returns everything is telling you the profile
+       * is too broad for the current coverage, and a filter that returns two is telling you
+       * where the scarce signal is. Hiding that would make the suggestions look better and be
+       * worth less.
+       */
+      async function loadQuickCounts() {
+        const items = quickFilters();
+        const results = await Promise.all(
+          items.map(async (qf) => {
+            const qs = new URLSearchParams(qf.set).toString();
+            try {
+              const j = await api('/api/insights?' + qs);
+              return [qf.id, j.total];
+            } catch {
+              return [qf.id, null];
+            }
+          }),
+        );
+        QUICK_COUNTS = Object.fromEntries(results);
+      }
+
+      function renderQuick() {
+        const box = $('#quick');
+        if (!box) return;
+        const items = quickFilters();
+        const total = stats.insights || 0;
+        const active = (id) => {
+          const q = items.find((x) => x.id === id);
+          return q && Object.entries(q.set).every(([k, v]) => F[k] === v);
+        };
+        box.innerHTML = `<div class="qhd"><strong>Suggested for you</strong>
+    <span>${esc(PROFILE?.profile?.role || 'Your profile')} \u00b7 one tap sets several filters \u00b7 counts are live</span></div>
     <div class="qrow" id="qrow"></div>`;
-  const row=$('#qrow');
-  items.forEach(qf=>{
-    const on=active(qf.id);
-    const n=QUICK_COUNTS[qf.id];
-    // A suggestion that matches everything narrows nothing — say so.
-    const narrows=n!=null&&total>0&&n<total;
-    const tag=n==null?'' : narrows?`${n}` : `all ${n}`;
-    const btn=el('button','q'+(on?' on':''),
-      `<span class="qi">${qf.icon}</span>
-       <span class="qt"><span class="qn">${esc(qf.name)}${tag?` <span style="font-weight:550;color:${on?'var(--brand)':'var(--ink-3)'}">\u00b7 ${tag}</span>`:''}</span>
-       <span class="qs">${esc(narrows||n==null?qf.sub:'Matches everything — too broad to narrow anything')}</span></span>`);
-    btn.onclick=()=>{
-      if(on) Object.keys(qf.set).forEach(k=>delete F[k]);
-      else Object.assign(F,qf.set);
-      refresh();
-    };
-    row.append(btn);
-  });
-}
+        const row = $('#qrow');
+        items.forEach((qf) => {
+          const on = active(qf.id);
+          const n = QUICK_COUNTS[qf.id];
+          // A suggestion that matches everything narrows nothing — say so.
+          const narrows = n != null && total > 0 && n < total;
+          const tag = n == null ? '' : narrows ? `${n}` : `all ${n}`;
+          const btn = el(
+            'button',
+            'q' + (on ? ' on' : ''),
+            `<span class="qi">${qf.icon}</span>
+       <span class="qt"><span class="qn">${esc(qf.name)}${tag ? ` <span style="font-weight:550;color:${on ? 'var(--brand)' : 'var(--ink-3)'}">\u00b7 ${tag}</span>` : ''}</span>
+       <span class="qs">${esc(narrows || n == null ? qf.sub : 'Matches everything — too broad to narrow anything')}</span></span>`,
+          );
+          btn.onclick = () => {
+            if (on) Object.keys(qf.set).forEach((k) => delete F[k]);
+            else Object.assign(F, qf.set);
+            refresh();
+          };
+          row.append(btn);
+        });
+      }
 
-function activeChips(){
-  const box=$('#active-filters'); box.innerHTML='';
-  const keys=Object.keys(F).filter(k=>F[k]!==undefined);
-  if(!keys.length){box.innerHTML=`<span class="b m">No filters</span>`;return}
-  keys.forEach(k=>{
-    const f=FILTERS.find(x=>x.key===k);
-    const chip=el('button','b a',`${esc(f?f.label:pretty(k))}: ${esc(pretty(F[k]))} ✕`);
-    chip.onclick=()=>{delete F[k];refresh()};
-    box.append(chip);
-  });
-}
+      function activeChips() {
+        const box = $('#active-filters');
+        box.innerHTML = '';
+        const keys = Object.keys(F).filter((k) => F[k] !== undefined);
+        if (!keys.length) {
+          box.innerHTML = `<span class="b m">No filters</span>`;
+          return;
+        }
+        keys.forEach((k) => {
+          const f = FILTERS.find((x) => x.key === k);
+          const chip = el(
+            'button',
+            'b a',
+            `${esc(f ? f.label : pretty(k))}: ${esc(pretty(F[k]))} ✕`,
+          );
+          chip.onclick = () => {
+            delete F[k];
+            refresh();
+          };
+          box.append(chip);
+        });
+      }
 
-async function refresh(){
-  buildRail(); activeChips(); renderQuick();
-  const n=Object.values(F).filter(v=>v!==undefined).length;
-  const rc=$('#rail-count'); if(rc)rc.textContent=n?`\u00b7 ${n} active`:'\u00b7 none active';
-  const qs=new URLSearchParams(Object.entries(F).filter(([,v])=>v!==undefined)).toString();
-  $('#results').innerHTML='<div class="skeleton"></div><div class="skeleton"></div>';
-  const {rows,total}=await api('/api/insights?'+qs);
-  $('#count').innerHTML=`<b>${total}</b> insight${total===1?'':'s'} match${total===1?'es':''} · showing ${rows.length}`;
+      async function refresh() {
+        buildRail();
+        activeChips();
+        renderQuick();
+        const n = Object.values(F).filter((v) => v !== undefined).length;
+        const rc = $('#rail-count');
+        if (rc) rc.textContent = n ? `\u00b7 ${n} active` : '\u00b7 none active';
+        const qs = new URLSearchParams(
+          Object.entries(F).filter(([, v]) => v !== undefined),
+        ).toString();
+        $('#results').innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+        const { rows, total } = await api('/api/insights?' + qs);
+        $('#count').innerHTML =
+          `<b>${total}</b> insight${total === 1 ? '' : 's'} match${total === 1 ? 'es' : ''} · showing ${rows.length}`;
 
-  const box=$('#results'); box.innerHTML='';
-  if(!rows.length){
-    box.append(el('div','panel empty',
-      `<div class="big">No events match these filters.</div>
+        const box = $('#results');
+        box.innerHTML = '';
+        if (!rows.length) {
+          box.append(
+            el(
+              'div',
+              'panel empty',
+              `<div class="big">No events match these filters.</div>
        <div>That is a statement about ${stats.active_sources} monitored sources, not about the world.
-       Loosen a filter, or check the coverage dashboard.</div>`));
-    return;
-  }
-  rows.forEach((r,i)=>{
-    const strong=['QUANTIFIED_PRIMARY_EVIDENCE','UNQUANTIFIED_PRIMARY_EVIDENCE','MULTIPLE_CREDIBLE_SECONDARY_SOURCES'].includes(r.evidence_strength);
-    const weak=r.evidence_strength==='WEAK_OR_UNVERIFIED_SIGNAL'||r.first_party_only;
-    const c=el('article','card'+(strong?' strong':weak?' weak':''));
-    c.style.animationDelay=(i*26)+'ms';
-    c.innerHTML=`
+       Loosen a filter, or check the coverage dashboard.</div>`,
+            ),
+          );
+          return;
+        }
+        rows.forEach((r, i) => {
+          const strong = [
+            'QUANTIFIED_PRIMARY_EVIDENCE',
+            'UNQUANTIFIED_PRIMARY_EVIDENCE',
+            'MULTIPLE_CREDIBLE_SECONDARY_SOURCES',
+          ].includes(r.evidence_strength);
+          const weak = r.evidence_strength === 'WEAK_OR_UNVERIFIED_SIGNAL' || r.first_party_only;
+          const c = el('article', 'card' + (strong ? ' strong' : weak ? ' weak' : ''));
+          c.style.animationDelay = i * 26 + 'ms';
+          c.innerHTML = `
       <div class="badges">
-        ${b(r.novelty==='repeated_announcement'?'Restated':r.novelty==='updated_event'?'Updated':'New',
-            r.novelty==='repeated_announcement'?'m':'a')}
+        ${b(
+          r.novelty === 'repeated_announcement'
+            ? 'Restated'
+            : r.novelty === 'updated_event'
+              ? 'Updated'
+              : 'New',
+          r.novelty === 'repeated_announcement' ? 'm' : 'a',
+        )}
         ${bMat(r.case_maturity)}${bEv(r.evidence_strength)}
-        ${r.verification_status==='DISPUTED'?b('Sources disagree','r'):''}
-        ${r.first_party_only?b('Self-reported only','w','No independent source has confirmed this.'):''}
-        ${r.is_demo?b('Demo data','r','Illustrative fixture. Not real reporting.'):''}
+        ${r.verification_status === 'DISPUTED' ? b('Sources disagree', 'r') : ''}
+        ${r.first_party_only ? b('Self-reported only', 'w', 'No independent source has confirmed this.') : ''}
+        ${r.is_demo ? b('Demo data', 'r', 'Illustrative fixture. Not real reporting.') : ''}
       </div>
       <h3>${esc(r.headline)}</h3>
       <p>${esc(r.takeaway)}</p>
       <div class="meta">
         <span>Event ${fmt(r.event_at)}</span><span>Published ${fmt(r.first_reported_at)}</span>
-        <span>${r.source_count} source${r.source_count===1?'':'s'}${r.independent_source_count?` · ${r.independent_source_count} independent`:''}</span>
+        <span>${r.source_count} source${r.source_count === 1 ? '' : 's'}${r.independent_source_count ? ` · ${r.independent_source_count} independent` : ''}</span>
         <span>${r.minutes} min</span>
-        ${r.entities?`<span>${esc(r.entities)}</span>`:''}
+        ${r.entities ? `<span>${esc(r.entities)}</span>` : ''}
       </div>`;
-    c.onclick=()=>openDetail(r.id);
-    box.append(c);
-  });
-}
+          c.onclick = () => openDetail(r.id);
+          box.append(c);
+        });
+      }
 
-/* ── Detail with evidence excerpt ─────────────────────────────────────────── */
-async function openDetail(id){
-  const d=$('#detail');
-  d.innerHTML='<div class="skeleton" style="height:220px"></div>';
-  d.scrollIntoView({behavior:'smooth',block:'start'});
-  const {insight:x,claims,apps,conns,conflicts}=await api('/api/insight?id='+id);
-  const facts=claims.filter(c=>c.claim_type==='FACT'&&c.quote);
-  const f0=facts[0];
-  let excerpt='';
-  if(f0){
-    const t=f0.normalized_text||'',s=f0.start_offset||0,e=f0.end_offset||0;
-    const a=Math.max(0,s-300),z=Math.min(t.length,e+300);
-    excerpt=`${a>0?'… ':''}<span class="dim">${esc(t.slice(a,s))}</span><mark>${esc(t.slice(s,e))}</mark><span class="dim">${esc(t.slice(e,z))}</span>${z<t.length?' …':''}`;
-  }
-  const kind=k=>apps.filter(a=>a.kind===k);
+      /* ── Detail with evidence excerpt ─────────────────────────────────────────── */
+      async function openDetail(id) {
+        const d = $('#detail');
+        d.innerHTML = '<div class="skeleton" style="height:220px"></div>';
+        d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const { insight: x, claims, apps, conns, conflicts } = await api('/api/insight?id=' + id);
+        const facts = claims.filter((c) => c.claim_type === 'FACT' && c.quote);
+        const f0 = facts[0];
+        let excerpt = '';
+        if (f0) {
+          const t = f0.normalized_text || '',
+            s = f0.start_offset || 0,
+            e = f0.end_offset || 0;
+          const a = Math.max(0, s - 300),
+            z = Math.min(t.length, e + 300);
+          excerpt = `${a > 0 ? '… ' : ''}<span class="dim">${esc(t.slice(a, s))}</span><mark>${esc(t.slice(s, e))}</mark><span class="dim">${esc(t.slice(e, z))}</span>${z < t.length ? ' …' : ''}`;
+        }
+        const kind = (k) => apps.filter((a) => a.kind === k);
 
-  d.innerHTML=`
+        d.innerHTML = `
   <div class="eyebrow">Insight detail</div>
   <h1 style="font-size:28px;margin:8px 0 8px">${esc(x.headline)}</h1>
   <div class="badges" style="margin-bottom:10px">
     ${bMat(x.case_maturity)}${bEv(x.evidence_strength)}
-    ${b(pretty(x.verification_status),'n')}
-    ${x.first_party_only?b('Self-reported only','w'):''}
-    ${b('Extractive','m','No language model configured. Sentences reused verbatim from the sources.')}
-    ${x.is_demo?b('Demo data','r'):''}
+    ${b(pretty(x.verification_status), 'n')}
+    ${x.first_party_only ? b('Self-reported only', 'w') : ''}
+    ${b('Extractive', 'm', 'No language model configured. Sentences reused verbatim from the sources.')}
+    ${x.is_demo ? b('Demo data', 'r') : ''}
   </div>
   <p class="lede">${esc(x.takeaway)}</p>
   <div class="meta" style="margin-bottom:22px">
@@ -684,18 +1835,29 @@ async function openDetail(id){
    <div>
     <h2 class="sec">Verified facts</h2>
     <p class="hint">Sentences taken verbatim from the sources. Each links to the exact passage it came from.</p>
-    ${facts.slice(0,4).map((f,i)=>`<div class="blk f">
-      <div class="lbl">Fact ${i+1}</div>
+    ${
+      facts
+        .slice(0, 4)
+        .map(
+          (f, i) => `<div class="blk f">
+      <div class="lbl">Fact ${i + 1}</div>
       <p class="serif" style="color:var(--ink);margin:0 0 6px">${esc(f.text)}</p>
-      <div class="badges">${b('Fact','g')}${bPer(f.perspective)}${bEv(f.evidence_strength)}${f.quantified?b('Quantified','a'):''}</div>
-    </div>`).join('')||'<p class="hint">No claim met the bar for a verified fact.</p>'}
+      <div class="badges">${b('Fact', 'g')}${bPer(f.perspective)}${bEv(f.evidence_strength)}${f.quantified ? b('Quantified', 'a') : ''}</div>
+    </div>`,
+        )
+        .join('') || '<p class="hint">No claim met the bar for a verified fact.</p>'
+    }
 
-    ${f0?`<h2 class="sec" style="margin-top:26px">Evidence for fact 1</h2>
+    ${
+      f0
+        ? `<h2 class="sec" style="margin-top:26px">Evidence for fact 1</h2>
     <p class="hint">Characters ${f0.start_offset}–${f0.end_offset} of the stored document version.
       Offsets refer to an immutable snapshot, so a later edit cannot move this citation.</p>
     <div class="excerpt">${excerpt}</div>
     <div class="meta"><span><b>${esc(f0.doc_title)}</b></span><span>${esc(f0.source_name)}</span>
-      <span>Published ${fmt(f0.published_at)}</span></div>`:''}
+      <span>Published ${fmt(f0.published_at)}</span></div>`
+        : ''
+    }
 
     <h2 class="sec" style="margin-top:26px">What changed</h2>
     <p class="serif">${esc(x.what_changed)}</p>
@@ -706,62 +1868,113 @@ async function openDetail(id){
     <h2 class="sec" style="margin-top:22px">Market context</h2>
     <p class="serif">${esc(x.market_context)}</p>
 
-    ${conflicts.length?`<h2 class="sec" style="margin-top:26px">Counter-signals</h2>
-      ${conflicts.map(c=>`<div class="blk c"><div class="lbl">Sources disagree</div>
-        <p style="color:var(--ink)">${esc(c.explanation)}</p></div>`).join('')}`:''}
+    ${
+      conflicts.length
+        ? `<h2 class="sec" style="margin-top:26px">Counter-signals</h2>
+      ${conflicts
+        .map(
+          (c) => `<div class="blk c"><div class="lbl">Sources disagree</div>
+        <p style="color:var(--ink)">${esc(c.explanation)}</p></div>`,
+        )
+        .join('')}`
+        : ''
+    }
 
     <h2 class="sec" style="margin-top:26px">Consultant perspective</h2>
     <div class="blk i"><div class="lbl">Reading · our interpretation</div>
       <p>${esc(x.consultant_perspective)}</p></div>
-    ${(x.client_implications||[]).length?`<div class="blk i">
+    ${
+      (x.client_implications || []).length
+        ? `<div class="blk i">
       <div class="lbl">Client implications · our interpretation</div>
-      <ul>${x.client_implications.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
-    ${kind('hypothesis').length?`<div class="blk i"><div class="lbl">Hypotheses · our interpretation</div>
-      <ul>${kind('hypothesis').map(a=>`<li>${esc(a.text)}</li>`).join('')}</ul></div>`:''}
-    ${kind('contrarian_angle').length?`<div class="blk i"><div class="lbl">Contrarian angle · our interpretation</div>
-      <ul>${kind('contrarian_angle').map(a=>`<li>${esc(a.text)}</li>`).join('')}</ul></div>`:''}
+      <ul>${x.client_implications.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>`
+        : ''
+    }
+    ${
+      kind('hypothesis').length
+        ? `<div class="blk i"><div class="lbl">Hypotheses · our interpretation</div>
+      <ul>${kind('hypothesis')
+        .map((a) => `<li>${esc(a.text)}</li>`)
+        .join('')}</ul></div>`
+        : ''
+    }
+    ${
+      kind('contrarian_angle').length
+        ? `<div class="blk i"><div class="lbl">Contrarian angle · our interpretation</div>
+      <ul>${kind('contrarian_angle')
+        .map((a) => `<li>${esc(a.text)}</li>`)
+        .join('')}</ul></div>`
+        : ''
+    }
    </div>
    <aside>
     <div class="panel pad" style="margin-bottom:11px">
       <h2 class="sec">Conversation starters</h2>
-      <ol>${kind('conversation_starter').map(a=>`<li style="font-size:13px;line-height:1.6;color:var(--ink-2)">${esc(a.text)}</li>`).join('')}</ol>
+      <ol>${kind('conversation_starter')
+        .map(
+          (a) =>
+            `<li style="font-size:13px;line-height:1.6;color:var(--ink-2)">${esc(a.text)}</li>`,
+        )
+        .join('')}</ol>
     </div>
     <div class="panel pad" style="margin-bottom:11px;background:var(--inset)">
       <h2 class="sec">What this does not tell you</h2>
-      <ul>${(x.known_unknowns||[]).map(u=>`<li style="font-size:12.5px;line-height:1.6;color:var(--ink-2)">${esc(u)}</li>`).join('')}</ul>
+      <ul>${(x.known_unknowns || []).map((u) => `<li style="font-size:12.5px;line-height:1.6;color:var(--ink-2)">${esc(u)}</li>`).join('')}</ul>
     </div>
-    ${conns.length?`<div class="panel pad" style="margin-bottom:11px">
+    ${
+      conns.length
+        ? `<div class="panel pad" style="margin-bottom:11px">
       <h2 class="sec">Learning connections</h2>
-      <ul>${conns.map(c=>`<li style="font-size:12.5px;line-height:1.55;color:var(--ink-2)"><b style="color:var(--brand)">${esc(c.name)}</b></li>`).join('')}</ul></div>`:''}
+      <ul>${conns.map((c) => `<li style="font-size:12.5px;line-height:1.55;color:var(--ink-2)"><b style="color:var(--brand)">${esc(c.name)}</b></li>`).join('')}</ul></div>`
+        : ''
+    }
     <div class="panel pad">
       <h2 class="sec">Sources</h2>
-      ${[...new Map(claims.filter(c=>c.doc_url).map(c=>[c.doc_url,c])).values()].map(c=>`
+      ${[...new Map(claims.filter((c) => c.doc_url).map((c) => [c.doc_url, c])).values()]
+        .map(
+          (c) => `
         <div style="margin-bottom:11px">
           <div style="font-size:12.5px;font-weight:550;line-height:1.45">${esc(c.doc_title)}</div>
           <div style="margin-top:4px">${bPer(c.perspective)}</div>
           <div class="meta" style="margin-top:2px"><span>${esc(c.source_name)} · ${fmt(c.published_at)}</span></div>
-        </div>`).join('')}
+        </div>`,
+        )
+        .join('')}
     </div>
    </aside>
   </div>`;
-}
+      }
 
-/* ── Companion ────────────────────────────────────────────────────────────── */
-const MODES=[['brief_me','Brief me'],['explain_it','Explain it'],['explore_it','Explore it'],
-  ['prepare_me','Prepare me'],['challenge_me','Challenge me'],['teach_me','Teach me'],
-  ['capture_reflect','Capture']];
-const PLACEHOLDER={brief_me:'Brief me on what changed',explain_it:'How do fashion retailers make money?',
-  explore_it:'What is happening with markdown and allocation in retail?',
-  prepare_me:'Prepare me for a meeting about their allocation platform',
-  challenge_me:'Challenge the claim that AI allocation reduces markdown',
-  teach_me:'Teach me about AI deployment maturity',
-  capture_reflect:'My view: the constraint is decision rights, not models'};
-let mode='explore_it', open=false, busy=false, rec=null;
+      /* ── Companion ────────────────────────────────────────────────────────────── */
+      const MODES = [
+        ['brief_me', 'Brief me'],
+        ['explain_it', 'Explain it'],
+        ['explore_it', 'Explore it'],
+        ['prepare_me', 'Prepare me'],
+        ['challenge_me', 'Challenge me'],
+        ['teach_me', 'Teach me'],
+        ['capture_reflect', 'Capture'],
+      ];
+      const PLACEHOLDER = {
+        brief_me: 'Brief me on what changed',
+        explain_it: 'How do fashion retailers make money?',
+        explore_it: 'What is happening with markdown and allocation in retail?',
+        prepare_me: 'Prepare me for a meeting about their allocation platform',
+        challenge_me: 'Challenge the claim that AI allocation reduces markdown',
+        teach_me: 'Teach me about AI deployment maturity',
+        capture_reflect: 'My view: the constraint is decision rights, not models',
+      };
+      let mode = 'explore_it',
+        open = false,
+        busy = false,
+        rec = null;
 
-function sheet(){
-  if(open)return; open=true;
-  const scrim=el('div','scrim'); scrim.id='scrim';
-  scrim.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="Companion">
+      function sheet() {
+        if (open) return;
+        open = true;
+        const scrim = el('div', 'scrim');
+        scrim.id = 'scrim';
+        scrim.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Companion">
     <div class="sheet-hd">
       <div class="mark">M</div><strong style="font-size:14.5px">Companion</strong>
       <div class="spacer"></div>
@@ -782,142 +1995,246 @@ function sheet(){
       <div class="warn-strip">Do not enter confidential client or company information unless this
         workspace has been explicitly approved for it.</div>
     </div></div>`;
-  document.body.append(scrim);
-  scrim.onclick=e=>{if(e.target===scrim)closeSheet()};
-  $('#close').onclick=closeSheet;
+        document.body.append(scrim);
+        scrim.onclick = (e) => {
+          if (e.target === scrim) closeSheet();
+        };
+        $('#close').onclick = closeSheet;
 
-  const mbox=$('#modes');
-  MODES.forEach(([k,l])=>{
-    const btn=el('button','mode'+(mode===k?' on':''),l);
-    btn.onclick=()=>{mode=k;$('#q').placeholder=PLACEHOLDER[k];
-      [...mbox.children].forEach((c,i)=>c.classList.toggle('on',MODES[i][0]===k))};
-    mbox.append(btn);
-  });
+        const mbox = $('#modes');
+        MODES.forEach(([k, l]) => {
+          const btn = el('button', 'mode' + (mode === k ? ' on' : ''), l);
+          btn.onclick = () => {
+            mode = k;
+            $('#q').placeholder = PLACEHOLDER[k];
+            [...mbox.children].forEach((c, i) => c.classList.toggle('on', MODES[i][0] === k));
+          };
+          mbox.append(btn);
+        });
 
-  const q=$('#q'), send=$('#send');
-  q.placeholder=PLACEHOLDER[mode];
-  q.oninput=()=>{send.disabled=!q.value.trim()||busy;
-    q.style.height='auto';q.style.height=Math.min(150,q.scrollHeight)+'px'};
-  q.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask()}};
-  send.onclick=ask;
-  setupMic();
-  setTimeout(()=>q.focus(),90);
-}
-function closeSheet(){open=false;$('#scrim')?.remove();try{rec?.stop()}catch{}}
+        const q = $('#q'),
+          send = $('#send');
+        q.placeholder = PLACEHOLDER[mode];
+        q.oninput = () => {
+          send.disabled = !q.value.trim() || busy;
+          q.style.height = 'auto';
+          q.style.height = Math.min(150, q.scrollHeight) + 'px';
+        };
+        q.onkeydown = (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            ask();
+          }
+        };
+        send.onclick = ask;
+        setupMic();
+        setTimeout(() => q.focus(), 90);
+      }
+      function closeSheet() {
+        open = false;
+        $('#scrim')?.remove();
+        try {
+          rec?.stop();
+        } catch {}
+      }
 
-function setupMic(){
-  const btn=$('#mic');
-  const Impl=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!Impl){
-    btn.disabled=true; btn.style.opacity=.35;
-    btn.title='Voice input is not available in this browser. Typing uses the same answering path and the same evidence model.';
-    return;
-  }
-  btn.onclick=()=>{
-    rec=new Impl(); rec.lang='en-GB'; rec.interimResults=false; rec.continuous=false;
-    btn.classList.add('live');
-    rec.onresult=e=>{
-      const t=e.results[0][0].transcript;
-      btn.classList.remove('live');
-      $('#q').value=t; $('#send').disabled=false; ask(true);
-    };
-    rec.onerror=()=>{btn.classList.remove('live');
-      note('Voice input failed. Check microphone permission, or type instead.')};
-    rec.onend=()=>btn.classList.remove('live');
-    rec.start();
-  };
-}
-function note(msg){
-  const t=$('#thread'); t.append(el('div','warn-strip',esc(msg))); t.scrollTop=t.scrollHeight;
-}
+      function setupMic() {
+        const btn = $('#mic');
+        const Impl = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!Impl) {
+          btn.disabled = true;
+          btn.style.opacity = 0.35;
+          btn.title =
+            'Voice input is not available in this browser. Typing uses the same answering path and the same evidence model.';
+          return;
+        }
+        btn.onclick = () => {
+          rec = new Impl();
+          rec.lang = 'en-GB';
+          rec.interimResults = false;
+          rec.continuous = false;
+          btn.classList.add('live');
+          rec.onresult = (e) => {
+            const t = e.results[0][0].transcript;
+            btn.classList.remove('live');
+            $('#q').value = t;
+            $('#send').disabled = false;
+            ask(true);
+          };
+          rec.onerror = () => {
+            btn.classList.remove('live');
+            note('Voice input failed. Check microphone permission, or type instead.');
+          };
+          rec.onend = () => btn.classList.remove('live');
+          rec.start();
+        };
+      }
+      function note(msg) {
+        const t = $('#thread');
+        t.append(el('div', 'warn-strip', esc(msg)));
+        t.scrollTop = t.scrollHeight;
+      }
 
-async function ask(spoken){
-  const q=$('#q'); const question=q.value.trim();
-  if(!question||busy)return;
-  busy=true; $('#send').disabled=true;
-  const thread=$('#thread');
-  thread.append(el('div','turn me',esc(question)));
-  q.value=''; q.style.height='auto';
-  const wait=el('div','thinking','<i></i><i></i><i></i>'); thread.append(wait);
-  thread.scrollTop=thread.scrollHeight;
+      async function ask(spoken) {
+        const q = $('#q');
+        const question = q.value.trim();
+        if (!question || busy) return;
+        busy = true;
+        $('#send').disabled = true;
+        const thread = $('#thread');
+        thread.append(el('div', 'turn me', esc(question)));
+        q.value = '';
+        q.style.height = 'auto';
+        const wait = el('div', 'thinking', '<i></i><i></i><i></i>');
+        thread.append(wait);
+        thread.scrollTop = thread.scrollHeight;
 
-  let r;
-  try{ r=await api('/api/ask',{method:'POST',headers:{'content-type':'application/json'},
-        body:JSON.stringify({question,mode})}); }
-  catch{ wait.remove(); note('Network error. The Companion did not answer.'); busy=false; return; }
-  wait.remove();
+        let r;
+        try {
+          r = await api('/api/ask', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ question, mode }),
+          });
+        } catch {
+          wait.remove();
+          note('Network error. The Companion did not answer.');
+          busy = false;
+          return;
+        }
+        wait.remove();
 
-  const cite=i=>{const c=r.citations[i];return c?`<sup><a href="${esc(c.sourceUrl||'#')}" target="_blank" rel="noopener" title="${esc(c.sourceName)} — ${esc(c.documentTitle)}">[${i+1}]</a></sup>`:''};
-  const ans=el('div','turn');
-  ans.innerHTML=`<div class="ans">
+        const cite = (i) => {
+          const c = r.citations[i];
+          return c
+            ? `<sup><a href="${esc(c.sourceUrl || '#')}" target="_blank" rel="noopener" title="${esc(c.sourceName)} — ${esc(c.documentTitle)}">[${i + 1}]</a></sup>`
+            : '';
+        };
+        const ans = el('div', 'turn');
+        ans.innerHTML = `<div class="ans">
     <div class="hd">
-      ${b(pretty(r.mode),'a')}
+      ${b(pretty(r.mode), 'a')}
       <span>As of ${fmt(r.asOf)}</span><span>· extractive</span>
-      ${r.insufficient?b('Insufficient evidence','r'):''}
-      ${r.citations.length?`<span>· ${r.citations.length} citation${r.citations.length===1?'':'s'}</span>`:''}
+      ${r.insufficient ? b('Insufficient evidence', 'r') : ''}
+      ${r.citations.length ? `<span>· ${r.citations.length} citation${r.citations.length === 1 ? '' : 's'}</span>` : ''}
     </div>
     <p class="serif" style="margin:0 0 4px">${esc(r.directAnswer)}</p>
 
-    ${r.facts.length?`<div class="blk f"><div class="lbl">Verified facts</div><ol>
-      ${r.facts.map(f=>`<li style="color:var(--ink)">${esc(f.text)}${f.citationIndexes.map(cite).join('')}</li>`).join('')}
-    </ol></div>`:''}
+    ${
+      r.facts.length
+        ? `<div class="blk f"><div class="lbl">Verified facts</div><ol>
+      ${r.facts.map((f) => `<li style="color:var(--ink)">${esc(f.text)}${f.citationIndexes.map(cite).join('')}</li>`).join('')}
+    </ol></div>`
+        : ''
+    }
 
-    ${r.interpretations.length?`<div class="blk i"><div class="lbl">Interpretation</div><ul>
-      ${r.interpretations.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
+    ${
+      r.interpretations.length
+        ? `<div class="blk i"><div class="lbl">Interpretation</div><ul>
+      ${r.interpretations.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>`
+        : ''
+    }
 
-    ${r.hypotheses.length?`<div class="blk i"><div class="lbl">Hypotheses</div><ul>
-      ${r.hypotheses.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
+    ${
+      r.hypotheses.length
+        ? `<div class="blk i"><div class="lbl">Hypotheses</div><ul>
+      ${r.hypotheses.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>`
+        : ''
+    }
 
-    ${r.counterEvidence.length?`<div class="blk c"><div class="lbl">Counter-evidence</div><ul>
-      ${r.counterEvidence.map(t=>`<li>${esc(t.text)}</li>`).join('')}</ul></div>`:''}
+    ${
+      r.counterEvidence.length
+        ? `<div class="blk c"><div class="lbl">Counter-evidence</div><ul>
+      ${r.counterEvidence.map((t) => `<li>${esc(t.text)}</li>`).join('')}</ul></div>`
+        : ''
+    }
 
-    ${r.starters.length?`<div class="blk i"><div class="lbl">Questions you could ask</div><ol>
-      ${r.starters.map(t=>`<li>${esc(t)}</li>`).join('')}</ol></div>`:''}
+    ${
+      r.starters.length
+        ? `<div class="blk i"><div class="lbl">Questions you could ask</div><ol>
+      ${r.starters.map((t) => `<li>${esc(t)}</li>`).join('')}</ol></div>`
+        : ''
+    }
 
-    ${r.unknowns.length?`<div class="blk" style="border-color:var(--line-2)">
+    ${
+      r.unknowns.length
+        ? `<div class="blk" style="border-color:var(--line-2)">
       <div class="lbl" style="color:var(--ink-3)">What this does not tell you</div><ul>
-      ${r.unknowns.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
+      ${r.unknowns.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>`
+        : ''
+    }
 
-    ${r.citations.length?`<div class="cites"><ol>
-      ${r.citations.map((c,i)=>`<li><b>[${i+1}]</b> ${esc(c.documentTitle)} — ${esc(c.sourceName)} ·
-        ${fmt(c.publishedAt)} · ${esc(pretty(c.evidenceStrength))}</li>`).join('')}
-    </ol></div>`:''}
+    ${
+      r.citations.length
+        ? `<div class="cites"><ol>
+      ${r.citations
+        .map(
+          (c, i) => `<li><b>[${i + 1}]</b> ${esc(c.documentTitle)} — ${esc(c.sourceName)} ·
+        ${fmt(c.publishedAt)} · ${esc(pretty(c.evidenceStrength))}</li>`,
+        )
+        .join('')}
+    </ol></div>`
+        : ''
+    }
 
-    ${r.followUps.length?`<div class="followups">
-      ${r.followUps.map(f=>`<button class="fu">${esc(f)}</button>`).join('')}</div>`:''}
+    ${
+      r.followUps.length
+        ? `<div class="followups">
+      ${r.followUps.map((f) => `<button class="fu">${esc(f)}</button>`).join('')}</div>`
+        : ''
+    }
   </div>`;
-  thread.append(ans);
-  ans.querySelectorAll('.fu').forEach(btn=>btn.onclick=()=>{$('#q').value=btn.textContent;ask()});
-  thread.scrollTop=thread.scrollHeight;
-  busy=false;
+        thread.append(ans);
+        ans.querySelectorAll('.fu').forEach(
+          (btn) =>
+            (btn.onclick = () => {
+              $('#q').value = btn.textContent;
+              ask();
+            }),
+        );
+        thread.scrollTop = thread.scrollHeight;
+        busy = false;
 
-  // Voice in, voice out — rendered from the same object as the text.
-  if(spoken&&'speechSynthesis'in window){
-    const u=new SpeechSynthesisUtterance([r.directAnswer,...r.facts.map(f=>f.text)].join(' ').slice(0,700));
-    u.lang='en-GB'; speechSynthesis.speak(u);
-  }
-}
+        // Voice in, voice out — rendered from the same object as the text.
+        if (spoken && 'speechSynthesis' in window) {
+          const u = new SpeechSynthesisUtterance(
+            [r.directAnswer, ...r.facts.map((f) => f.text)].join(' ').slice(0, 700),
+          );
+          u.lang = 'en-GB';
+          speechSynthesis.speak(u);
+        }
+      }
 
-/* ── Views ───────────────────────────────────────────────────────────────── */
-const MAIN=['#hero','#quick','.cols','#rule','#detail'];
-function showView(v){
-  [...$('#tabs').children].forEach(t=>t.classList.toggle('on',t.dataset.view===v));
-  const other=$('#other-views');
-  const main=v==='today'||v==='explore';
-  MAIN.forEach(sel=>{const n=$(sel);if(n)n.hidden=!main});
-  other.hidden=main;
-  if(v==='companion'){sheet();showView('today');return}
-  if(!main)renderOther(v);
-}
-$('#tabs').onclick=e=>{const t=e.target.closest('.tab');if(t)showView(t.dataset.view)};
+      /* ── Views ───────────────────────────────────────────────────────────────── */
+      const MAIN = ['#hero', '#quick', '.cols', '#rule', '#detail'];
+      function showView(v) {
+        [...$('#tabs').children].forEach((t) => t.classList.toggle('on', t.dataset.view === v));
+        const other = $('#other-views');
+        const main = v === 'today' || v === 'explore';
+        MAIN.forEach((sel) => {
+          const n = $(sel);
+          if (n) n.hidden = !main;
+        });
+        other.hidden = main;
+        if (v === 'companion') {
+          sheet();
+          showView('today');
+          return;
+        }
+        if (!main) renderOther(v);
+      }
+      $('#tabs').onclick = (e) => {
+        const t = e.target.closest('.tab');
+        if (t) showView(t.dataset.view);
+      };
 
-async function renderOther(v){
-  const box=$('#other-views');
-  box.innerHTML='<div class="skeleton" style="height:200px"></div>';
+      async function renderOther(v) {
+        const box = $('#other-views');
+        box.innerHTML = '<div class="skeleton" style="height:200px"></div>';
 
-  if(v==='watch'){
-    const w=await api('/api/watch');
-    const band=(id,icon,title,why,falsifier,items,render)=>`
+        if (v === 'watch') {
+          const w = await api('/api/watch');
+          const band = (id, icon, title, why, falsifier, items, render) => `
       <section class="blk" style="margin-bottom:30px">
         <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">
           <span class="qi" style="width:24px;height:24px;font-size:12px">${icon}</span>
@@ -927,20 +2244,28 @@ async function renderOther(v){
         <p class="hint" style="margin:6px 0 4px;max-width:74ch">${why}</p>
         <p class="hint" style="margin:0 0 12px;max-width:74ch;color:var(--brand)">
           <strong>What would settle it:</strong> ${falsifier}</p>
-        ${items.length?items.map(render).join(''):'<p class="hint">Nothing in this band right now.</p>'}
+        ${items.length ? items.map(render).join('') : '<p class="hint">Nothing in this band right now.</p>'}
       </section>`;
 
-    box.innerHTML=`<div class="eyebrow">Watch</div>
+          box.innerHTML = `<div class="eyebrow">Watch</div>
       <h1>What to watch, and what would settle it</h1>
       <p class="lede">Foresight derived from the evidence, not generated from it. There are no
       probabilities here and no predicted outcomes — every band is a query over what the
       sources actually said, and every one states the observation that would resolve it.</p>
 
       <div class="stat-row" style="border-top:0;padding-top:0;margin-top:20px">
-        ${[['announced','Announced, no scope'],['pilots','Pilots awaiting scale'],
-           ['measured','Measured outcomes'],['disputed','Open disagreements'],
-           ['forecasts','Source-stated forecasts']]
-          .map(([k,l])=>`<div class="stat"><div class="n">${w.counts[k]}</div><div class="l">${l}</div></div>`).join('')}
+        ${[
+          ['announced', 'Announced, no scope'],
+          ['pilots', 'Pilots awaiting scale'],
+          ['measured', 'Measured outcomes'],
+          ['disputed', 'Open disagreements'],
+          ['forecasts', 'Source-stated forecasts'],
+        ]
+          .map(
+            ([k, l]) =>
+              `<div class="stat"><div class="n">${w.counts[k]}</div><div class="l">${l}</div></div>`,
+          )
+          .join('')}
       </div>
 
       <div class="blk i" style="margin:22px 0 30px;max-width:80ch">
@@ -952,244 +2277,396 @@ async function renderOther(v){
         would resolve it. That is what a good analyst hands you.</p>
       </div>
 
-      ${band('stated','◷','Stated intentions',
+      ${band(
+        'stated',
+        '◷',
+        'Stated intentions',
         'Things the sources themselves say will happen. These are FORECAST claims — cited, and never presented as fact.',
         'The stated thing happens, or the deadline passes without it.',
-        w.stated, x=>`<article class="card">
-          <div class="badges">${b('Forecast','w','A claim about the future, stated by the source.')}${bPer(x.perspective)}</div>
+        w.stated,
+        (x) => `<article class="card">
+          <div class="badges">${b('Forecast', 'w', 'A claim about the future, stated by the source.')}${bPer(x.perspective)}</div>
           <p class="serif" style="margin:6px 0 0;font-size:14.5px">${esc(x.text)}</p>
           <div class="meta"><span>${esc(x.source_name)}</span><span>${fmt(x.published_at)}</span></div>
-        </article>`)}
+        </article>`,
+      )}
 
-      ${band('scale','▲','Awaiting scale',
+      ${band(
+        'scale',
+        '▲',
+        'Awaiting scale',
         'Pilots, concepts and limited deployments with no reported expansion. Most pilots do not scale — the interesting question is which of these do.',
         'Scope language in the next report: more sites, more markets, or a move to production. Silence past two quarters is itself the answer.',
-        w.awaitingScale, x=>`<article class="card"${x.insight_id?` data-open="${x.insight_id}"`:''}>
-          <div class="badges">${bMat(x.case_maturity)}${x.first_party_only?b('Self-reported only','w'):''}
-            ${x.age_days!=null?b(x.age_days+' days old','m'):''}</div>
+        w.awaitingScale,
+        (x) => `<article class="card"${x.insight_id ? ` data-open="${x.insight_id}"` : ''}>
+          <div class="badges">${bMat(x.case_maturity)}${x.first_party_only ? b('Self-reported only', 'w') : ''}
+            ${x.age_days != null ? b(x.age_days + ' days old', 'm') : ''}</div>
           <h3>${esc(x.title)}</h3>
-          ${x.entities?`<div class="meta"><span>${esc(x.entities)}</span></div>`:''}
-        </article>`)}
+          ${x.entities ? `<div class="meta"><span>${esc(x.entities)}</span></div>` : ''}
+        </article>`,
+      )}
 
-      ${band('unconfirmed','◑','Unconfirmed outcomes',
+      ${band(
+        'unconfirmed',
+        '◑',
+        'Unconfirmed outcomes',
         'Quantified or scaled claims that only the company itself has made. Not doubted — unverified, which is a different thing.',
         'A second, independent source reporting the same figure. Or the company disclosing its baseline and method.',
-        w.unconfirmed, x=>`<article class="card"${x.insight_id?` data-open="${x.insight_id}"`:''}>
-          <div class="badges">${bMat(x.case_maturity)}${b('No independent source','w')}</div>
+        w.unconfirmed,
+        (x) => `<article class="card"${x.insight_id ? ` data-open="${x.insight_id}"` : ''}>
+          <div class="badges">${bMat(x.case_maturity)}${b('No independent source', 'w')}</div>
           <h3>${esc(x.title)}</h3>
-          ${x.entities?`<div class="meta"><span>${esc(x.entities)}</span></div>`:''}
-        </article>`)}
+          ${x.entities ? `<div class="meta"><span>${esc(x.entities)}</span></div>` : ''}
+        </article>`,
+      )}
 
-      ${band('disputed','⚡','Open disagreements',
+      ${band(
+        'disputed',
+        '⚡',
+        'Open disagreements',
         'Sources that cannot both be right. Shown as a conflict rather than averaged into a false consensus.',
         'A correction from one source, a third figure, or a disclosed method that reconciles them.',
-        w.disputed, x=>`<article class="card"${x.insight_id?` data-open="${x.insight_id}"`:''}>
-          <div class="badges">${b('Sources disagree','r')}</div>
+        w.disputed,
+        (x) => `<article class="card"${x.insight_id ? ` data-open="${x.insight_id}"` : ''}>
+          <div class="badges">${b('Sources disagree', 'r')}</div>
           <h3>${esc(x.title)}</h3>
-          <p style="color:var(--bad)">${esc(x.why||'')}</p>
-        </article>`)}
+          <p style="color:var(--bad)">${esc(x.why || '')}</p>
+        </article>`,
+      )}
 
-      ${band('hypotheses','◈','Open hypotheses',
+      ${band(
+        'hypotheses',
+        '◈',
+        'Open hypotheses',
         'Testable propositions derived from the evidence and labelled as interpretation. Each names its own test.',
         'Stated inline — each hypothesis carries the observation that would confirm or refute it.',
-        w.hypotheses, x=>`<article class="card"${x.insight_id?` data-open="${x.insight_id}"`:''}>
-          <div class="badges">${b('Hypothesis','w','A testable proposition we are putting forward — not a fact.')}</div>
+        w.hypotheses,
+        (x) => `<article class="card"${x.insight_id ? ` data-open="${x.insight_id}"` : ''}>
+          <div class="badges">${b('Hypothesis', 'w', 'A testable proposition we are putting forward — not a fact.')}</div>
           <p style="font-size:13.5px;line-height:1.65;color:var(--ink)">${esc(x.text)}</p>
-          <div class="meta"><span>from: ${esc(String(x.headline).slice(0,74))}</span></div>
-        </article>`)}
+          <div class="meta"><span>from: ${esc(String(x.headline).slice(0, 74))}</span></div>
+        </article>`,
+      )}
 
-      ${band('reversals','▼','Recent reversals',
+      ${band(
+        'reversals',
+        '▼',
+        'Recent reversals',
         'Programmes stopped or rolled back. Usually more informative than the announcement was — the stated reason tells you what the real constraint was.',
         'Already settled. Read the reason given, and check whether it applies to comparable initiatives you are tracking.',
-        w.reversals, x=>`<article class="card"${x.insight_id?` data-open="${x.insight_id}"`:''}>
-          <div class="badges">${b('Discontinued','r')}</div>
+        w.reversals,
+        (x) => `<article class="card"${x.insight_id ? ` data-open="${x.insight_id}"` : ''}>
+          <div class="badges">${b('Discontinued', 'r')}</div>
           <h3>${esc(x.title)}</h3>
           <div class="meta"><span>${fmt(x.first_reported_at)}</span></div>
-        </article>`)}
+        </article>`,
+      )}
 
-      ${band('quiet','○','Quiet on your watchlist',
+      ${band(
+        'quiet',
+        '○',
+        'Quiet on your watchlist',
         'Companies you follow that the monitored sources have said little or nothing about. This is a coverage statement, not a claim that nothing is happening.',
         'Adding a source for that company. Silence here is about our monitoring, not about them.',
-        w.quiet, x=>`<article class="card" data-co="${esc(x.slug)}">
+        w.quiet,
+        (x) => `<article class="card" data-co="${esc(x.slug)}">
           <h3 style="font-size:15px">${esc(x.name)}</h3>
-          <div class="meta"><span>${x.events?x.events+' events tracked':'no events tracked'}</span>
-            <span>${x.last_seen?'last seen '+fmt(x.last_seen):'never seen in the monitored sources'}</span></div>
-        </article>`)}
+          <div class="meta"><span>${x.events ? x.events + ' events tracked' : 'no events tracked'}</span>
+            <span>${x.last_seen ? 'last seen ' + fmt(x.last_seen) : 'never seen in the monitored sources'}</span></div>
+        </article>`,
+      )}
 
       <div id="co"></div>`;
 
-    box.querySelectorAll('[data-open]').forEach(n=>n.onclick=()=>{
-      showView('today');
-      setTimeout(()=>openDetail(n.dataset.open),60);
-    });
-    box.querySelectorAll('[data-co]').forEach(n=>n.onclick=()=>openCompany(n.dataset.co));
-    return;
-  }
+          box.querySelectorAll('[data-open]').forEach(
+            (n) =>
+              (n.onclick = () => {
+                showView('today');
+                setTimeout(() => openDetail(n.dataset.open), 60);
+              }),
+          );
+          box
+            .querySelectorAll('[data-co]')
+            .forEach((n) => (n.onclick = () => openCompany(n.dataset.co)));
+          return;
+        }
 
-  if(v==='learn'){
-    const {paths,units,states}=await api('/api/learn');
-    box.innerHTML=`<div class="eyebrow">Learn</div>
+        if (v === 'learn') {
+          const { paths, units, states } = await api('/api/learn');
+          box.innerHTML = `<div class="eyebrow">Learn</div>
       <h1>Industry fundamentals</h1>
       <p class="lede">Three depths on the same subject. This is the half that compounds — news
       without a model to hang it on does not become competence.</p>
       <div class="cols" style="margin-top:24px;grid-template-columns:minmax(0,1fr) 300px">
-      <div>${paths.map(p=>`
+      <div>${paths
+        .map(
+          (p) => `
         <h2 class="sec" style="margin-top:22px">${esc(p.name)}</h2>
         <p class="hint">${esc(p.description)}</p>
-        ${units.filter(u=>u.path_id===p.id).map(u=>`
+        ${units
+          .filter((u) => u.path_id === p.id)
+          .map(
+            (u) => `
           <article class="card">
             <div class="badges">
-              ${b(u.depth,u.depth==='foundation'?'n':u.depth==='executive'?'a':'g')}
-              ${b(u.estimated_minutes+' min','m')}
-              ${u.has_check?b('Knowledge check','m'):''}
-              ${u.last_reviewed_at?b('Reviewed '+fmt(u.last_reviewed_at),'m'):''}
+              ${b(u.depth, u.depth === 'foundation' ? 'n' : u.depth === 'executive' ? 'a' : 'g')}
+              ${b(u.estimated_minutes + ' min', 'm')}
+              ${u.has_check ? b('Knowledge check', 'm') : ''}
+              ${u.last_reviewed_at ? b('Reviewed ' + fmt(u.last_reviewed_at), 'm') : ''}
             </div>
             <h3>${esc(u.title)}</h3>
             <p>${esc(u.objective)}</p>
-            ${(u.common_misconceptions||[]).length?`<div class="blk i" style="margin-top:11px">
+            ${
+              (u.common_misconceptions || []).length
+                ? `<div class="blk i" style="margin-top:11px">
               <div class="lbl">Common misconception</div>
-              <p style="font-size:13px">${esc(u.common_misconceptions[0])}</p></div>`:''}
-            ${(u.practical_questions||[]).length?`<div class="meta" style="margin-top:9px">
-              <span>Ask: ${esc(u.practical_questions[0])}</span></div>`:''}
-          </article>`).join('')}`).join('')}</div>
+              <p style="font-size:13px">${esc(u.common_misconceptions[0])}</p></div>`
+                : ''
+            }
+            ${
+              (u.practical_questions || []).length
+                ? `<div class="meta" style="margin-top:9px">
+              <span>Ask: ${esc(u.practical_questions[0])}</span></div>`
+                : ''
+            }
+          </article>`,
+          )
+          .join('')}`,
+        )
+        .join('')}</div>
       <aside><div class="panel pad">
         <h2 class="sec">Your knowledge state</h2>
         <p class="hint">A cautious estimate, not an assertion. Every row shows why, and you can change it.</p>
-        ${states.length?states.map(k=>`<div style="margin-bottom:11px">
+        ${
+          states.length
+            ? states
+                .map(
+                  (k) => `<div style="margin-bottom:11px">
           <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
             <span style="font-size:13px;font-weight:550">${esc(k.name)}</span>
-            ${b(pretty(k.state),['understood','applied'].includes(k.state)?'g':'m')}</div>
-          <div style="font-size:11px;color:var(--ink-3);margin-top:2px">${esc(k.reason||'')}${k.user_asserted?' (you set this)':''}</div>
-        </div>`).join(''):'<p class="hint">Nothing recorded yet. Reading insights and marking them as known or new builds this up.</p>'}
+            ${b(pretty(k.state), ['understood', 'applied'].includes(k.state) ? 'g' : 'm')}</div>
+          <div style="font-size:11px;color:var(--ink-3);margin-top:2px">${esc(k.reason || '')}${k.user_asserted ? ' (you set this)' : ''}</div>
+        </div>`,
+                )
+                .join('')
+            : '<p class="hint">Nothing recorded yet. Reading insights and marking them as known or new builds this up.</p>'
+        }
       </div></aside></div>`;
-    return;
-  }
+          return;
+        }
 
-  if(v==='prepare'){
-    const {companies}=await api('/api/prepare');
-    box.innerHTML=`<div class="eyebrow">Prepare</div>
+        if (v === 'prepare') {
+          const { companies } = await api('/api/prepare');
+          box.innerHTML = `<div class="eyebrow">Prepare</div>
       <h1>Meeting preparation</h1>
       <p class="lede">A brief for one specific conversation: what changed, what is actually
       evidenced, what is only inference, five specific questions, one contrarian angle, and
       what the sources cannot tell you.</p>
       <p class="hint" style="margin-top:18px">Pick a company to see its evidenced timeline —
       the same material a brief is built from.</p>
-      <div class="vgrid">${companies.map(c=>`
+      <div class="vgrid">${companies
+        .map(
+          (c) => `
         <button class="card" style="text-align:left" data-co="${esc(c.slug)}">
           <h3 style="margin:0 0 4px">${esc(c.name)}</h3>
-          <p>${c.events} tracked event${c.events===1?'':'s'}</p>
-        </button>`).join('')}</div>
+          <p>${c.events} tracked event${c.events === 1 ? '' : 's'}</p>
+        </button>`,
+        )
+        .join('')}</div>
       <div id="co"></div>`;
-    box.querySelectorAll('[data-co]').forEach(btn=>btn.onclick=()=>openCompany(btn.dataset.co));
-    return;
-  }
+          box
+            .querySelectorAll('[data-co]')
+            .forEach((btn) => (btn.onclick = () => openCompany(btn.dataset.co)));
+          return;
+        }
 
-  if(v==='library'){
-    const {notes,saved,conversations,meetings}=await api('/api/library');
-    const empty=!notes.length&&!saved.length&&!conversations.length&&!meetings.length;
-    box.innerHTML=`<div class="eyebrow">Library</div>
+        if (v === 'library') {
+          const { notes, saved, conversations, meetings } = await api('/api/library');
+          const empty = !notes.length && !saved.length && !conversations.length && !meetings.length;
+          box.innerHTML = `<div class="eyebrow">Library</div>
       <h1>Everything you kept</h1>
       <p class="lede">Your notes stay separate from source material throughout, and are never
       cited as evidence.</p>
-      ${empty?`<div class="panel empty" style="margin-top:22px">
+      ${
+        empty
+          ? `<div class="panel empty" style="margin-top:22px">
         <div class="big">Nothing saved yet</div>
         <div>Save an insight, write a note, build a meeting brief, or talk to the Companion —
-        they all land here.</div></div>`:''}
+        they all land here.</div></div>`
+          : ''
+      }
       <div class="cols" style="margin-top:22px;grid-template-columns:1fr 1fr">
       <div>
-        ${saved.length?`<h2 class="sec">Saved insights</h2>
-          ${saved.map(x=>`<article class="card"><h3>${esc(x.headline)}</h3><p>${esc(x.takeaway)}</p></article>`).join('')}`:''}
-        ${notes.length?`<h2 class="sec" style="margin-top:22px">Notes</h2>
-          ${notes.map(x=>`<article class="card">${x.title?`<h3>${esc(x.title)}</h3>`:''}
-            <p>${esc(String(x.body).slice(0,320))}</p>
-            <div class="meta"><span>${fmt(x.created_at)}</span></div></article>`).join('')}`:''}
+        ${
+          saved.length
+            ? `<h2 class="sec">Saved insights</h2>
+          ${saved.map((x) => `<article class="card"><h3>${esc(x.headline)}</h3><p>${esc(x.takeaway)}</p></article>`).join('')}`
+            : ''
+        }
+        ${
+          notes.length
+            ? `<h2 class="sec" style="margin-top:22px">Notes</h2>
+          ${notes
+            .map(
+              (x) => `<article class="card">${x.title ? `<h3>${esc(x.title)}</h3>` : ''}
+            <p>${esc(String(x.body).slice(0, 320))}</p>
+            <div class="meta"><span>${fmt(x.created_at)}</span></div></article>`,
+            )
+            .join('')}`
+            : ''
+        }
       </div>
       <div>
-        ${conversations.length?`<h2 class="sec">Conversations</h2>
-          ${conversations.map(c=>`<article class="card">
-            <h3 style="font-size:14.5px">${esc(c.title||'Untitled')}</h3>
-            <div class="meta"><span>${esc(pretty(c.mode))}</span>${c.had_voice?'<span>voice</span>':''}
-            <span>${fmt(c.updated_at)}</span></div></article>`).join('')}`:''}
-        ${meetings.length?`<h2 class="sec" style="margin-top:22px">Meeting briefs</h2>
-          ${meetings.map(m=>`<article class="card"><h3 style="font-size:14.5px">${esc(m.title)}</h3>
+        ${
+          conversations.length
+            ? `<h2 class="sec">Conversations</h2>
+          ${conversations
+            .map(
+              (c) => `<article class="card">
+            <h3 style="font-size:14.5px">${esc(c.title || 'Untitled')}</h3>
+            <div class="meta"><span>${esc(pretty(c.mode))}</span>${c.had_voice ? '<span>voice</span>' : ''}
+            <span>${fmt(c.updated_at)}</span></div></article>`,
+            )
+            .join('')}`
+            : ''
+        }
+        ${
+          meetings.length
+            ? `<h2 class="sec" style="margin-top:22px">Meeting briefs</h2>
+          ${meetings
+            .map(
+              (m) => `<article class="card"><h3 style="font-size:14.5px">${esc(m.title)}</h3>
             <div class="meta"><span>${esc(m.company_name)}</span><span>${fmt(m.created_at)}</span></div>
-          </article>`).join('')}`:''}
+          </article>`,
+            )
+            .join('')}`
+            : ''
+        }
       </div></div>`;
-    return;
-  }
-}
+          return;
+        }
+      }
 
-async function openCompany(slug){
-  const {entity,timeline,mix,monitoring}=await api('/api/company?slug='+encodeURIComponent(slug));
-  const box=$('#co');
-  box.innerHTML=`<hr class="rule">
+      async function openCompany(slug) {
+        const { entity, timeline, mix, monitoring } = await api(
+          '/api/company?slug=' + encodeURIComponent(slug),
+        );
+        const box = $('#co');
+        box.innerHTML = `<hr class="rule">
     <div class="eyebrow">Company</div>
     <h1>${esc(entity.name)}</h1>
     <p class="lede">${esc(entity.description)}</p>
     <div class="cols" style="margin-top:22px;grid-template-columns:minmax(0,1fr) 300px">
     <div><h2 class="sec">Timeline</h2>
       <p class="hint">Newest first. Dates distinguish when it happened from when it was reported.</p>
-      ${timeline.length?timeline.map(e=>`<article class="card">
-        <div class="badges">${b(pretty(e.event_type),'m')}${bMat(e.case_maturity)}${bEv(e.evidence_strength)}
-          ${e.first_party_only?b('Self-reported only','w'):''}${e.is_demo?b('Demo data','r'):''}</div>
-        <h3>${esc(e.title)}</h3><p>${esc(String(e.summary).slice(0,220))}</p>
+      ${
+        timeline.length
+          ? timeline
+              .map(
+                (e) => `<article class="card">
+        <div class="badges">${b(pretty(e.event_type), 'm')}${bMat(e.case_maturity)}${bEv(e.evidence_strength)}
+          ${e.first_party_only ? b('Self-reported only', 'w') : ''}${e.is_demo ? b('Demo data', 'r') : ''}</div>
+        <h3>${esc(e.title)}</h3><p>${esc(String(e.summary).slice(0, 220))}</p>
         <div class="meta"><span>Event ${fmt(e.event_at)}</span><span>Reported ${fmt(e.first_reported_at)}</span>
-          <span>${e.source_count} source${e.source_count===1?'':'s'}</span></div>
-      </article>`).join(''):`<div class="panel empty"><div class="big">No events recorded.</div>
-        <div>${monitoring.length?monitoring.length+' source(s) monitored for this company, but nothing ingested yet.':'No source is registered as speaking for this company. That is a coverage gap, not evidence that nothing happened.'}</div></div>`}
+          <span>${e.source_count} source${e.source_count === 1 ? '' : 's'}</span></div>
+      </article>`,
+              )
+              .join('')
+          : `<div class="panel empty"><div class="big">No events recorded.</div>
+        <div>${monitoring.length ? monitoring.length + ' source(s) monitored for this company, but nothing ingested yet.' : 'No source is registered as speaking for this company. That is a coverage gap, not evidence that nothing happened.'}</div></div>`
+      }
     </div>
     <aside>
       <div class="panel pad" style="margin-bottom:11px">
         <h2 class="sec">Implementation mix</h2>
         <p class="hint">Announcements vs. things actually evidenced as deployed.</p>
-        ${mix.map(m=>`<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:5px">
-          ${bMat(m.slug)}<b style="font-variant-numeric:tabular-nums">${m.n}</b></div>`).join('')}
+        ${mix
+          .map(
+            (
+              m,
+            ) => `<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:5px">
+          ${bMat(m.slug)}<b style="font-variant-numeric:tabular-nums">${m.n}</b></div>`,
+          )
+          .join('')}
         <p class="hint" style="margin:9px 0 0">Counting announcements is not a measure of market leadership.</p>
       </div>
       <div class="panel pad"><h2 class="sec">Source coverage</h2>
-        ${monitoring.length?monitoring.map(m=>`<div style="margin-bottom:8px">
-          <div style="font-size:13px;font-weight:550">${esc(m.name)}</div>${bPer(m.perspective)}</div>`).join(''):
-          '<p class="hint">No first-party source registered.</p>'}
+        ${
+          monitoring.length
+            ? monitoring
+                .map(
+                  (m) => `<div style="margin-bottom:8px">
+          <div style="font-size:13px;font-weight:550">${esc(m.name)}</div>${bPer(m.perspective)}</div>`,
+                )
+                .join('')
+            : '<p class="hint">No first-party source registered.</p>'
+        }
         <p class="hint" style="margin:9px 0 0">A thin timeline means limited monitoring, not an inactive company.</p>
       </div>
     </aside></div>`;
-  box.scrollIntoView({behavior:'smooth',block:'start'});
-}
+        box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
 
-/* ── Boot ─────────────────────────────────────────────────────────────────── */
-$('#rail-toggle').onclick=()=>$('#rail').classList.toggle('open');
-$('#fab').onclick=sheet;
-addEventListener('keydown',e=>{
-  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();open?closeSheet():sheet()}
-  if(e.key==='Escape'&&open)closeSheet();
-});
-$('#theme').onclick=()=>{
-  const next=document.documentElement.dataset.theme==='dark'?'light':'dark';
-  document.documentElement.dataset.theme=next;
-  try{localStorage.setItem('mios-theme',next)}catch{}
-};
-try{const t=localStorage.getItem('mios-theme');
-  if(t)document.documentElement.dataset.theme=t;
-  else if(matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.dataset.theme='dark';
-}catch{}
+      /* ── Boot ─────────────────────────────────────────────────────────────────── */
+      $('#rail-toggle').onclick = () => $('#rail').classList.toggle('open');
+      $('#fab').onclick = sheet;
+      addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          open ? closeSheet() : sheet();
+        }
+        if (e.key === 'Escape' && open) closeSheet();
+      });
+      $('#theme').onclick = () => {
+        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        try {
+          localStorage.setItem('mios-theme', next);
+        } catch {}
+      };
+      try {
+        const t = localStorage.getItem('mios-theme');
+        if (t) document.documentElement.dataset.theme = t;
+        else if (matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.dataset.theme = 'dark';
+      } catch {}
 
-(async()=>{
-  [facets,stats,window.__mix,PROFILE]=await Promise.all([
-    api('/api/facets'),api('/api/stats'),api('/api/maturity-mix'),api('/api/profile')]);
+      (async () => {
+        [facets, stats, window.__mix, PROFILE] = await Promise.all([
+          api('/api/facets'),
+          api('/api/stats'),
+          api('/api/maturity-mix'),
+          api('/api/profile'),
+        ]);
 
-  $('#hero-eyebrow').textContent=new Intl.DateTimeFormat('en-GB',{weekday:'long',day:'numeric',month:'long'}).format(new Date());
-  $('#hero-title').textContent='Filter the market, then ask about it';
-  $('#hero-lede').textContent='Every event below was extracted from a real publisher feed, clustered across sources, classified for implementation maturity, and linked to the exact passage it came from. Filter on any dimension — then press ⌘K and ask.';
+        $('#hero-eyebrow').textContent = new Intl.DateTimeFormat('en-GB', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+        }).format(new Date());
+        $('#hero-title').textContent = 'Filter the market, then ask about it';
+        $('#hero-lede').textContent =
+          'Every event below was extracted from a real publisher feed, clustered across sources, classified for implementation maturity, and linked to the exact passage it came from. Filter on any dimension — then press ⌘K and ask.';
 
-  $('#stats').innerHTML=[
-    ['documents','Documents',0],['claims','Evidenced claims',0],['events','Events',0],
-    ['insights','Insights',0],['connections','Learning links',0],
-    ['unevidenced','Facts w/o evidence',1],['active_sources','Live sources',0],
-  ].map(([k,l,good])=>`<div class="stat"><div class="n${good?' good':''}">${stats[k]}</div><div class="l">${l}</div></div>`).join('');
+        $('#stats').innerHTML = [
+          ['documents', 'Documents', 0],
+          ['claims', 'Evidenced claims', 0],
+          ['events', 'Events', 0],
+          ['insights', 'Insights', 0],
+          ['connections', 'Learning links', 0],
+          ['unevidenced', 'Facts w/o evidence', 1],
+          ['active_sources', 'Live sources', 0],
+        ]
+          .map(
+            ([k, l, good]) =>
+              `<div class="stat"><div class="n${good ? ' good' : ''}">${stats[k]}</div><div class="l">${l}</div></div>`,
+          )
+          .join('');
 
-  renderQuick();          // paint immediately
-  await loadQuickCounts(); // then annotate with live counts
-  refresh();
-})();
-</script>
-</body></html>
+        renderQuick(); // paint immediately
+        await loadQuickCounts(); // then annotate with live counts
+        refresh();
+      })();
+    </script>
+  </body>
+</html>

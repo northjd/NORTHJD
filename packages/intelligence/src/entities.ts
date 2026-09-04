@@ -58,7 +58,8 @@ export function resolveEntities(
   const results = new Map<string, EntityMention>();
 
   for (const candidate of candidates) {
-    let best: { alias: string; occurrences: number; inTitle: boolean; ambiguous: boolean } | null = null;
+    let best: { alias: string; occurrences: number; inTitle: boolean; ambiguous: boolean } | null =
+      null;
     let unambiguousHit = false;
 
     for (const alias of candidate.aliases) {

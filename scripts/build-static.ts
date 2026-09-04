@@ -94,11 +94,21 @@ function makePagesStatic(): void {
       const full = resolve(dir, entry.name);
       if (entry.isDirectory()) {
         walk(full);
-      } else if (entry.name === 'page.tsx' || entry.name === 'route.ts' || entry.name === 'layout.tsx') {
+      } else if (
+        entry.name === 'page.tsx' ||
+        entry.name === 'route.ts' ||
+        entry.name === 'layout.tsx'
+      ) {
         const before = readFileSync(full, 'utf8');
         if (!before.includes("dynamic = 'force-dynamic'")) continue;
-        cpSync(full, resolve(stash, '__dynamic', full.slice(appDir.length + 1).replace(/\//g, '__')));
-        writeFileSync(full, before.replace(/dynamic = 'force-dynamic'/g, "dynamic = 'force-static'"));
+        cpSync(
+          full,
+          resolve(stash, '__dynamic', full.slice(appDir.length + 1).replace(/\//g, '__')),
+        );
+        writeFileSync(
+          full,
+          before.replace(/dynamic = 'force-dynamic'/g, "dynamic = 'force-static'"),
+        );
         changed += 1;
       }
     }

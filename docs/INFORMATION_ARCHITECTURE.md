@@ -18,7 +18,7 @@ Plus global search, profile and preferences, and admin for authorised users.
 ## What is deliberately absent from the navigation
 
 There is **no navigation entry for Accenture, for consulting firms, or for any single
-company.** Consulting and professional services is a *company category inside Explore*,
+company.** Consulting and professional services is a _company category inside Explore_,
 reached through the same company pages, the same filters and the same watchlists as
 every other company.
 
@@ -39,16 +39,16 @@ A finite, personalised brief. Not a feed.
 
 Sections, in display order — each rendered only if it has content:
 
-| Section | Contains |
-|---|---|
-| The three that matter | Highest combined relevance, impact and evidence strength |
-| Changed since your last visit | Only genuinely new, updated or corrected |
-| Your companies | Watchlist developments |
-| Your industries | Followed-industry signals |
-| Technology radar | Vendor and platform activity |
-| Broader market | Beyond the user's stated focus |
-| **One adjacent signal** | Deliberately outside their interests |
-| Learn one thing | A short fundamentals unit |
+| Section                       | Contains                                                 |
+| ----------------------------- | -------------------------------------------------------- |
+| The three that matter         | Highest combined relevance, impact and evidence strength |
+| Changed since your last visit | Only genuinely new, updated or corrected                 |
+| Your companies                | Watchlist developments                                   |
+| Your industries               | Followed-industry signals                                |
+| Technology radar              | Vendor and platform activity                             |
+| Broader market                | Beyond the user's stated focus                           |
+| **One adjacent signal**       | Deliberately outside their interests                     |
+| Learn one thing               | A short fundamentals unit                                |
 
 Then progress and a real caught-up state. **Nothing loads after it.** The user leaves by
 choosing Explore or the Companion, not by running out of willpower.
@@ -68,7 +68,7 @@ Ordered so trust comes before interpretation:
 
 1. **Verified facts** — verbatim, each linking to its evidence
 2. What changed · What is genuinely new
-3. Why it matters · Market context *(Depth)*
+3. Why it matters · Market context _(Depth)_
 4. Counter-signals — contradictions and missing confirmation
 5. **Consultant perspective, client implications, hypotheses, contrarian angle** — all
    under an interpretation label with a visible amber rule

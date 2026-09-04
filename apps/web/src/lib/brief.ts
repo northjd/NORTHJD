@@ -98,22 +98,27 @@ export async function ensureTodayBrief(
   // Learn One Thing: a unit the user has not completed, preferring their industries.
   const unit = await nextLearningUnit(userId, workspaceId);
   if (unit) {
-    await db().insert(briefItems).values({
-      briefId: brief!.id,
-      learningUnitId: unit.id,
-      section: 'learn_one_thing',
-      position,
-      score: 0,
-      whyShown: ['A short fundamentals unit, chosen because you have not covered it yet.'],
-      estimatedMinutes: unit.estimatedMinutes,
-    });
+    await db()
+      .insert(briefItems)
+      .values({
+        briefId: brief!.id,
+        learningUnitId: unit.id,
+        section: 'learn_one_thing',
+        position,
+        score: 0,
+        whyShown: ['A short fundamentals unit, chosen because you have not covered it yet.'],
+        estimatedMinutes: unit.estimatedMinutes,
+      });
     await db()
       .update(dailyBriefs)
       .set({ estimatedMinutes: composed.estimatedMinutes + unit.estimatedMinutes })
       .where(eq(dailyBriefs.id, brief!.id));
   }
 
-  return { brief: (await getTodayBrief(userId, workspaceId, date))!, items: await getBriefItems(brief!.id) };
+  return {
+    brief: (await getTodayBrief(userId, workspaceId, date))!,
+    items: await getBriefItems(brief!.id),
+  };
 }
 
 async function nextLearningUnit(userId: string, workspaceId: string) {
@@ -134,7 +139,9 @@ async function nextLearningUnit(userId: string, workspaceId: string) {
         eq(userLearningProgress.workspaceId, workspaceId),
       ),
     )
-    .where(or0(isNull(userLearningProgress.status), sql`${userLearningProgress.status} <> 'completed'`))
+    .where(
+      or0(isNull(userLearningProgress.status), sql`${userLearningProgress.status} <> 'completed'`),
+    )
     .orderBy(learningUnits.position)
     .limit(1);
   return rows[0] ?? null;
@@ -168,15 +175,27 @@ export const SECTION_META: Record<string, { title: string; hint: string }> = {
     title: 'Changed since your last visit',
     hint: 'Only genuinely new, updated or corrected developments.',
   },
-  company_watch: { title: 'Your companies', hint: 'Developments at organisations on your watchlist.' },
+  company_watch: {
+    title: 'Your companies',
+    hint: 'Developments at organisations on your watchlist.',
+  },
   industry_signals: { title: 'Your industries', hint: 'Signals from the industries you follow.' },
-  tech_radar: { title: 'Technology radar', hint: 'What providers and platforms announced, built or shipped.' },
-  broader_market: { title: 'Broader market', hint: 'Economic, regulatory and market developments beyond your focus.' },
+  tech_radar: {
+    title: 'Technology radar',
+    hint: 'What providers and platforms announced, built or shipped.',
+  },
+  broader_market: {
+    title: 'Broader market',
+    hint: 'Economic, regulatory and market developments beyond your focus.',
+  },
   adjacent_signal: {
     title: 'One adjacent signal',
     hint: 'Deliberately outside your stated interests, to keep the brief from closing in on itself.',
   },
-  learn_one_thing: { title: 'Learn one thing', hint: 'A short fundamentals unit connected to what you read.' },
+  learn_one_thing: {
+    title: 'Learn one thing',
+    hint: 'A short fundamentals unit connected to what you read.',
+  },
   deep_dive: { title: 'Deep dive', hint: 'Longer material for durable understanding.' },
   prepare_next: { title: 'Prepare for what is next', hint: 'Relevant to an upcoming meeting.' },
 };

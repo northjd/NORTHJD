@@ -279,7 +279,17 @@ export const CompanionRequestSchema = z.object({
   /** What the user is looking at. May add context; may never silently alter intent. */
   pageContext: z
     .object({
-      kind: z.enum(['today', 'insight', 'company', 'industry', 'learning_unit', 'meeting', 'search', 'library', 'other']),
+      kind: z.enum([
+        'today',
+        'insight',
+        'company',
+        'industry',
+        'learning_unit',
+        'meeting',
+        'search',
+        'library',
+        'other',
+      ]),
       id: z.string().nullable().default(null),
       label: z.string().nullable().default(null),
     })

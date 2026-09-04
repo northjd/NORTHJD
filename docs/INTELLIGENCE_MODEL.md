@@ -7,23 +7,23 @@ document and something worth a consultant's attention, and what each level is fo
 
 ## The hierarchy
 
-| Level | Table | What it is | Cardinality |
-|---|---|---|---|
-| **Source** | `sources` | Where information comes from, with a perspective and a rights policy | ~18 |
-| **Raw document** | `raw_documents` | One article, filing or post, per canonical URL | ~191 |
-| **Document version** | `document_versions` | An immutable snapshot; offsets refer to this | 1..n per document |
-| **Evidence span** | `evidence_spans` | An exact character range plus the quote | ~369 |
-| **Claim** | `claims` | One checkable statement | ~369 |
-| **Event** | `events` | A real-world occurrence, independent of who reported it | ~185 |
-| **Signal** | `signals` | An event placed against a larger pattern | 1 per event |
-| **Insight** | `insights` | A signal interpreted for one workspace | ~184 |
+| Level                | Table               | What it is                                                           | Cardinality       |
+| -------------------- | ------------------- | -------------------------------------------------------------------- | ----------------- |
+| **Source**           | `sources`           | Where information comes from, with a perspective and a rights policy | ~18               |
+| **Raw document**     | `raw_documents`     | One article, filing or post, per canonical URL                       | ~191              |
+| **Document version** | `document_versions` | An immutable snapshot; offsets refer to this                         | 1..n per document |
+| **Evidence span**    | `evidence_spans`    | An exact character range plus the quote                              | ~369              |
+| **Claim**            | `claims`            | One checkable statement                                              | ~369              |
+| **Event**            | `events`            | A real-world occurrence, independent of who reported it              | ~185              |
+| **Signal**           | `signals`           | An event placed against a larger pattern                             | 1 per event       |
+| **Insight**          | `insights`          | A signal interpreted for one workspace                               | ~184              |
 
 Then the two links that make an insight more than a summary:
 
-| Level | Table | Dimension |
-|---|---|---|
-| **Learning connection** | `learning_connections` | Depth — which market-model concept this touches |
-| **Conversation application** | `conversation_applications` | Applicability — what to say or ask |
+| Level                        | Table                       | Dimension                                       |
+| ---------------------------- | --------------------------- | ----------------------------------------------- |
+| **Learning connection**      | `learning_connections`      | Depth — which market-model concept this touches |
+| **Conversation application** | `conversation_applications` | Applicability — what to say or ask              |
 
 ---
 
@@ -52,7 +52,7 @@ releases — both cases are unit-tested.
 There is a fourth path, added after observing a real miss: **two shared entities within
 two days at lower overlap**. "Meridian and Halden AI announce partnership" and "Halden
 AI signs Meridian as anchor customer" share little vocabulary but obviously describe one
-deal. Requiring *two* shared entities plus a tight window keeps it from over-merging a
+deal. Requiring _two_ shared entities plus a tight window keeps it from over-merging a
 company's busy week.
 
 Clustering is single-link agglomeration, O(n²) on the batch. A run processes tens to low
@@ -119,19 +119,19 @@ limiting "what is gaining or losing momentum", and it is in the next steps.
 An insight is not a summary. It is required to answer all three North Star questions
 about one event:
 
-| Section | Dimension | Source of the text |
-|---|---|---|
-| What happened | Recency | Top FACT claims, verbatim |
-| What changed | Recency | Computed against prior events for the same entity |
-| What is genuinely new | Recency | Derived from novelty and maturity — flags a restated announcement as adding nothing |
-| Market context | **Depth** | Assembled from the taxonomy: industry, value chain stage, KPIs, capabilities |
-| Why it matters | **Depth** | Value levers and operating-model dimensions, with the measurable expression named |
-| Client implications | **Applicability** | Templates parameterised by lever and industry |
-| Conversation starters | **Applicability** | Templates parameterised by company, maturity, KPI, dimensions |
-| Hypotheses | Applicability | Testable propositions with the test named |
-| Contrarian angle | Applicability | Sceptical reading, or an honest statement that none is supported |
-| Known unknowns | Trust | **Computed from what is absent** |
-| Counter-signals | Trust | Contradictions plus missing independent confirmation |
+| Section               | Dimension         | Source of the text                                                                  |
+| --------------------- | ----------------- | ----------------------------------------------------------------------------------- |
+| What happened         | Recency           | Top FACT claims, verbatim                                                           |
+| What changed          | Recency           | Computed against prior events for the same entity                                   |
+| What is genuinely new | Recency           | Derived from novelty and maturity — flags a restated announcement as adding nothing |
+| Market context        | **Depth**         | Assembled from the taxonomy: industry, value chain stage, KPIs, capabilities        |
+| Why it matters        | **Depth**         | Value levers and operating-model dimensions, with the measurable expression named   |
+| Client implications   | **Applicability** | Templates parameterised by lever and industry                                       |
+| Conversation starters | **Applicability** | Templates parameterised by company, maturity, KPI, dimensions                       |
+| Hypotheses            | Applicability     | Testable propositions with the test named                                           |
+| Contrarian angle      | Applicability     | Sceptical reading, or an honest statement that none is supported                    |
+| Known unknowns        | Trust             | **Computed from what is absent**                                                    |
+| Counter-signals       | Trust             | Contradictions plus missing independent confirmation                                |
 
 Everything is **assembled, not written**: factual sections reuse claim sentences,
 structural sections compose from the data model, applicability sections use
@@ -148,7 +148,7 @@ outcome, no stated event date, no linked KPI, and always the monitored-source co
 
 The brief is explicit that "what are your biggest challenges?" is a failure. Starters
 are parameterised with the actual company, event type, maturity, value levers, KPIs and
-operating-model dimensions from *this* event.
+operating-model dimensions from _this_ event.
 
 For a partnership still at announcement stage:
 

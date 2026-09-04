@@ -5,7 +5,11 @@
  * string, because the user can inspect and override every value.
  */
 
-import { KNOWLEDGE_STATE_ORDER, type KnowledgeEvidenceKind, type KnowledgeState } from '@mios/domain';
+import {
+  KNOWLEDGE_STATE_ORDER,
+  type KnowledgeEvidenceKind,
+  type KnowledgeState,
+} from '@mios/domain';
 
 export interface StateTransition {
   next: KnowledgeState;
@@ -57,7 +61,10 @@ export function nextKnowledgeState(
       };
     case 'learning_unit_completed':
       return {
-        next: KNOWLEDGE_STATE_ORDER[current] >= KNOWLEDGE_STATE_ORDER.explored ? 'understood' : 'explored',
+        next:
+          KNOWLEDGE_STATE_ORDER[current] >= KNOWLEDGE_STATE_ORDER.explored
+            ? 'understood'
+            : 'explored',
         confidence: 0.6,
         reason: `You completed a learning unit covering ${conceptLabel}.`,
         reviewInDays: 45,

@@ -39,7 +39,6 @@ export async function generateStaticParams() {
   return rows.map((r) => ({ id: r.id }));
 }
 
-
 export default async function InsightPage({
   params,
   searchParams,
@@ -52,7 +51,8 @@ export default async function InsightPage({
   const detail = await getInsightDetail(user.workspaceId, id);
   if (!detail) notFound();
 
-  const { insight, event, claims, applications, connections, entities, taxonomy, contradictions } = detail;
+  const { insight, event, claims, applications, connections, entities, taxonomy, contradictions } =
+    detail;
 
   // Reconstruct the list this was opened from, so previous/next walk the same sequence
   // rather than an arbitrary one. Absent filters simply mean the whole corpus.
@@ -78,7 +78,14 @@ export default async function InsightPage({
     `Why it matters: ${insight.whyItMatters}`,
     '',
     'Sources:',
-    ...[...new Set(claims.map((c) => `- ${c.sourceName}: ${c.documentTitle} (${formatAbsolute(c.publishedAt)}) ${c.documentUrl}`))],
+    ...[
+      ...new Set(
+        claims.map(
+          (c) =>
+            `- ${c.sourceName}: ${c.documentTitle} (${formatAbsolute(c.publishedAt)}) ${c.documentUrl}`,
+        ),
+      ),
+    ],
   ].join('\n');
 
   return (
@@ -139,7 +146,9 @@ export default async function InsightPage({
           {insight.isDemo ? <DemoBadge /> : null}
         </div>
 
-        <h1 className="text-[28px] font-semibold leading-tight tracking-tight">{insight.headline}</h1>
+        <h1 className="text-[28px] font-semibold leading-tight tracking-tight">
+          {insight.headline}
+        </h1>
         <p className="mt-2 max-w-[68ch] text-[16px] leading-relaxed text-[var(--text-muted)]">
           {insight.takeaway}
         </p>
@@ -197,7 +206,10 @@ export default async function InsightPage({
                       <PerspectiveBadge perspective={claim.perspective} />
                       <EvidenceBadge strength={claim.evidenceStrength} />
                       {claim.needsReview ? (
-                        <Badge tone="alert" title="The source document changed after this claim was extracted.">
+                        <Badge
+                          tone="alert"
+                          title="The source document changed after this claim was extracted."
+                        >
                           Needs re-check
                         </Badge>
                       ) : null}
@@ -243,8 +255,8 @@ export default async function InsightPage({
                       </blockquote>
                     ) : (
                       <p className="text-[13px] text-[var(--text-subtle)]">
-                        This source&rsquo;s rights policy permits the headline and link only,
-                        so there is no stored text to show.
+                        This source&rsquo;s rights policy permits the headline and link only, so
+                        there is no stored text to show.
                       </p>
                     )}
 
@@ -262,7 +274,9 @@ export default async function InsightPage({
                       </a>
                     </div>
                     {p.attribution ? (
-                      <p className="mt-1 text-[11px] text-[var(--text-subtle)]">© {p.attribution}</p>
+                      <p className="mt-1 text-[11px] text-[var(--text-subtle)]">
+                        © {p.attribution}
+                      </p>
                     ) : null}
                   </div>
                 ))}
@@ -295,12 +309,18 @@ export default async function InsightPage({
 
           {/* ── Market context (Depth) ───────────────────────────────────── */}
           <section>
-            <SectionHeading hint="Where this sits in the market model.">Market context</SectionHeading>
+            <SectionHeading hint="Where this sits in the market model.">
+              Market context
+            </SectionHeading>
             <p className="prose-reading">{insight.marketContext}</p>
             {taxonomy.length > 0 ? (
               <div className="mt-2.5 flex flex-wrap gap-1.5">
                 {taxonomy.map((t) => (
-                  <Badge key={`${t.kind}-${t.slug}`} tone="muted" title={`Classification origin: ${t.origin}`}>
+                  <Badge
+                    key={`${t.kind}-${t.slug}`}
+                    tone="muted"
+                    title={`Classification origin: ${t.origin}`}
+                  >
                     {t.kind.replace(/_/g, ' ')}: {t.slug}
                   </Badge>
                 ))}
@@ -316,13 +336,19 @@ export default async function InsightPage({
               </SectionHeading>
               <ul className="space-y-2">
                 {contradictions.map((c, i) => (
-                  <li key={`c-${i}`} className="rounded border border-alert-500/30 bg-alert-100/50 p-3 text-[14px] dark:bg-alert-700/15">
+                  <li
+                    key={`c-${i}`}
+                    className="rounded border border-alert-500/30 bg-alert-100/50 p-3 text-[14px] dark:bg-alert-700/15"
+                  >
                     <Badge tone="alert">Sources disagree</Badge>
                     <p className="mt-1.5 leading-relaxed">{c.explanation}</p>
                   </li>
                 ))}
                 {insight.counterSignals.map((s, i) => (
-                  <li key={`s-${i}`} className="text-[14px] leading-relaxed text-[var(--text-muted)]">
+                  <li
+                    key={`s-${i}`}
+                    className="text-[14px] leading-relaxed text-[var(--text-muted)]"
+                  >
                     {s}
                   </li>
                 ))}
@@ -377,10 +403,14 @@ export default async function InsightPage({
               <ul className="space-y-2.5">
                 {otherClaims.slice(0, 8).map((claim) => (
                   <li key={claim.claimId}>
-                    <p className="text-[14px] leading-relaxed text-[var(--text-muted)]">{claim.text}</p>
+                    <p className="text-[14px] leading-relaxed text-[var(--text-muted)]">
+                      {claim.text}
+                    </p>
                     <div className="mt-1 flex flex-wrap items-center gap-1.5">
                       <ClaimTypeBadge type={claim.claimType} />
-                      <span className="text-[12px] text-[var(--text-subtle)]">{claim.sourceName}</span>
+                      <span className="text-[12px] text-[var(--text-subtle)]">
+                        {claim.sourceName}
+                      </span>
                       {claim.spanId ? (
                         <Link
                           href={`/evidence/${claim.claimId}`}
@@ -426,7 +456,9 @@ export default async function InsightPage({
 
           {connections.length > 0 ? (
             <Card>
-              <SectionHeading hint="Fundamentals this connects to.">Learning connections</SectionHeading>
+              <SectionHeading hint="Fundamentals this connects to.">
+                Learning connections
+              </SectionHeading>
               <ul className="space-y-2">
                 {connections.map((c, i) => (
                   <li key={i} className="text-[13px]">
@@ -465,7 +497,9 @@ export default async function InsightPage({
                     </span>
                   </div>
                   {c.requiredAttribution ? (
-                    <p className="mt-0.5 text-[11px] text-[var(--text-subtle)]">© {c.requiredAttribution}</p>
+                    <p className="mt-0.5 text-[11px] text-[var(--text-subtle)]">
+                      © {c.requiredAttribution}
+                    </p>
                   ) : null}
                 </li>
               ))}

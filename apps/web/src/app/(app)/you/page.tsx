@@ -69,12 +69,10 @@ export default async function YouPage() {
         <p className="mt-4 text-[13px] leading-relaxed text-[var(--text-muted)]">
           That is roughly{' '}
           <strong className="font-semibold text-[var(--text)]">
-            {minutes >= 60
-              ? `${Math.round((minutes / 60) * 10) / 10} hours`
-              : `${minutes} minutes`}
+            {minutes >= 60 ? `${Math.round((minutes / 60) * 10) / 10} hours` : `${minutes} minutes`}
           </strong>{' '}
-          of reading you did on purpose, rather than by scrolling until something stopped
-          you. That was the whole idea.
+          of reading you did on purpose, rather than by scrolling until something stopped you. That
+          was the whole idea.
         </p>
       ) : null}
 
@@ -84,9 +82,8 @@ export default async function YouPage() {
       <section className="mt-10">
         <h2 className="t-rule">Behind everything you read</h2>
         <p className="mt-2 max-w-[70ch] text-[13px] leading-relaxed text-[var(--text-muted)]">
-          Not your numbers — the corpus everything above was drawn from. Every fact you saw
-          traced back to one of these claims, and to the exact passage inside a stored
-          document version.
+          Not your numbers — the corpus everything above was drawn from. Every fact you saw traced
+          back to one of these claims, and to the exact passage inside a stored document version.
         </p>
         <dl className="mt-4 flex flex-wrap gap-x-10 gap-y-4">
           {(
@@ -109,11 +106,10 @@ export default async function YouPage() {
       <div className="mt-10">
         <InterpretationBlock label="Why there is no streak here">
           <p>
-            No streaks, no scores, no rank against colleagues. Those work by making you
-            anxious about a number, and a product whose entire argument is that it only
-            claims what the evidence supports should not then invent a metric to nag you
-            with. These are counts of things you actually did. If a number is low, that is
-            information, not a verdict.
+            No streaks, no scores, no rank against colleagues. Those work by making you anxious
+            about a number, and a product whose entire argument is that it only claims what the
+            evidence supports should not then invent a metric to nag you with. These are counts of
+            things you actually did. If a number is low, that is information, not a verdict.
           </p>
         </InterpretationBlock>
       </div>
@@ -141,7 +137,9 @@ function StatGrid({ title, stats }: { title: string; stats: StatValue[] }) {
         {stats.map((s) => (
           <div key={s.label}>
             <p className="text-[24px] font-semibold leading-none tabular-nums tracking-tight">
-              {s.value ?? <span className="text-[14px] text-[var(--text-subtle)]">not tracked</span>}
+              {s.value ?? (
+                <span className="text-[14px] text-[var(--text-subtle)]">not tracked</span>
+              )}
             </p>
             <p className="t-section mt-2">{s.label}</p>
             <p className="mt-1.5 text-[11.5px] leading-relaxed text-[var(--text-subtle)]">

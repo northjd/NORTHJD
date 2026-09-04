@@ -137,13 +137,17 @@ export function scoreItem(
   const industryHits = overlap(ctx.industrySlugs, item.industrySlugs);
   if (industryHits > 0) {
     components.industryMatch = WEIGHTS.industryMatch * Math.min(1, industryHits / 2);
-    reasons.push(`It is in ${item.industrySlugs.filter((s) => ctx.industrySlugs.includes(s)).join(', ')}, which you follow.`);
+    reasons.push(
+      `It is in ${item.industrySlugs.filter((s) => ctx.industrySlugs.includes(s)).join(', ')}, which you follow.`,
+    );
   }
 
   const topicHits = overlap(ctx.topicSlugs, item.topicSlugs);
   if (topicHits > 0) {
     components.topicMatch = WEIGHTS.topicMatch * Math.min(1, topicHits / 2);
-    reasons.push(`It touches ${item.topicSlugs.filter((s) => ctx.topicSlugs.includes(s)).join(', ')}.`);
+    reasons.push(
+      `It touches ${item.topicSlugs.filter((s) => ctx.topicSlugs.includes(s)).join(', ')}.`,
+    );
   }
 
   const techHits = overlap(ctx.technologySlugs, item.technologySlugs);
@@ -181,7 +185,8 @@ export function scoreItem(
     reasons.push('It connects to a concept you have not covered yet.');
   }
 
-  components.strategicImpact = WEIGHTS.strategicImpact * STRATEGIC_IMPACT_SCORE[item.strategicImpact];
+  components.strategicImpact =
+    WEIGHTS.strategicImpact * STRATEGIC_IMPACT_SCORE[item.strategicImpact];
 
   // Strong evidence is worth ranking points; weak evidence should not float to the top
   // on relevance alone.
@@ -220,7 +225,9 @@ export function scoreItem(
   // Substance over noise: a measured outcome outranks an announcement, and a reversal
   // outranks both because it is genuinely informative.
   const maturityScore =
-    item.caseMaturity === 'DISCONTINUED_OR_REVERSED' ? 0.8 : CASE_MATURITY_ORDER[item.caseMaturity] / 7;
+    item.caseMaturity === 'DISCONTINUED_OR_REVERSED'
+      ? 0.8
+      : CASE_MATURITY_ORDER[item.caseMaturity] / 7;
   components.maturitySubstance = WEIGHTS.maturitySubstance * maturityScore;
 
   if (item.firstPartyOnly) {
@@ -228,7 +235,8 @@ export function scoreItem(
     reasons.push('Only the company itself has reported this so far.');
   }
   if (item.storyRepetitions > 1) {
-    components.repetition = WEIGHTS.repetitionPenalty * Math.min(1, (item.storyRepetitions - 1) / 3);
+    components.repetition =
+      WEIGHTS.repetitionPenalty * Math.min(1, (item.storyRepetitions - 1) / 3);
   }
   if (item.alreadyShown) {
     components.alreadyShown = WEIGHTS.alreadyShownPenalty;
@@ -240,7 +248,9 @@ export function scoreItem(
   const score = Object.values(components).reduce((sum, v) => sum + v, 0);
 
   if (reasons.length === 0) {
-    reasons.push('It scored highly on strategic impact and recency, outside your stated interests.');
+    reasons.push(
+      'It scored highly on strategic impact and recency, outside your stated interests.',
+    );
   }
 
   return { item, score, components, reasons };

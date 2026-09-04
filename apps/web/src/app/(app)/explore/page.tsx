@@ -9,7 +9,12 @@ import {
   type SearchParams,
   CONFIDENCE_LEVELS,
 } from '@/lib/filters';
-import { queryExploreWidening, queryFacets, querySuggestedFilters, humanise } from '@/lib/explore-queries';
+import {
+  queryExploreWidening,
+  queryFacets,
+  querySuggestedFilters,
+  humanise,
+} from '@/lib/explore-queries';
 import { FilterRail, ActiveFilterChips } from '@/components/filter-rail';
 import { ListKeyboardNav } from '@/components/list-keyboard-nav';
 import { SuggestedFilters } from '@/components/suggested-filters';
@@ -82,7 +87,11 @@ export default async function ExplorePage({
         .orderBy(asc(schema.industries.name))
     : [];
 
-  const strongEvidence = new Set(['QUANTIFIED_PRIMARY_EVIDENCE', 'UNQUANTIFIED_PRIMARY_EVIDENCE', 'MULTIPLE_CREDIBLE_SECONDARY_SOURCES']);
+  const strongEvidence = new Set([
+    'QUANTIFIED_PRIMARY_EVIDENCE',
+    'UNQUANTIFIED_PRIMARY_EVIDENCE',
+    'MULTIPLE_CREDIBLE_SECONDARY_SOURCES',
+  ]);
 
   return (
     <div className="mx-auto max-w-[1380px]">
@@ -90,9 +99,9 @@ export default async function ExplorePage({
         <p className="t-eyebrow">Explore</p>
         <h1 className="t-display mt-2">Filter the market, then ask about it</h1>
         <p className="t-lede mt-2 max-w-[64ch]">
-          Every event was extracted from a monitored publisher source, clustered across
-          reports, classified for implementation maturity, and linked to the exact passage it
-          came from. Filter on any dimension — press ⌘K to jump, ⌘J to ask.
+          Every event was extracted from a monitored publisher source, clustered across reports,
+          classified for implementation maturity, and linked to the exact passage it came from.
+          Filter on any dimension — press ⌘K to jump, ⌘J to ask.
         </p>
       </header>
 
@@ -140,10 +149,10 @@ export default async function ExplorePage({
                   {CONFIDENCE_LEVELS[filters.confidence].label.toLowerCase()} bar.
                 </h2>
                 <p className="mt-2.5 max-w-[68ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
-                  {CONFIDENCE_LEVELS[filters.confidence].hint} That this returns nothing is
-                  itself the most useful thing on the page: it says the corpus is dominated
-                  by announcements and self-reporting, which is a real limitation of the
-                  current source set rather than a bug in the filter.
+                  {CONFIDENCE_LEVELS[filters.confidence].hint} That this returns nothing is itself
+                  the most useful thing on the page: it says the corpus is dominated by
+                  announcements and self-reporting, which is a real limitation of the current source
+                  set rather than a bug in the filter.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {(['deployed', 'corroborated', 'announced'] as const)
@@ -219,7 +228,10 @@ export default async function ExplorePage({
                   </div>
 
                   <h3 className="t-heading">
-                    <Link href={insightHref(r.insightId)} className="hover:underline underline-offset-2">
+                    <Link
+                      href={insightHref(r.insightId)}
+                      className="hover:underline underline-offset-2"
+                    >
                       {r.headline}
                     </Link>
                   </h3>
@@ -268,7 +280,9 @@ export default async function ExplorePage({
                       <Badge tone="muted">{industry.stages} value chain stages</Badge>
                       <Badge tone="muted">{industry.kpis} KPIs</Badge>
                       {industry.lastReviewedAt ? (
-                        <Badge tone="muted">Reviewed {formatAbsolute(industry.lastReviewedAt)}</Badge>
+                        <Badge tone="muted">
+                          Reviewed {formatAbsolute(industry.lastReviewedAt)}
+                        </Badge>
                       ) : null}
                     </div>
                   </Card>

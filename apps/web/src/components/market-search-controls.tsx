@@ -141,7 +141,10 @@ export function MarketSearchControls({
           <details className="group">
             <summary className="inline-flex cursor-pointer list-none items-center gap-1">
               <span>
-                Industry: <span className="text-[var(--text-muted)]">{recordedIndustries ?? 'not recorded'}</span>
+                Industry:{' '}
+                <span className="text-[var(--text-muted)]">
+                  {recordedIndustries ?? 'not recorded'}
+                </span>
               </span>
               <span className="underline underline-offset-2 group-open:hidden">change</span>
             </summary>

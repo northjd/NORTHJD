@@ -95,7 +95,10 @@ export const briefItems = pgTable(
     position: integer('position').notNull().default(0),
     score: doublePrecision('score').notNull().default(0),
     /** Human-readable answer to "why am I seeing this?" — assembled, not generated. */
-    whyShown: jsonb('why_shown').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    whyShown: jsonb('why_shown')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     estimatedMinutes: integer('estimated_minutes').notNull().default(2),
     readAt: timestamp('read_at', { withTimezone: true }),
     dismissedAt: timestamp('dismissed_at', { withTimezone: true }),
@@ -255,7 +258,10 @@ export const savedInsights = pgTable(
     insightId: uuid('insight_id')
       .notNull()
       .references(() => insights.id, { onDelete: 'cascade' }),
-    tags: jsonb('tags').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    tags: jsonb('tags')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex('saved_insights_key').on(t.userId, t.insightId)],
@@ -280,11 +286,17 @@ export const notes = pgTable(
     /** insight | entity | industry | conversation | meeting | null */
     attachedKind: varchar('attached_kind', { length: 30 }),
     attachedId: uuid('attached_id'),
-    tags: jsonb('tags').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    tags: jsonb('tags')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index('notes_user_idx').on(t.userId, t.createdAt), index('notes_attached_idx').on(t.attachedKind, t.attachedId)],
+  (t) => [
+    index('notes_user_idx').on(t.userId, t.createdAt),
+    index('notes_attached_idx').on(t.attachedKind, t.attachedId),
+  ],
 );
 
 export const savedSearches = pgTable(
@@ -299,7 +311,10 @@ export const savedSearches = pgTable(
       .references(() => workspaces.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 200 }).notNull(),
     query: text('query').notNull().default(''),
-    filters: jsonb('filters').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    filters: jsonb('filters')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     notifyOnMatch: boolean('notify_on_match').notNull().default(false),
     lastRunAt: timestamp('last_run_at', { withTimezone: true }),
     createdAt: createdAt(),
@@ -362,10 +377,22 @@ export const meetings = pgTable(
     companyName: varchar('company_name', { length: 300 }).notNull().default(''),
     objective: text('objective').notNull().default(''),
     meetingAt: timestamp('meeting_at', { withTimezone: true }),
-    attendees: jsonb('attendees').$type<{ name: string; role: string }[]>().notNull().default(sql`'[]'::jsonb`),
-    topics: jsonb('topics').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    competitorNames: jsonb('competitor_names').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    technologyNames: jsonb('technology_names').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    attendees: jsonb('attendees')
+      .$type<{ name: string; role: string }[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    topics: jsonb('topics')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    competitorNames: jsonb('competitor_names')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    technologyNames: jsonb('technology_names')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     personalNotes: text('personal_notes').notNull().default(''),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -425,7 +452,9 @@ export const conversationTurns = pgTable(
     role: varchar('role', { length: 12 }).notNull(),
     text: text('text').notNull(),
     /** Full validated `CompanionResponse` for assistant turns. */
-    structured: jsonb('structured').$type<Record<string, unknown> | null>().default(sql`'null'::jsonb`),
+    structured: jsonb('structured')
+      .$type<Record<string, unknown> | null>()
+      .default(sql`'null'::jsonb`),
     mode: companionModeEnum('mode'),
     depth: depthLevelEnum('depth'),
     generator: generatorEnum('generator'),

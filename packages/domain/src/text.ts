@@ -15,9 +15,37 @@ export interface Sentence {
 }
 
 const ABBREVIATIONS = new Set([
-  'mr', 'mrs', 'ms', 'dr', 'prof', 'sr', 'jr', 'st', 'vs', 'etc', 'inc', 'ltd', 'co',
-  'corp', 'plc', 'gmbh', 'ag', 'sa', 'nv', 'ab', 'no', 'fig', 'approx', 'e.g', 'i.e',
-  'u.s', 'u.k', 'q1', 'q2', 'q3', 'q4',
+  'mr',
+  'mrs',
+  'ms',
+  'dr',
+  'prof',
+  'sr',
+  'jr',
+  'st',
+  'vs',
+  'etc',
+  'inc',
+  'ltd',
+  'co',
+  'corp',
+  'plc',
+  'gmbh',
+  'ag',
+  'sa',
+  'nv',
+  'ab',
+  'no',
+  'fig',
+  'approx',
+  'e.g',
+  'i.e',
+  'u.s',
+  'u.k',
+  'q1',
+  'q2',
+  'q3',
+  'q4',
 ]);
 
 /**
@@ -71,17 +99,19 @@ export function collapseWhitespace(s: string): string {
  * once per document version; evidence offsets are computed against its output.
  */
 export function normalizeText(input: string): string {
-  return input
-    .replace(/\r\n?/g, '\n')
-    // Escapes, not the literal characters: a non-breaking space and a zero-width joiner
-    // are invisible in an editor, and a normaliser nobody can read is one nobody dares
-    // change. u00a0 is NBSP; u200b\u2013u200d and ufeff are the zero-width set.
-    .replace(/\u00a0/g, ' ')
-    .replace(/[\u200b-\u200d\ufeff]/g, '')
-    .replace(/[ \t]+/g, ' ')
-    .replace(/ *\n */g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+  return (
+    input
+      .replace(/\r\n?/g, '\n')
+      // Escapes, not the literal characters: a non-breaking space and a zero-width joiner
+      // are invisible in an editor, and a normaliser nobody can read is one nobody dares
+      // change. u00a0 is NBSP; u200b\u2013u200d and ufeff are the zero-width set.
+      .replace(/\u00a0/g, ' ')
+      .replace(/[\u200b-\u200d\ufeff]/g, '')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/ *\n */g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+  );
 }
 
 /** Minimal, allow-nothing HTML to text. We never render source HTML. */
@@ -104,10 +134,52 @@ export function htmlToText(html: string): string {
 }
 
 const STOPWORDS = new Set([
-  'the', 'a', 'an', 'and', 'or', 'but', 'of', 'to', 'in', 'on', 'for', 'with', 'at',
-  'by', 'from', 'as', 'is', 'are', 'was', 'were', 'be', 'been', 'it', 'its', 'that',
-  'this', 'these', 'those', 'will', 'would', 'has', 'have', 'had', 'not', 'no', 'we',
-  'our', 'their', 'they', 'he', 'she', 'his', 'her', 'you', 'your', 'i',
+  'the',
+  'a',
+  'an',
+  'and',
+  'or',
+  'but',
+  'of',
+  'to',
+  'in',
+  'on',
+  'for',
+  'with',
+  'at',
+  'by',
+  'from',
+  'as',
+  'is',
+  'are',
+  'was',
+  'were',
+  'be',
+  'been',
+  'it',
+  'its',
+  'that',
+  'this',
+  'these',
+  'those',
+  'will',
+  'would',
+  'has',
+  'have',
+  'had',
+  'not',
+  'no',
+  'we',
+  'our',
+  'their',
+  'they',
+  'he',
+  'she',
+  'his',
+  'her',
+  'you',
+  'your',
+  'i',
 ]);
 
 export function tokenize(text: string): string[] {
@@ -133,7 +205,9 @@ export function jaccard(a: string, b: string): number {
  * normalised tokens so that formatting differences do not defeat it.
  */
 export function contentFingerprint(title: string, body: string): string {
-  const tokens = tokenize(`${title} ${body.slice(0, 4000)}`).slice(0, 200).join(' ');
+  const tokens = tokenize(`${title} ${body.slice(0, 4000)}`)
+    .slice(0, 200)
+    .join(' ');
   let h1 = 0x811c9dc5;
   let h2 = 0x01000193;
   for (let i = 0; i < tokens.length; i++) {
@@ -156,7 +230,9 @@ export function contentFingerprint(title: string, body: string): string {
  */
 export function containsQuantifiedOutcome(text: string): boolean {
   const percentage = /\d+(?:[.,]\d+)?\s?%/.test(text);
-  const percentWord = /\b\d+(?:[.,]\d+)?\s?(?:percent|percentage points?|bps|basis points)\b/i.test(text);
+  const percentWord = /\b\d+(?:[.,]\d+)?\s?(?:percent|percentage points?|bps|basis points)\b/i.test(
+    text,
+  );
   const currency = /[€$£¥]\s?\d/.test(text);
   const magnitude = /\b\d+(?:[.,]\d+)?\s?(?:million|billion|trillion|bn|m|k)\b/i.test(text);
   const multiple = /\b\d+(?:[.,]\d+)?x\b/i.test(text);

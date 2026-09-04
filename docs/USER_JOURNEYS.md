@@ -15,9 +15,9 @@ Reads the three that matter. One is a partnership announcement; the badges say
 `Announced`, `Company self-reporting`, `Self-reported only`. They know before reading
 the headline that this is intent, not outcome.
 
-Taps "Why am I seeing this?" on an item they doubt: *"It is in fashion-apparel, which you
+Taps "Why am I seeing this?" on an item they doubt: _"It is in fashion-apparel, which you
 follow. It involves a company on your watchlist. Only the company itself has reported
-this so far."* The last line is the one that changes how they read it.
+this so far."_ The last line is the one that changes how they read it.
 
 The adjacent signal is a regulatory development outside their industries. They would not
 have searched for it.
@@ -35,15 +35,15 @@ state.
 **Trigger:** a headline that matters.
 
 Opens the insight. Verified facts are verbatim sentences with a green rule. Clicks
-*View evidence [1]* → the evidence page shows the claim, the exact character range, and
+_View evidence [1]_ → the evidence page shows the claim, the exact character range, and
 that range highlighted inside the surrounding stored text.
 
 Six timestamps: event date, published, source last updated, discovered by us, version
-retrieved, claim last verified. The event date says *"date not stated in source"* — which
+retrieved, claim last verified. The event date says _"date not stated in source"_ — which
 is more useful than a guess.
 
-Follows the link to the original. Comes back and reads Counter-signals: *"Sources state
-different figures: 18% versus 7%."* The 18% figure is now something to ask about rather
+Follows the link to the original. Comes back and reads Counter-signals: _"Sources state
+different figures: 18% versus 7%."_ The 18% figure is now something to ask about rather
 than repeat.
 
 **Verified:** evidence navigation, offset-exact highlighting, timestamp separation,
@@ -61,9 +61,9 @@ Gets a 60-second brief, what changed in each window, verified facts with citatio
 this could mean" under an interpretation label, five specific questions, a contrarian
 angle, and known unknowns.
 
-The questions are specific: *"The announcement sets out intent rather than deployment.
+The questions are specific: _"The announcement sets out intent rather than deployment.
 Between decision rights and adoption, which is the binding constraint on getting from
-signed agreement to something running in production?"* — not "what are your biggest
+signed agreement to something running in production?"_ — not "what are your biggest
 challenges?"
 
 Copies the brief. Citations travel with it.
@@ -77,10 +77,10 @@ starters, copy with citations.
 
 **Trigger:** a colleague asks something specific.
 
-Companion → *Explore it* → *"What is happening with markdown and allocation in retail?"*
+Companion → _Explore it_ → _"What is happening with markdown and allocation in retail?"_
 
-Answer: *"2 evidenced statements bear on this. As of 1 September 2026, based on 2
-evidenced claims from 2 sources."* Facts numbered and cited; interpretation separate;
+Answer: _"2 evidenced statements bear on this. As of 1 September 2026, based on 2
+evidenced claims from 2 sources."_ Facts numbered and cited; interpretation separate;
 unknowns listed.
 
 Then asks something the sources genuinely cannot answer. The Companion refuses:
@@ -99,7 +99,7 @@ says is now credible.
 
 **Trigger:** they have formed a view.
 
-Companion → *Challenge me* → *"Challenge the claim that AI allocation reduces markdown."*
+Companion → _Challenge me_ → _"Challenge the claim that AI allocation reduces markdown."_
 
 Names the assumptions — self-report accepted at face value, baseline stability assumed,
 stated intent equated with delivery. Offers an alternative explanation. Where no
@@ -117,7 +117,7 @@ failure as an invented fact.
 
 **Trigger:** an insight referenced a concept they do not fully own.
 
-Follows the learning connection → *"How fashion retailers make money"* at Foundation.
+Follows the learning connection → _"How fashion retailers make money"_ at Foundation.
 Objective, explanation, structured model, key terms, common misconceptions, practical
 questions.
 
@@ -156,10 +156,10 @@ monitoring rather than an inactive company. They know what they do not know.
 
 ## Journeys not yet built
 
-| Journey | Missing |
-|---|---|
-| Weekly learning review | The surface. Its inputs all exist |
-| Comparing two companies side by side | A dedicated comparison view |
-| Saving a fragment from a transcript | Save-arbitrary-answer-portion |
-| Meeting prep from a calendar entry | Calendar integration |
-| Sharing a brief with a colleague | Team sharing beyond copy/export |
+| Journey                              | Missing                           |
+| ------------------------------------ | --------------------------------- |
+| Weekly learning review               | The surface. Its inputs all exist |
+| Comparing two companies side by side | A dedicated comparison view       |
+| Saving a fragment from a transcript  | Save-arbitrary-answer-portion     |
+| Meeting prep from a calendar entry   | Calendar integration              |
+| Sharing a brief with a colleague     | Team sharing beyond copy/export   |

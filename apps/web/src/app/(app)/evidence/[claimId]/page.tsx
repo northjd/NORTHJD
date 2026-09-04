@@ -3,7 +3,14 @@ import { notFound } from 'next/navigation';
 import { eq } from 'drizzle-orm';
 import { db, schema } from '@mios/database';
 import { requireUser } from '@/lib/session';
-import { Badge, Card, ClaimTypeBadge, EvidenceBadge, PerspectiveBadge, SectionHeading } from '@mios/ui';
+import {
+  Badge,
+  Card,
+  ClaimTypeBadge,
+  EvidenceBadge,
+  PerspectiveBadge,
+  SectionHeading,
+} from '@mios/ui';
 import { formatAbsolute } from '@mios/domain';
 
 export const dynamic = 'force-dynamic';
@@ -14,7 +21,6 @@ export async function generateStaticParams() {
   const rows = await db().select({ id: schema.claims.id }).from(schema.claims);
   return rows.map((r) => ({ claimId: r.id }));
 }
-
 
 /**
  * The bottom of the evidence chain.
@@ -64,12 +70,18 @@ export default async function EvidencePage({ params }: { params: Promise<{ claim
       storagePolicy: schema.sourcePolicies.reviewNotes,
     })
     .from(schema.claims)
-    .innerJoin(schema.documentVersions, eq(schema.documentVersions.id, schema.claims.documentVersionId))
+    .innerJoin(
+      schema.documentVersions,
+      eq(schema.documentVersions.id, schema.claims.documentVersionId),
+    )
     .innerJoin(schema.rawDocuments, eq(schema.rawDocuments.id, schema.documentVersions.documentId))
     .innerJoin(schema.sources, eq(schema.sources.id, schema.claims.sourceId))
     .leftJoin(schema.sourcePolicies, eq(schema.sourcePolicies.sourceId, schema.sources.id))
     .leftJoin(schema.claimEvidence, eq(schema.claimEvidence.claimId, schema.claims.id))
-    .leftJoin(schema.evidenceSpans, eq(schema.evidenceSpans.id, schema.claimEvidence.evidenceSpanId))
+    .leftJoin(
+      schema.evidenceSpans,
+      eq(schema.evidenceSpans.id, schema.claimEvidence.evidenceSpanId),
+    )
     .where(eq(schema.claims.id, claimId))
     .limit(1);
 
@@ -99,8 +111,8 @@ export default async function EvidencePage({ params }: { params: Promise<{ claim
       <h1 className="mb-1 text-[22px] font-semibold tracking-tight">Evidence for this claim</h1>
       <p className="mb-5 max-w-[68ch] text-[14px] leading-relaxed text-[var(--text-muted)]">
         The exact passage the claim was taken from, in the stored version of the source document.
-        Offsets refer to that version, which is immutable — a later edit to the article creates a new
-        version rather than moving this citation.
+        Offsets refer to that version, which is immutable — a later edit to the article creates a
+        new version rather than moving this citation.
       </p>
 
       <Card className="mb-5">
@@ -144,15 +156,15 @@ export default async function EvidencePage({ params }: { params: Promise<{ claim
           </div>
         ) : (
           <p className="text-[14px] text-[var(--text-muted)]">
-            This claim has no evidence span. It cannot be presented as a verified fact anywhere in the
-            product.
+            This claim has no evidence span. It cannot be presented as a verified fact anywhere in
+            the product.
           </p>
         )}
 
         {row.storedScope !== 'full_text' ? (
           <p className="mt-3 text-[12px] leading-relaxed text-[var(--text-subtle)]">
-            Only an excerpt of this document is stored ({row.storedScope.replace('_', ' ')}), as permitted
-            by the source policy. Follow the link below for the full original.
+            Only an excerpt of this document is stored ({row.storedScope.replace('_', ' ')}), as
+            permitted by the source policy. Follow the link below for the full original.
           </p>
         ) : null}
       </Card>
@@ -211,14 +223,18 @@ export default async function EvidencePage({ params }: { params: Promise<{ claim
         ) : null}
 
         {row.attribution ? (
-          <p className="mt-3 text-[12px] text-[var(--text-subtle)]">Attribution required: {row.attribution}</p>
+          <p className="mt-3 text-[12px] text-[var(--text-subtle)]">
+            Attribution required: {row.attribution}
+          </p>
         ) : null}
         {row.storagePolicy ? (
           <details className="mt-2">
             <summary className="cursor-pointer text-[12px] text-[var(--text-subtle)]">
               Rights review for this source
             </summary>
-            <p className="mt-1.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">{row.storagePolicy}</p>
+            <p className="mt-1.5 text-[12px] leading-relaxed text-[var(--text-subtle)]">
+              {row.storagePolicy}
+            </p>
           </details>
         ) : null}
       </Card>

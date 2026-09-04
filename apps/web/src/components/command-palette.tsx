@@ -52,11 +52,41 @@ const AREAS: Item[] = [
 ];
 
 const CONFIDENCE: Item[] = [
-  { group: 'Filter', icon: '⊟', label: 'Measured outcomes', detail: 'quantified + independent', href: '/explore?confidence=measured' },
-  { group: 'Filter', icon: '⊟', label: 'Actually deployed', detail: 'not announcements', href: '/explore?confidence=deployed' },
-  { group: 'Filter', icon: '⊟', label: 'Independently reported', detail: 'not self-reported', href: '/explore?confidence=corroborated' },
-  { group: 'Filter', icon: '⊟', label: 'Announcements only', detail: 'see what is noise', href: '/explore?confidence=announced' },
-  { group: 'Filter', icon: '⊟', label: 'Reversals', detail: 'stopped or rolled back', href: '/explore?confidence=reversed' },
+  {
+    group: 'Filter',
+    icon: '⊟',
+    label: 'Measured outcomes',
+    detail: 'quantified + independent',
+    href: '/explore?confidence=measured',
+  },
+  {
+    group: 'Filter',
+    icon: '⊟',
+    label: 'Actually deployed',
+    detail: 'not announcements',
+    href: '/explore?confidence=deployed',
+  },
+  {
+    group: 'Filter',
+    icon: '⊟',
+    label: 'Independently reported',
+    detail: 'not self-reported',
+    href: '/explore?confidence=corroborated',
+  },
+  {
+    group: 'Filter',
+    icon: '⊟',
+    label: 'Announcements only',
+    detail: 'see what is noise',
+    href: '/explore?confidence=announced',
+  },
+  {
+    group: 'Filter',
+    icon: '⊟',
+    label: 'Reversals',
+    detail: 'stopped or rolled back',
+    href: '/explore?confidence=reversed',
+  },
 ];
 
 /**
@@ -122,13 +152,19 @@ export function CommandPalette({
         icon: '▣',
         label: e.name,
         detail: e.events > 0 ? `${e.events} events` : 'no coverage',
-        href: e.events > 0 ? `/account?slug=${e.slug}` : `/coverage?q=${encodeURIComponent(e.name)}`,
+        href:
+          e.events > 0 ? `/account?slug=${e.slug}` : `/coverage?q=${encodeURIComponent(e.name)}`,
       });
       if (out.filter((o) => o.group === 'Companies').length >= 8) break;
     }
 
     for (const i of industries.filter((i) => hit(i.name)).slice(0, 5)) {
-      out.push({ group: 'Industries', icon: '◱', label: i.name, href: `/explore?industry=${i.slug}` });
+      out.push({
+        group: 'Industries',
+        icon: '◱',
+        label: i.name,
+        href: `/explore?industry=${i.slug}`,
+      });
     }
     for (const t of topics.filter((t) => hit(t.name)).slice(0, 6)) {
       out.push({ group: 'Topics', icon: '◇', label: t.name, href: `/explore?topic=${t.slug}` });
@@ -245,7 +281,9 @@ export function CommandPalette({
               lastGroup = item.group;
               return (
                 <div key={`${item.href}-${i}`}>
-                  {showGroup ? <div className="t-eyebrow px-2.5 pb-1 pt-2.5">{item.group}</div> : null}
+                  {showGroup ? (
+                    <div className="t-eyebrow px-2.5 pb-1 pt-2.5">{item.group}</div>
+                  ) : null}
                   <button
                     type="button"
                     onMouseEnter={() => setCursor(i)}

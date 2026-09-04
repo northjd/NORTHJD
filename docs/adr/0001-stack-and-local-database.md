@@ -39,7 +39,7 @@ tests ─┘                            └─ or any real PostgreSQL, unchanged
 application changes.
 
 Verified before committing to this (`scripts/../scratchpad probe`): `select version()`
-returns *PostgreSQL 18.3 (PGlite 0.5.8)*; `tsvector` generated columns, GIN indexes,
+returns _PostgreSQL 18.3 (PGlite 0.5.8)_; `tsvector` generated columns, GIN indexes,
 `websearch_to_tsquery` and `ts_rank` all work; `jsonb` and `gen_random_uuid()` work.
 
 Rest of the stack: **Next.js 16** (App Router, React 19), **Drizzle ORM 0.45** +

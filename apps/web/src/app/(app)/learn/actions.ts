@@ -6,7 +6,10 @@ import { z } from 'zod';
 import { db, schema } from '@mios/database';
 import { requireUser } from '@/lib/session';
 
-const Schema = z.object({ unitId: z.string().uuid(), selectedIndex: z.number().int().min(0).max(9) });
+const Schema = z.object({
+  unitId: z.string().uuid(),
+  selectedIndex: z.number().int().min(0).max(9),
+});
 
 /**
  * Records a knowledge-check answer and nudges the concept state.
@@ -15,7 +18,9 @@ const Schema = z.object({ unitId: z.string().uuid(), selectedIndex: z.number().i
  * schedules a resurfacing. Both store the reason, so the user can see why we think what
  * we think.
  */
-export async function answerKnowledgeCheckAction(input: unknown): Promise<{ ok: boolean; correct?: boolean }> {
+export async function answerKnowledgeCheckAction(
+  input: unknown,
+): Promise<{ ok: boolean; correct?: boolean }> {
   const user = await requireUser();
   const parsed = Schema.safeParse(input);
   if (!parsed.success) return { ok: false };

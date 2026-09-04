@@ -42,13 +42,22 @@ export const industries = pgTable(
     regulatoryEnvironment: text('regulatory_environment').notNull().default(''),
     transformationAgenda: text('transformation_agenda').notNull().default(''),
     /** Questions the platform cannot currently answer for this industry. */
-    openQuestions: jsonb('open_questions').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    sourceRefs: jsonb('source_refs').$type<{ label: string; url: string }[]>().notNull().default(sql`'[]'::jsonb`),
+    openQuestions: jsonb('open_questions')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    sourceRefs: jsonb('source_refs')
+      .$type<{ label: string; url: string }[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     lastReviewedAt: timestamp('last_reviewed_at', { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [uniqueIndex('industries_slug_key').on(t.slug), index('industries_parent_idx').on(t.parentId)],
+  (t) => [
+    uniqueIndex('industries_slug_key').on(t.slug),
+    index('industries_parent_idx').on(t.parentId),
+  ],
 );
 
 /** A stage in an industry's value chain, ordered from upstream to downstream. */
@@ -80,7 +89,10 @@ export const businessModels = pgTable(
     description: text('description').notNull().default(''),
     /** How this model makes money, and what breaks it. */
     economics: text('economics').notNull().default(''),
-    exampleCompanyNames: jsonb('example_company_names').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    exampleCompanyNames: jsonb('example_company_names')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex('bm_slug_key').on(t.slug)],
@@ -190,7 +202,10 @@ export const learningConcepts = pgTable(
     refSlug: varchar('ref_slug', { length: 120 }),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex('learning_concepts_slug_key').on(t.slug), index('lc_industry_idx').on(t.industryId)],
+  (t) => [
+    uniqueIndex('learning_concepts_slug_key').on(t.slug),
+    index('lc_industry_idx').on(t.industryId),
+  ],
 );
 
 export const learningConceptRelationships = pgTable(
@@ -244,14 +259,37 @@ export const learningUnits = pgTable(
       .$type<{ heading: string; points: string[] }[]>()
       .notNull()
       .default(sql`'[]'::jsonb`),
-    keyTerms: jsonb('key_terms').$type<{ term: string; definition: string }[]>().notNull().default(sql`'[]'::jsonb`),
-    coreMetricSlugs: jsonb('core_metric_slugs').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    exampleCompanyNames: jsonb('example_company_names').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    commonMisconceptions: jsonb('common_misconceptions').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    practicalQuestions: jsonb('practical_questions').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-    sourceRefs: jsonb('source_refs').$type<{ label: string; url: string }[]>().notNull().default(sql`'[]'::jsonb`),
+    keyTerms: jsonb('key_terms')
+      .$type<{ term: string; definition: string }[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    coreMetricSlugs: jsonb('core_metric_slugs')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    exampleCompanyNames: jsonb('example_company_names')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    commonMisconceptions: jsonb('common_misconceptions')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    practicalQuestions: jsonb('practical_questions')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    sourceRefs: jsonb('source_refs')
+      .$type<{ label: string; url: string }[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     knowledgeCheck: jsonb('knowledge_check')
-      .$type<{ question: string; options: string[]; correctIndex: number; explanation: string } | null>()
+      .$type<{
+        question: string;
+        options: string[];
+        correctIndex: number;
+        explanation: string;
+      } | null>()
       .default(sql`'null'::jsonb`),
     estimatedMinutes: integer('estimated_minutes').notNull().default(5),
     version: integer('version').notNull().default(1),
@@ -271,7 +309,11 @@ export const learningUnits = pgTable(
 // ── Relations ────────────────────────────────────────────────────────────────
 
 export const industriesRelations = relations(industries, ({ many, one }) => ({
-  parent: one(industries, { fields: [industries.parentId], references: [industries.id], relationName: 'industry_parent' }),
+  parent: one(industries, {
+    fields: [industries.parentId],
+    references: [industries.id],
+    relationName: 'industry_parent',
+  }),
   children: many(industries, { relationName: 'industry_parent' }),
   valueChainStages: many(valueChainStages),
   kpis: many(kpis),
@@ -296,7 +338,10 @@ export const learningPathsRelations = relations(learningPaths, ({ one, many }) =
 
 export const learningUnitsRelations = relations(learningUnits, ({ one }) => ({
   path: one(learningPaths, { fields: [learningUnits.pathId], references: [learningPaths.id] }),
-  concept: one(learningConcepts, { fields: [learningUnits.conceptId], references: [learningConcepts.id] }),
+  concept: one(learningConcepts, {
+    fields: [learningUnits.conceptId],
+    references: [learningConcepts.id],
+  }),
 }));
 
 export const capabilitiesRelations = relations(capabilities, ({ one }) => ({

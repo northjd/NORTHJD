@@ -11,7 +11,7 @@ transparent status — and it forbids fake functionality.
 
 Three options:
 
-1. Ship a UI that shows where AI output *would* appear, disabled without a key.
+1. Ship a UI that shows where AI output _would_ appear, disabled without a key.
 2. Generate plausible-looking text without a model.
 3. Make a non-model generation path that is genuinely honest, and treat the model as an
    enhancement.
@@ -30,16 +30,16 @@ by using the extractive path — never by substituting prose of their own.
 
 The extractive path performs only operations that cannot invent:
 
-| Operation | Method |
-|---|---|
-| Factual text | Sentences reused **verbatim** from stored evidence spans |
-| Classification | Lexicons and rules — event type, maturity, value levers, executive owner |
-| Structure | Assembled from the data model — industry, value chain stage, KPIs, capabilities |
-| Applicability | Templates parameterised by the event's actual company, maturity, lever and KPI |
+| Operation      | Method                                                                                                |
+| -------------- | ----------------------------------------------------------------------------------------------------- |
+| Factual text   | Sentences reused **verbatim** from stored evidence spans                                              |
+| Classification | Lexicons and rules — event type, maturity, value levers, executive owner                              |
+| Structure      | Assembled from the data model — industry, value chain stage, KPIs, capabilities                       |
+| Applicability  | Templates parameterised by the event's actual company, maturity, lever and KPI                        |
 | Known unknowns | **Computed from what is absent** — no independent source, no quantified outcome, no stated event date |
 
 Everything it produces is labelled `deterministic_extractive` and rendered as
-*Extractive* in the UI, with an explanation that nothing is paraphrased.
+_Extractive_ in the UI, with an explanation that nothing is paraphrased.
 
 ## Rationale
 
@@ -55,7 +55,7 @@ That has three consequences worth having:
   mechanism for inventing a fact. When a model is added, the comparison is against a
   working baseline rather than against nothing.
 - **The honest-status story is real rather than aspirational.** The UI reports
-  *Extractive* because that is what ran, not because a flag is set.
+  _Extractive_ because that is what ran, not because a flag is set.
 
 The known-unknowns sections turned out to be the most trustworthy text in the product,
 precisely because they are computed from absence and cannot flatter the data.
@@ -83,7 +83,7 @@ Set `AI_PROVIDER=anthropic` with a key. Model output then goes through:
 1. **Tool-use constrained decoding** — the model must call one tool whose input schema
    is the required JSON Schema
 2. **Zod validation** — a tool call is a strong hint, not a guarantee
-3. **One retry** with the validation errors fed back, instructed *not* to invent facts
+3. **One retry** with the validation errors fed back, instructed _not_ to invent facts
    to satisfy the schema
 4. **`assertEvidenceIntegrity`** before display
 5. **Fallback to extractive** if any of that fails
@@ -93,7 +93,7 @@ evidence-supported answer must not be allowed to produce an unvalidated one.
 
 ## What would change this
 
-If model-assisted generation measurably improves usefulness *without* loosening citation
+If model-assisted generation measurably improves usefulness _without_ loosening citation
 support — measured on the golden set, not by reading a few samples — it becomes the
 default for prose while the extractive path stays as the fallback and as the test
 baseline. The evidence checks do not move either way.
