@@ -177,7 +177,7 @@ export default async function InsightPage({
         {entities.length > 0 ? (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {entities.map((e) => (
-              <Link key={e.id} href={`/explore/companies/${e.slug}`}>
+              <Link key={e.id} href={`/account/company/${e.slug}`}>
                 <Badge tone={e.role === 'subject' ? 'accent' : 'neutral'}>{e.name}</Badge>
               </Link>
             ))}

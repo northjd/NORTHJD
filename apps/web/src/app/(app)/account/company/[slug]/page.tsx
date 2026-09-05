@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { requireUser } from '@/lib/session';
-import { queryAccount } from '@/lib/account-queries';
+import { queryAccount, queryCompanyProfile } from '@/lib/account-queries';
 import { listAllCompanies, listWatchlistShortcuts } from '@/lib/market-shared';
 import { MarketSearchControls } from '@/components/market-search-controls';
 import { RungSection } from '@/components/market-parts';
-import { InterpretationBlock } from '@mios/ui';
+import { CompanyProfileBlock } from '@/components/company-profile';
+import { InterpretationBlock, MaturityBadge } from '@mios/ui';
+import type { CaseMaturity } from '@mios/domain';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,8 +32,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const user = await requireUser();
   const { slug } = await params;
 
-  const [board, companies, watchlist] = await Promise.all([
+  const [board, profile, companies, watchlist] = await Promise.all([
     queryAccount(user.workspaceId, slug),
+    queryCompanyProfile(slug),
     listAllCompanies(),
     listWatchlistShortcuts(user.workspaceId),
   ]);
@@ -51,21 +54,28 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
 
   const leadRung = board.rungs.find((r) => r.level === board.leadWith)!;
 
+  // Maturity spread across the company's own events — announcements against deployments.
+  const own = board.rungs.find((r) => r.level === 'company')?.events ?? [];
+  const evidenceMix = Object.entries(
+    own.reduce<Record<string, number>>((acc, e) => {
+      acc[e.caseMaturity] = (acc[e.caseMaturity] ?? 0) + 1;
+      return acc;
+    }, {}),
+  ).sort((a, b) => b[1] - a[1]);
+
   return (
     <div className="mx-auto max-w-[900px]">
       <p className="t-eyebrow">Market search</p>
       <h1 className="mt-2 text-[27px] font-semibold leading-[1.16] tracking-[-0.028em]">
         {board.entity.name}
       </h1>
-      <p className="mt-3 max-w-[62ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
-        {board.entity.description ?? 'No description stored for this entity.'}
-      </p>
-
-      {board.entity.aliases ? (
-        <p className="mt-1.5 text-[12px] text-[var(--text-subtle)]">
-          Also known as: {board.entity.aliases}
+      {profile ? (
+        <CompanyProfileBlock profile={profile} />
+      ) : (
+        <p className="mt-3 max-w-[62ch] text-[14px] leading-[1.68] text-[var(--text-muted)]">
+          {board.entity.description ?? 'No description stored for this entity.'}
         </p>
-      ) : null}
+      )}
 
       {board.skipped.length > 0 ? (
         <div className="mt-6 border-l border-caution-500/50 pl-4">
@@ -138,6 +148,58 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
       {board.rungs.map((rung) => (
         <RungSection key={rung.level} rung={rung} />
       ))}
+
+      {/*
+        Source coverage and evidence mix.
+        Carried over from the second company page under /explore, which has been removed.
+        Both belong here: a thin timeline means limited monitoring rather than an inactive
+        company, and that distinction is only legible if the page says which sources it
+        has. Duplicating the page to hold them was the wrong way to keep them.
+      */}
+      <section className="mt-10 grid gap-6 sm:grid-cols-2">
+        <div>
+          <h2 className="t-rule">Source coverage</h2>
+          <p className="mt-2 text-[12.5px] leading-relaxed text-[var(--text-subtle)]">
+            What we watch — and, by omission, what we do not. A thin timeline above means limited
+            monitoring, not an inactive company.
+          </p>
+          {board.sources.length === 0 ? (
+            <p className="mt-2.5 text-[13px] leading-relaxed text-[var(--text-muted)]">
+              No first-party source is registered for {board.entity.name}. Events involving it
+              arrive only when another monitored source mentions it.
+            </p>
+          ) : (
+            <ul className="mt-2.5 space-y-1.5">
+              {board.sources.map((s) => (
+                <li key={s.name} className="text-[13px]">
+                  {s.name}{' '}
+                  <span className="text-[11px] text-[var(--text-subtle)]">
+                    {s.perspective.replace(/_/g, ' ').toLowerCase()}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {evidenceMix.length > 0 ? (
+          <div>
+            <h2 className="t-rule">Evidence mix</h2>
+            <p className="mt-2 text-[12.5px] leading-relaxed text-[var(--text-subtle)]">
+              Announcements versus things actually evidenced as deployed, across everything naming
+              this company.
+            </p>
+            <ul className="mt-2.5 space-y-1.5 text-[13px]">
+              {evidenceMix.map(([maturity, count]) => (
+                <li key={maturity} className="flex items-center justify-between gap-2">
+                  <MaturityBadge maturity={maturity as CaseMaturity} />
+                  <span className="tabular-nums font-medium">{count}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </section>
 
       <section className="mt-10">
         <h2 className="t-rule">Ask about this company</h2>

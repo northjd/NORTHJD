@@ -254,7 +254,7 @@ export default async function WatchPage() {
             <Card as="li" key={q.slug} className="card-lift pl-5">
               <h3 className="t-heading text-[15px]">
                 <Link
-                  href={`/explore/companies/${q.slug}`}
+                  href={`/account/company/${q.slug}`}
                   className="hover:underline underline-offset-2"
                 >
                   {q.name}

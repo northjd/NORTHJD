@@ -1,20 +1,23 @@
 /**
- * One account, widened by scope until it has something to say.
+ * One company, then the market around it.
  *
- * The first version of this keyed everything off the entity's primary industry, so an
- * unclassified company produced three empty rings — a blank screen for exactly the user
- * who most needs context. This walks a ladder instead, mirroring the time ladder in
- * `queryExploreWidening`:
+ * The journey this serves is: choose a market, see what moved in it and who is in it,
+ * choose a company, read that company. So it leads with the company's own events and
+ * widens outward — its sector, the others in that sector, the regulators over it, the
+ * forces cutting across it. Each rung says what it is, so market context is never
+ * mistaken for news about the client.
  *
- *     the company → who it is compared against → its industry → its topics → the market
+ * No rung is time-filtered, and that is deliberate. Restricting to "this week" is how a
+ * market-intelligence tool shows a blank page on a quiet Tuesday. Each reaches back as
+ * far as it needs to and then reports how far that was, so a six-week-old story appears
+ * as a six-week-old story rather than being withheld or passed off as current.
  *
- * and reports which rung produced the answer. The final rung carries no filter at all,
- * so the result is never empty. "Nothing on the company itself, but here is what moved in its
- * market" is the whole point of a market-intelligence product; a blank page is not
- * something a consultant can take into a meeting.
+ * There is no unfiltered rung. An earlier version ended with the highest-impact events
+ * across every source regardless of sector, so the page could never be blank; what it did
+ * in practice was append a global news feed to every company. Honest emptiness beats
+ * padding.
  *
- * No company is hard-coded anywhere. The subject comes from a configured mission where
- * one exists, otherwise from the watchlist, otherwise from an explicit choice.
+ * No company is hard-coded anywhere.
  */
 
 import { sql } from 'drizzle-orm';
@@ -34,7 +37,7 @@ export interface AccountEvent {
   entityNames: string | null;
 }
 
-export type ScopeLevel = 'industry' | 'peers' | 'company' | 'regulatory' | 'topics' | 'market';
+export type ScopeLevel = 'company' | 'industry' | 'peers' | 'regulatory' | 'topics';
 
 export interface AccountRung {
   level: ScopeLevel;
@@ -255,11 +258,15 @@ export async function queryAccount(
   // Topics cut across industries, so they keep working when the industry itself has no
   // coverage — regulation, pricing, supply chain and workforce apply to a tobacco client
   // as readily as to a retailer.
-  const topicSlugs = profileTopics.length
-    ? profileTopics
-    : rows<{ slug: string }>(
-        await db().execute(sql`select slug from topics order by slug limit 6`),
-      ).map((r) => r.slug);
+  /*
+   * No fallback, deliberately.
+   *
+   * This used to reach for `select slug from topics order by slug limit 6` when the
+   * company had no topics of its own — the first six topics alphabetically, which is a
+   * arbitrary slice of the corpus presented as though it bore on the company. Better to
+   * show no topic rung than an arbitrary one.
+   */
+  const topicSlugs = profileTopics;
 
   const topicEvents = topicSlugs.length
     ? rows<AccountEvent>(
@@ -289,38 +296,26 @@ export async function queryAccount(
    * a regulator publishes is regulatory by definition, which makes the source the more
    * reliable signal.
    */
-  const regulatory = rows<AccountEvent>(
-    await db().execute(sql`
-      select ${EVENT_COLUMNS}
-        from events e
-        left join insights i on i.event_id = e.id
-       where e.is_suppressed = false
-         and exists (
-               select 1 from event_documents ed
-                 join raw_documents rd on rd.id = ed.document_id
-                 join sources src on src.id = rd.source_id
-                where ed.event_id = e.id
-                  and src.perspective in ('REGULATOR', 'PUBLIC_INSTITUTION'))
-       order by coalesce(e.event_at, e.first_reported_at) desc
-       limit 12
-    `),
-  );
-
-  // The final rung: no filter at all, ranked by impact then recency. This is what
-  // guarantees the page is never empty.
-  const market = rows<AccountEvent>(
-    await db().execute(sql`
-      select ${EVENT_COLUMNS}
-        from events e
-        left join insights i on i.event_id = e.id
-       where e.is_suppressed = false
-       order by case e.strategic_impact
-                  when 'very_high' then 0 when 'high' then 1
-                  when 'moderate' then 2 else 3 end,
-                coalesce(e.event_at, e.first_reported_at) desc
-       limit 12
-    `),
-  );
+  const regulatory = industrySlugs.length
+    ? rows<AccountEvent>(
+        await db().execute(sql`
+          select ${EVENT_COLUMNS}
+            from events e
+            join event_taxonomy t on t.event_id = e.id and t.kind = 'industry'
+                 and t.slug = any(${sql.param(industrySlugs)}::text[])
+            left join insights i on i.event_id = e.id
+           where e.is_suppressed = false
+             and exists (
+                   select 1 from event_documents ed
+                     join raw_documents rd on rd.id = ed.document_id
+                     join sources src on src.id = rd.source_id
+                    where ed.event_id = e.id
+                      and src.perspective in ('REGULATOR', 'PUBLIC_INSTITUTION'))
+           order by coalesce(e.event_at, e.first_reported_at) desc
+           limit 8
+        `),
+      )
+    : [];
 
   const sources = rows<{ name: string; perspective: string }>(
     await db().execute(sql`
@@ -345,10 +340,35 @@ export async function queryAccount(
    * ones, because "your client did this" and "this happened in your client's market" are
    * different claims and must not be blurred.
    */
+  /*
+   * The company first, then its market. Not the other way round.
+   *
+   * This used to lead with the sector, on the reasoning that a consultant needs the
+   * market before the client's press releases. That is true of the market page — and this
+   * is not the market page. By the time someone has chosen a sector and clicked a company
+   * they have had the market context; what they came for is the company. Leading with the
+   * sector meant clicking Zalando and reading about Retail, with Zalando's own news third
+   * down the page.
+   *
+   * The rungs still widen, and each still says what it is, so market context is never
+   * mistaken for news about the client. It simply widens *after* the answer rather than
+   * in front of it.
+   */
   const rungs: AccountRung[] = [
     {
-      level: 'industry',
+      level: 'company',
       index: '01',
+      title: `On ${entity.name}`,
+      why: 'Events naming this company directly.',
+      emptyMeans: sources.length
+        ? `${sources.length} source${sources.length > 1 ? 's are' : ' is'} registered for ${entity.name}, but ${sources.length > 1 ? 'they have' : 'it has'} produced nothing yet.`
+        : `No source is registered for ${entity.name}. This silence is about our monitoring, not about the company — the fix is a source, not a better query.`,
+      events: direct,
+      newestAgeDays: null,
+    },
+    {
+      level: 'industry',
+      index: '02',
       title: industryNames ? `What moved in ${industryNames}` : 'What moved in the market',
       why: `Events in ${industryLabel}, with ${entity.name}'s own removed so this reads as context rather than repetition.`,
       emptyMeans: industrySlugs.length
@@ -359,8 +379,8 @@ export async function queryAccount(
     },
     {
       level: 'peers',
-      index: '02',
-      title: 'Who is moving in it',
+      index: '03',
+      title: 'Who else is in it',
       why: `Companies sharing ${industryLabel}, and what they have been doing. A shared industry is what the taxonomy records — not a competitive relationship, which nobody has asserted.`,
       emptyMeans:
         'No other company in this industry has produced an event. Either the sector is unmonitored, or the companies in it are the only ones we track and none has published.',
@@ -368,23 +388,12 @@ export async function queryAccount(
       newestAgeDays: null,
     },
     {
-      level: 'company',
-      index: '03',
-      title: `On ${entity.name}`,
-      why: 'Events naming this company directly.',
-      emptyMeans: sources.length
-        ? `${sources.length} source${sources.length > 1 ? 's are' : ' is'} registered for ${entity.name}, but ${sources.length > 1 ? 'they have' : 'it has'} produced nothing yet.`
-        : `No source is registered for ${entity.name}. This silence is about our monitoring, not about the company — the fix is a source, not a better query.`,
-      events: direct,
-      newestAgeDays: null,
-    },
-    {
       level: 'regulatory',
       index: '04',
       title: 'Regulatory and policy',
-      why: 'Published by regulators and public institutions. What a regulator publishes is regulatory by definition, so this is keyed on the source rather than on subject tags.',
+      why: `Published by regulators and public institutions, and classified into ${industryLabel}. What a regulator publishes is regulatory by definition, so this is keyed on the source rather than on subject tags — but scoped to the sector, or every company would show the same eight items.`,
       emptyMeans:
-        'No regulator or public institution in the registry has published anything ingested so far.',
+        'No regulator or public institution has published anything classified into this sector.',
       events: regulatory,
       newestAgeDays: null,
     },
@@ -392,21 +401,23 @@ export async function queryAccount(
       level: 'topics',
       index: '05',
       title: 'Cross-industry forces',
-      why: 'Pricing, supply chain, workforce, regulation and technology cut across sectors. These keep working when an industry itself has no coverage — they bear on a tobacco client as readily as on a retailer.',
-      emptyMeans: 'No topic-classified events.',
+      why: 'Pricing, supply chain, workforce and technology cut across sectors, and these are the ones recorded against your own profile.',
+      emptyMeans: 'No topic-classified events bear on this company.',
       events: topicEvents,
       newestAgeDays: null,
     },
-    {
-      level: 'market',
-      index: '06',
-      title: 'Everything monitored',
-      why: 'Highest strategic impact across every source, regardless of sector. The floor that stops this page ever being blank.',
-      emptyMeans: 'The corpus is empty. Run the ingestion pipeline.',
-      events: market,
-      newestAgeDays: null,
-    },
   ];
+
+  /*
+   * There is no "everything monitored" rung any more.
+   *
+   * It carried no filter at all — the highest-impact events across every source
+   * regardless of sector — and existed so the page could never be blank. What it actually
+   * did was append a global news feed to every company page, which is what "the
+   * information below the summary is unrelated" turned out to mean. A page that honestly
+   * says nothing is monitored here is more useful than one padded with a shipping story
+   * on a fashion company.
+   */
 
   // Stamp each rung with how old its freshest item is, so the surface can say "nothing
   // this week; the most recent is from three weeks ago" instead of implying currency.
@@ -583,4 +594,150 @@ export async function queryMarketIndex(): Promise<
        order by 3 desc, i.name asc
     `),
   );
+}
+
+/* ── Company profile ───────────────────────────────────────────────────────── */
+
+export interface ProfileFact {
+  label: string;
+  /** Null renders as "not available from monitored sources", never as a guess. */
+  value: string | null;
+  /** Where the value came from, when there is one. */
+  source?: string;
+  /** What would have to exist for this to be filled in. */
+  missingBecause?: string;
+}
+
+export interface CompanyProfile {
+  identity: ProfileFact[];
+  financial: ProfileFact[];
+  /** Brand and trade names recorded as aliases, which is the only place we hold them. */
+  brands: string[];
+  /** Sources registered against this company specifically. */
+  ownSources: { name: string; perspective: string }[];
+}
+
+/**
+ * The company profile, and an honest account of what is missing from it.
+ *
+ * A market-intelligence page is expected to open with revenue, growth, margin, headcount
+ * and market share. This corpus holds none of them: it is built from news feeds, and a
+ * news feed does not carry a balance sheet. The entity table has a `publicProfile` column
+ * for exactly these figures, annotated "only what a public source states, never inferred
+ * financials", and it is empty.
+ *
+ * Two ways to fill it were examined and rejected today rather than quietly fudged.
+ * Wikidata carries revenue and headcount for most large companies, but its statements are
+ * years stale — it returns H&M's revenue as the 2014 figure, and a 2014 number on a 2026
+ * page is worse than a blank one because it looks like an answer. SEC EDGAR is current
+ * and authoritative but covers US filers only, which excludes Migros, Coop, Aldi, Rewe
+ * and Breuninger — precisely the companies this practice cares about.
+ *
+ * So every financial field returns `null` with the reason it is null. That is the
+ * behaviour the brief asked for: do not estimate, do not invent, say what is not there.
+ */
+export async function queryCompanyProfile(slug: string): Promise<CompanyProfile | null> {
+  const [row] = rows<{
+    name: string;
+    legalName: string | null;
+    description: string | null;
+    officialDomain: string | null;
+    ticker: string | null;
+    hq: string | null;
+    hqName: string | null;
+    businessModel: string | null;
+    industries: string | null;
+    publicProfile: { label: string; value: string; sourceUrl: string }[] | null;
+  }>(
+    await db().execute(sql`
+      select en.name, en.legal_name as "legalName", en.description,
+             en.official_domain as "officialDomain", en.ticker,
+             en.hq_geography_slug as "hq",
+             (select g.name from geographies g where g.slug = en.hq_geography_slug) as "hqName",
+             en.business_model_slug as "businessModel",
+             en.public_profile as "publicProfile",
+             (select string_agg(i.name, ', ' order by i.name)
+                from entity_industries ei join industries i on i.id = ei.industry_id
+               where ei.entity_id = en.id) as industries
+        from entities en where en.slug = ${sql.param(slug)}
+    `),
+  );
+  if (!row) return null;
+
+  // Trade and brand aliases are the only brand data we hold. Legal names and tickers are
+  // the same company under another label, so they are excluded.
+  const brands = rows<{ alias: string; aliasType: string }>(
+    await db().execute(sql`
+      select al.alias, al.alias_type as "aliasType" from entity_aliases al
+        join entities en on en.id = al.entity_id
+       where en.slug = ${sql.param(slug)}
+         and al.alias_type not in ('legal', 'ticker', 'abbreviation')
+       order by al.alias
+    `),
+  )
+    .map((a) => a.alias)
+    .filter((a) => a.toLowerCase() !== row.name.toLowerCase());
+
+  const ownSources = rows<{ name: string; perspective: string }>(
+    await db().execute(sql`
+      select s.name, s.perspective from sources s
+       where s.subject_entity_id = (select id from entities where slug = ${sql.param(slug)})
+    `),
+  );
+
+  const stated = new Map((row.publicProfile ?? []).map((p) => [p.label.toLowerCase(), p]));
+  const fromRegistry = (label: string, missingBecause: string): ProfileFact => {
+    const hit = stated.get(label.toLowerCase());
+    return hit
+      ? { label, value: hit.value, source: hit.sourceUrl }
+      : { label, value: null, missingBecause };
+  };
+
+  const NO_FINANCIALS =
+    'No monitored source publishes company financials. A filings connector — EDGAR for US filers, or the company’s own investor-relations feed — would supply it.';
+
+  return {
+    identity: [
+      {
+        label: 'Business',
+        value: row.description || null,
+        missingBecause: 'No description recorded.',
+      },
+      { label: 'Legal name', value: row.legalName || null, missingBecause: 'Not recorded.' },
+      {
+        label: 'Headquarters',
+        value: row.hqName ?? row.hq ?? null,
+        missingBecause: 'Not recorded.',
+      },
+      {
+        label: 'Markets',
+        value: row.industries || null,
+        missingBecause: 'Not classified into any sector.',
+      },
+      {
+        label: 'Business model',
+        value: row.businessModel || null,
+        missingBecause: 'Not recorded.',
+      },
+      {
+        label: 'Listing',
+        value: row.ticker || null,
+        missingBecause: 'No ticker recorded — the company may be private.',
+      },
+      { label: 'Website', value: row.officialDomain || null, missingBecause: 'Not recorded.' },
+    ],
+    financial: [
+      fromRegistry('Latest annual revenue', NO_FINANCIALS),
+      fromRegistry('Revenue growth', NO_FINANCIALS),
+      fromRegistry('Operating margin', NO_FINANCIALS),
+      fromRegistry('Employees', NO_FINANCIALS),
+      fromRegistry('Market capitalisation', NO_FINANCIALS),
+      fromRegistry(
+        'Market share',
+        'Market share requires a defined market, geography and period from a credible source. Nothing in the registry publishes it, and estimating it would be a fabrication.',
+      ),
+    ],
+    brands,
+    ownSources,
+  };
 }

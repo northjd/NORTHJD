@@ -46,27 +46,37 @@ export default async function MarketSearchPage() {
         needs four press releases.
       </p>
 
-      <section className="mt-8">
-        <h2 className="t-rule">Markets with coverage</h2>
-        <p className="mt-2 max-w-[72ch] text-[13px] leading-[1.65] text-[var(--text-muted)]">
-          Everything published since monitoring began, not just today — nothing here is filtered to
-          a date, so a quiet week never empties the page.
-        </p>
-        <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
+      {/*
+        Chips, not a table.
+
+        This was eighteen full-width rows in two columns, each carrying a name and an
+        event and company count — a screen and a half of chrome before the reader had
+        chosen anything. Markets are the *filter* on this page, not its content: the
+        content is whatever you pick. Counts stay, because "how much is in here" is what
+        decides which one you click, but they ride along inside the chip instead of
+        claiming a column of their own.
+      */}
+      <section className="mt-7">
+        <h2 className="t-rule">Pick a market</h2>
+        <ul className="mt-3 flex flex-wrap gap-1.5">
           {covered.map((m) => (
             <li key={m.slug}>
               <Link
                 href={`/account/market/${m.slug}`}
-                className="flex items-baseline gap-2 rounded-md px-2.5 py-2 transition-colors hover:bg-[var(--surface-inset)]"
+                className="inline-flex items-baseline gap-1.5 rounded-md border border-[var(--border-strong)] px-2.5 py-1.5 text-[12.5px] transition-colors hover:border-[var(--accent)] hover:bg-[var(--surface-inset)]"
               >
-                <span className="text-[13.5px] font-medium">{m.name}</span>
-                <span className="ml-auto shrink-0 text-[11px] tabular-nums text-[var(--text-subtle)]">
-                  {m.events} events · {m.companies} companies
+                {m.name}
+                <span className="text-[10.5px] tabular-nums text-[var(--text-subtle)]">
+                  {m.events}
                 </span>
               </Link>
             </li>
           ))}
         </ul>
+        <p className="mt-2.5 text-[11.5px] text-[var(--text-subtle)]">
+          The number is events published since monitoring began — nothing here is filtered to a
+          date, so a quiet week never empties a market.
+        </p>
       </section>
 
       {/*

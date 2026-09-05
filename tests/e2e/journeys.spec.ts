@@ -294,7 +294,7 @@ test.describe('Explore', () => {
   });
 
   test('a company page states its source coverage and its gaps', async ({ page }) => {
-    await page.goto('/explore/companies/hm-group');
+    await page.goto('/account/company/hm-group');
     await expect(page.getByRole('heading', { name: 'Timeline' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Source coverage' })).toBeVisible();
     await expect(page.getByText(/thin timeline means limited monitoring/i)).toBeVisible();
@@ -411,7 +411,7 @@ test.describe('presentation', () => {
 
   test('labels demo data wherever it appears', async ({ page }) => {
     await signIn(page);
-    await page.goto('/explore/companies/northwind-apparel');
+    await page.goto('/account/company/northwind-apparel');
     await expect(
       page.getByText('Demo data').or(page.getByText('Demo entity')).first(),
     ).toBeVisible();

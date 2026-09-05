@@ -476,8 +476,17 @@ export function scoreIsEntityNeutral(
   ctx: UserRankingContext,
   substituteEntityId: string,
 ): boolean {
-  const a = scoreItem(item, ctx);
-  const b = scoreItem({ ...item, entityIds: [substituteEntityId] }, ctx);
+  /*
+   * One clock for both scorings.
+   *
+   * Without it each call takes its own `new Date()`, the freshness term decays a
+   * microsecond's worth between them, and two identical items differ by about 2.5e-9 —
+   * enough to fail a neutrality assertion that is right about the thing it is testing.
+   * A property about entities must not be able to fail because of the time.
+   */
+  const now = new Date();
+  const a = scoreItem(item, ctx, now);
+  const b = scoreItem({ ...item, entityIds: [substituteEntityId] }, ctx, now);
   const relevanceKeys = ['watchlistMatch', 'accountMatch', 'missionMatch'];
   const strip = (components: Record<string, number>) =>
     Object.fromEntries(Object.entries(components).filter(([k]) => !relevanceKeys.includes(k)));

@@ -49,8 +49,11 @@ describe('ranking neutrality', () => {
   it('scores an item identically whichever company it involves', () => {
     const base = item({ entityIds: ['accenture'] });
     expect(scoreIsEntityNeutral(base, ctx(), 'hm-group')).toBe(true);
-    expect(scoreItem(base, ctx()).score).toBeCloseTo(
-      scoreItem({ ...base, entityIds: ['hm-group'] }, ctx()).score,
+    // One clock for both, or the freshness term decays between the two calls and the
+    // assertion fails on the time rather than on the entity.
+    const now = new Date();
+    expect(scoreItem(base, ctx(), now).score).toBeCloseTo(
+      scoreItem({ ...base, entityIds: ['hm-group'] }, ctx(), now).score,
       10,
     );
   });

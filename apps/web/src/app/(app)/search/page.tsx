@@ -115,7 +115,7 @@ export default async function SearchPage({
           <SectionHeading>Companies and institutions</SectionHeading>
           <div className="flex flex-wrap gap-1.5">
             {entities.map((entity) => (
-              <Link key={entity.slug} href={`/explore/companies/${entity.slug}`}>
+              <Link key={entity.slug} href={`/account/company/${entity.slug}`}>
                 <Badge tone="accent">{entity.name}</Badge>
               </Link>
             ))}
