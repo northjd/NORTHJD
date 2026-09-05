@@ -126,10 +126,37 @@ Every brief must contain at least one recency, one depth and one applicability
 element — the North Star requirement. Insights carry all three internally, and
 `learn_one_thing` guarantees a depth element even on a thin news day.
 
+### The relevance gate
+
+Every core section requires a connection to what the reader chose — industry, topic,
+technology, watched company or mission. Without it, four sections admitted anything:
+`executive_three` used the predicate `() => true`, `what_changed` asked only whether an
+item was new, `tech_radar` took any technology item, and `broader_market` required the
+item to be *un*related. A reader who chose one industry could receive nine unrelated
+items against two related ones, which is how a Fashion & Apparel reader was shown tobacco
+news on the live site.
+
+Scoring could not have fixed it. Strategic impact, evidence strength, freshness and
+novelty together outweigh a single industry match, so a high-impact item from an unchosen
+sector will outrank a moderate one from a chosen sector. Relevance gates the pool rather
+than tilting it.
+
+`broader_market` now applies only to readers who stated nothing. For everyone else it is
+a section defined as "things you did not ask for", and one of those is already reserved
+and labelled below.
+
+Readers who chose nothing are unaffected: with no preferences the gate would exclude
+everything, so a general brief is served — the honest result of no answers, not a
+degraded one.
+
 ### The reserved adjacent slot
 
 Exactly one item matching **none** of the user's stated interests, as the filter-bubble
 guard.
+
+It is released when it would be the **only** item in the brief. A brief consisting
+entirely of one thing outside your interests is the failure the gate exists to prevent,
+in miniature.
 
 It is selected **first** and displayed last. Filling in display order starved it: the
 earlier sections consumed the whole reading budget and the one reserved slot silently
