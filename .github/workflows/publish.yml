@@ -68,6 +68,15 @@ jobs:
         env:
           DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
 
+      # Company financials from SEC EDGAR: revenue, growth, margin and public float for
+      # the US filers among the tracked companies, straight from the annual filings.
+      # Never estimated — a company with no clean annual figure keeps an empty profile.
+      - name: Fetch company financials
+        run: npm run build:edgar
+        env:
+          DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+          INGEST_USER_AGENT: 'NORTH-MarketIntelligence/0.1 (+https://github.com/northjd/NORTHJD)'
+
       # Fetches the sources. This is the step that makes the published site current, and
       # the only one that touches the network on purpose.
       - name: Ingest

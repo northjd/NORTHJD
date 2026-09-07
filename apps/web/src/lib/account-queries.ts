@@ -711,8 +711,18 @@ export async function queryCompanyProfile(slug: string): Promise<CompanyProfile 
       : { label, value: null, missingBecause };
   };
 
-  const NO_FINANCIALS =
-    'No monitored source publishes company financials. A filings connector — EDGAR for US filers, or the company’s own investor-relations feed — would supply it.';
+  /*
+   * Two different absences, and they are not the same statement.
+   *
+   * A US filer with no figure means the tag was not filed or the value was too stale to
+   * trust; a non-filer means EDGAR does not hold it at all and never will. Saying "no
+   * monitored source publishes company financials" was true before the EDGAR connector
+   * and is now false for a third of the list, so the reason has to distinguish them.
+   */
+  const isFiler = (row.publicProfile ?? []).length > 0;
+  const NOT_FILED = isFiler
+    ? 'Not reported under this concept in the company’s latest annual filing.'
+    : 'EDGAR covers US filers, and this company is not one. No monitored source publishes its financials — a national-register or investor-relations connector would.';
 
   return {
     identity: [
@@ -745,14 +755,22 @@ export async function queryCompanyProfile(slug: string): Promise<CompanyProfile 
       { label: 'Website', value: row.officialDomain || null, missingBecause: 'Not recorded.' },
     ],
     financial: [
-      fromRegistry('Latest annual revenue', NO_FINANCIALS),
-      fromRegistry('Revenue growth', NO_FINANCIALS),
-      fromRegistry('Operating margin', NO_FINANCIALS),
-      fromRegistry('Employees', NO_FINANCIALS),
-      fromRegistry('Market capitalisation', NO_FINANCIALS),
+      fromRegistry('Latest annual revenue', NOT_FILED),
+      fromRegistry('Revenue growth', NOT_FILED),
+      fromRegistry('Operating income', NOT_FILED),
+      fromRegistry('Operating margin', NOT_FILED),
+      fromRegistry('Net income', NOT_FILED),
+      // Public float is what EDGAR publishes: the value of shares held by non-affiliates
+      // at a point in time. It is not market capitalisation and is not labelled as it.
+      fromRegistry('Public float', NOT_FILED),
+      fromRegistry('Employees', 'Headcount is not an XBRL concept most registrants file.'),
+      fromRegistry(
+        'Market capitalisation',
+        'Requires a share price, which no monitored source provides. EDGAR publishes public float instead, shown above where filed.',
+      ),
       fromRegistry(
         'Market share',
-        'Market share requires a defined market, geography and period from a credible source. Nothing in the registry publishes it, and estimating it would be a fabrication.',
+        'Requires a defined market, geography and period from a credible source. Nothing in the registry publishes it, and estimating it would be a fabrication.',
       ),
     ],
     brands,

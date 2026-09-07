@@ -15,17 +15,41 @@ import type { CompanyProfile, ProfileFact } from '@/lib/account-queries';
  * monitored source publishes company financials" is telling you the shape of the tool.
  */
 export function CompanyProfileBlock({ profile }: { profile: CompanyProfile }) {
-  const known = profile.identity.filter((f) => f.value !== null);
-  const missing = [...profile.identity.filter((f) => f.value === null), ...profile.financial];
+  /*
+   * Split on whether there is a value, not on which group the fact belongs to.
+   *
+   * This previously read `[...identity.filter(v => v === null), ...financial]` — every
+   * financial fact went into the "not available" list whichever it was, because when it
+   * was written none of them had values. Once EDGAR started supplying revenue, growth and
+   * margin, the page kept insisting they were unavailable while holding them.
+   */
+  const identityKnown = profile.identity.filter((f) => f.value !== null);
+  const financialKnown = profile.financial.filter((f) => f.value !== null);
+  const missing = [...profile.identity, ...profile.financial].filter((f) => f.value === null);
   const missingReasons = [...new Set(missing.map((f) => f.missingBecause).filter(Boolean))];
 
   return (
     <section className="mt-6 border-y border-[var(--border)] py-5">
       <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-        {known.map((f) => (
+        {identityKnown.map((f) => (
           <Fact key={f.label} fact={f} />
         ))}
       </dl>
+
+      {financialKnown.length > 0 ? (
+        <div className="mt-5 border-t border-[var(--border)] pt-4">
+          <p className="t-section">Reported financials</p>
+          <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--text-subtle)]">
+            From the company&rsquo;s own annual filing to the SEC. Each figure carries its reporting
+            period and links to the filing it came from — nothing here is estimated.
+          </p>
+          <dl className="mt-3 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+            {financialKnown.map((f) => (
+              <Fact key={f.label} fact={f} />
+            ))}
+          </dl>
+        </div>
+      ) : null}
 
       {profile.brands.length > 0 ? (
         <div className="mt-5">
@@ -82,7 +106,7 @@ function Fact({ fact }: { fact: ProfileFact }) {
             className="ml-1.5 text-[11px] text-[var(--text-subtle)] underline underline-offset-2"
             rel="noreferrer"
           >
-            source
+            filing
           </a>
         ) : null}
       </dd>

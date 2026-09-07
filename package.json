@@ -36,7 +36,8 @@
     "build:evidence": "tsx scripts/build-evidence.ts",
     "serve:static": "node scripts/serve-subpath.mjs",
     "build:brief-pool": "tsx scripts/build-brief-pool.ts",
-    "build:feed": "tsx scripts/build-feed.ts"
+    "build:feed": "tsx scripts/build-feed.ts",
+    "build:edgar": "tsx scripts/build-edgar-facts.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
