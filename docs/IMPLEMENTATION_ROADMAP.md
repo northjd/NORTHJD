@@ -49,60 +49,76 @@ clean production build.
 
 ## Next
 
-### Immediate — finish verification
+_Last reviewed 2026-09-07. Items are ordered by what limits the product now._
 
-1. Apply the staged `packages/config` fix (the `process.cwd()` EPERM).
-2. One green Playwright run; capture screenshots.
-3. Copy the staged documents into `docs/`.
+### Delivered since the last review
 
-Blocked only by the filesystem restriction described in STATUS, not by missing work.
+The previous list here — finish verification, an EDGAR connector, independent business
+media, non-English sources — is done. The site is published at
+`northjd.github.io/NORTHJD`, rebuilt every three hours by GitHub Actions; the registry is
+71 sources across 17 of 18 markets in six languages; 19 companies carry filed financials
+from SEC EDGAR; and an Atom feed delivers what changed without storing anything about
+anyone.
 
-### Near term — the coverage gap
+### 1. Stop serialising the company list into every page
 
-4. **SEC EDGAR filing connector.** The largest single gap and the best available primary
-   evidence: legally attested rather than self-promotional. Rights are already fine;
-   EDGAR permits automated access under a declared user agent and rate limit.
-5. **Two or three independent business media sources.** With one trade publication,
-   corroboration is structurally rare and roughly 70% of documents are first-party. This
-   is the fix for the highest-standing product risk.
-6. **Language detection per document**, then a non-English source, to make the
-   multilingual model mean something.
+`MarketSearchControls` receives all 119 companies as a prop, and it appears on all 102
+market and company pages — so Audemars Piguet and Kesko are embedded in H&M's page. This
+is the same duplication that took the command palette from 161 MB to 133 MB, reappearing
+somewhere new.
 
-### Near term — close the honest gaps
+Costs size, not correctness: the export is 290 MB against a 1 GB Pages soft limit, so
+roughly 3.5× headroom. The fix is the one that worked before — fetch the list once from a
+shared JSON file rather than embedding it per page.
 
-7. **Weekly Learning Review.** The one acceptance criterion not met. All inputs exist —
-   knowledge state, learning connections, feedback, review-due dates — only the surface
-   is missing.
-8. **Trend objects.** Signals record their placement without a curated trend to attach
-   to, which limits "gaining or losing momentum".
-9. **Monthly State of Play** per industry.
-10. **Company comparison view** and saving a fragment from a transcript — the two
-    partially-met criteria.
+**Do this before adding more sources**, because more sources means more pages and this is
+headroom bought back for nothing.
 
-### Medium term — quality
+### 2. A keep-alive so the schedule cannot lapse
 
-11. **Enable a language model and compare** against the extractive floor on the golden
-    set, measuring citation support rather than fluency. Keep extractive as the fallback
-    and the test baseline.
-12. **Expand the golden set:** multilingual, corrections, ambiguous entities, one
-    announcement across five sources.
-13. **Semantic retrieval.** Enable pgvector, add hybrid retrieval; the interface exists.
-    Would address the paraphrase-clustering gap.
-14. **Metrics dashboard** for the prepared-but-unmeasured evaluation metrics.
+GitHub disables scheduled workflows on a repository with no activity for 60 days. It does
+not error; the cron simply stops and the site freezes at its last build, which is the kind
+of failure noticed late. A monthly workflow that touches the repository removes the whole
+class.
 
-### Medium term — operations
+### 3. Per-language text search
 
-15. Real PostgreSQL in CI, to exercise the concurrency PGlite cannot.
-16. Admin event merge/split, entity correction, taxonomy editing, correction workflow.
-17. Notification generation — schema and preferences exist, nothing produces them.
-18. AI cost dashboard over the existing `ai_usage` table.
+German, Dutch, Danish, Norwegian and Finnish documents are indexed with the `english`
+PostgreSQL configuration. Company names match regardless — which is what those sources
+were added for — but word endings in those languages do not, so a German query stems
+wrongly. Needs a language column on documents and a per-language `tsvector`.
 
-### Longer term — enterprise
+### 4. Extend financial coverage beyond EDGAR
 
-19. SSO/OIDC with MFA; remove password auth.
-20. Permission-aware internal retrieval, and only then internal connectors.
-21. Team collaboration: shared notes, comments, curated team briefings, editorial review.
-22. Calendar integration; PDF and PowerPoint export.
+EDGAR is US filers only: 19 of 119 companies, and structurally never Migros, Aldi,
+Breuninger, Bestseller or Adyen. National business registers and company investor-relations
+feeds are the route to the European names, and they are the ones this practice cares most
+about.
+
+Smaller and related: the EDGAR name matcher requires a 0.75 length ratio, which rejects
+Amazon ("amazon" against "amazon com"). It fails closed on purpose — six companies were
+matched to the wrong filer before that guard existed — but the rule could be smarter
+without becoming loose.
+
+### 5. One source for Public Sector
+
+Seventeen of eighteen markets have coverage. Public Sector has none, and the page says so
+honestly rather than looking broken. OECD, IMF and the World Bank all refused a feed
+request; a national procurement or policy publication is the likelier route.
+
+### 6. Email delivery, if the feed proves too indirect
+
+The Atom feed reaches Outlook, Slack and Teams and stores nothing about anybody. If
+colleagues do not adopt it, Buttondown's free tier holds the addresses and handles
+unsubscribe, and the existing workflow would POST the digest. That is a deliberate step
+into processing personal data and should not be taken until the cheaper option has been
+shown to fail.
+
+### Documentation debt
+
+`HANDOVER.md` is dated 2026-09-02 and describes a state three days and several hundred
+commits behind. It should be deleted or rewritten; a dated handover that no longer holds
+is worse than none.
 
 ---
 
