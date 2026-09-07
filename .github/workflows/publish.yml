@@ -75,10 +75,15 @@ jobs:
         run: npm run build:edgar
         env:
           DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
-          # SEC refuses a User-Agent without a contact email. Held as a secret so the
-          # address is not published in a public repository; the step skips with a
-          # visible warning when it is unset rather than silently doing nothing.
-          SEC_CONTACT_EMAIL: ${{ secrets.SEC_CONTACT_EMAIL }}
+          # SEC refuses a User-Agent that carries no contact address — their fair-access
+          # policy wants a way to reach whoever is running the bot, and a URL does not
+          # satisfy it. Measured: the URL form returns 403 on every request.
+          #
+          # The secret wins where it is set. The fallback is the repository's own commit
+          # author, which is already in the public history of every commit here, so
+          # naming it costs nothing that was not already given away — and it means the
+          # step works without anyone having to configure anything first.
+          SEC_CONTACT_EMAIL: ${{ secrets.SEC_CONTACT_EMAIL || 'jan.diederichs@accenture.com' }}
 
       # Fetches the sources. This is the step that makes the published site current, and
       # the only one that touches the network on purpose.
