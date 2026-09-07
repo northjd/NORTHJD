@@ -28,8 +28,26 @@
 import { sql } from 'drizzle-orm';
 import { db } from '@mios/database';
 
-const UA =
-  process.env.INGEST_USER_AGENT ?? 'NORTH-MarketIntelligence/0.1 (+contact: set-your-email)';
+/*
+ * SEC wants a contact address, and refuses anything else.
+ *
+ * Their fair-access policy asks for a User-Agent carrying an email so they can reach
+ * whoever is running the bot. A URL does not satisfy it: the workflow sent
+ * `(+https://github.com/northjd/NORTHJD)` and got 403 on every request, while the same
+ * code with an email got 200. It worked locally and was refused on CI, which is the
+ * worst shape of failure.
+ *
+ * Read from a secret rather than committed, because an address in a public repository is
+ * an address in a scraper — the same reason the feedback widget does not carry one.
+ */
+const CONTACT = (process.env.SEC_CONTACT_EMAIL ?? '').trim();
+const UA = `NORTH-MarketIntelligence/0.1 (${CONTACT})`;
+
+/** Surfaces in the Actions UI rather than only in a log nobody opens. */
+const warn = (msg: string): void => {
+  console.log(`::warning title=EDGAR::${msg}`);
+  console.error(`[edgar] ${msg}`);
+};
 
 /** SEC asks for no more than 10 requests a second. Half that is polite and plenty. */
 const GAP_MS = 200;
@@ -170,9 +188,29 @@ const filingUrl = (cik: string, u: Unit): string => {
 };
 
 async function main(): Promise<void> {
+  /*
+   * Skipping loudly beats failing silently.
+   *
+   * The first version exited 0 whatever happened, so a step that fetched nothing reported
+   * success and the site published without financials while the run showed all green.
+   * That is the same defect as a feedback button that swallows the message. It still does
+   * not fail the build — one refused source should never stop publication, exactly as a
+   * 403 from a news feed does not — but it now says so where it can be seen.
+   */
+  if (!CONTACT) {
+    warn(
+      'SEC_CONTACT_EMAIL is not set, so no financials were fetched. SEC requires a contact ' +
+        'address in the User-Agent. Add it as a repository secret to enable this step.',
+    );
+    process.exit(0);
+  }
+
   const tickers = await get('https://www.sec.gov/files/company_tickers.json');
   if (!tickers) {
-    console.error('[edgar] could not fetch the filer index; leaving profiles untouched');
+    warn(
+      `SEC refused the filer index for User-Agent "${UA}". Their fair-access policy wants a ` +
+        'real contact email. Profiles left untouched.',
+    );
     process.exit(0);
   }
   const filers = Object.values(tickers) as { cik_str: number; ticker: string; title: string }[];
@@ -351,6 +389,9 @@ async function main(): Promise<void> {
   console.log(
     `[edgar] ${matched} of ${entities.length} companies matched a filer · ${written} profiles written`,
   );
+  if (written === 0) {
+    warn('Connected to EDGAR but wrote no profiles — the matcher found nothing it trusts.');
+  }
   if (stale.length) {
     console.log(`[edgar] ${stale.length} skipped for stale figures:`);
     for (const s of stale) console.log(`          ${s}`);

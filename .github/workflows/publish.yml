@@ -75,7 +75,10 @@ jobs:
         run: npm run build:edgar
         env:
           DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
-          INGEST_USER_AGENT: 'NORTH-MarketIntelligence/0.1 (+https://github.com/northjd/NORTHJD)'
+          # SEC refuses a User-Agent without a contact email. Held as a secret so the
+          # address is not published in a public repository; the step skips with a
+          # visible warning when it is unset rather than silently doing nothing.
+          SEC_CONTACT_EMAIL: ${{ secrets.SEC_CONTACT_EMAIL }}
 
       # Fetches the sources. This is the step that makes the published site current, and
       # the only one that touches the network on purpose.
