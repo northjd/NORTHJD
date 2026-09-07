@@ -29,6 +29,7 @@ const TYPES = {
   '.ico': 'image/x-icon',
   '.png': 'image/png',
   '.woff2': 'font/woff2',
+  '.xml': 'application/atom+xml; charset=utf-8',
 };
 
 if (!existsSync(root)) {

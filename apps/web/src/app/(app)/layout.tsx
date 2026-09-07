@@ -318,7 +318,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {corpus.documents} docs · {corpus.claims} claims · {corpus.events} events
         </span>
         <span className="hidden sm:inline">{corpus.activeSources} active sources</span>
-        <span className="ml-auto hidden md:inline">Monitored sources only.</span>
+        {/* A feed is only useful if people know it exists; autodiscovery alone reaches
+            the handful with a reader already configured. */}
+        <a
+          href={`${process.env.BASE_PATH ?? ''}/feed.xml`}
+          className="ml-auto hidden underline underline-offset-2 hover:text-[var(--text-muted)] md:inline"
+          title="Subscribe in Outlook, Slack or any reader — nothing is stored about you"
+        >
+          Subscribe
+        </a>
+        <span className="hidden md:inline">Monitored sources only.</span>
         {/* The maker's mark lives here as well as on the landing page, because the
             landing page is shown once and there is no way back to it — which made the
             thing behind it unreachable for everyone after their first visit. */}

@@ -2,6 +2,11 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
+  /*
+   * Feed autodiscovery. A browser or reader handed the site URL finds the feed itself;
+   * without this, subscribing means knowing the path exists.
+   */
+  alternates: { types: { 'application/atom+xml': `${process.env.BASE_PATH ?? ''}/feed.xml` } },
   title: { default: 'NORTH', template: '%s · NORTH' },
   description:
     'Know what changed. Understand what matters. Be ready for what’s next. Evidence-grounded market intelligence, learning and conversation.',

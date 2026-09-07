@@ -251,6 +251,9 @@ execSync('npm run build:evidence', { cwd: root, stdio: 'inherit' });
 // own answers rather than served as the one the build machine composed for nobody.
 execSync('npm run build:brief-pool', { cwd: root, stdio: 'inherit' });
 
+// An Atom feed of what changed, so the site can arrive rather than waiting to be visited.
+execSync('npm run build:feed', { cwd: root, stdio: 'inherit' });
+
 stashExcluded();
 
 try {
