@@ -9,6 +9,7 @@ import { FeedbackWidget } from '@/components/feedback-widget';
 import { SetupGate } from '@/components/static-variants/setup-gate';
 import { Wordmark, CompassMark } from '@/components/wordmark';
 import { MakersMark } from '@/components/makers-mark';
+import { SavedViews } from '@/components/static-variants/saved-views';
 import { querySuggestedFilters } from '@/lib/explore-queries';
 import { db, schema } from '@mios/database';
 import { and, eq } from 'drizzle-orm';
@@ -191,7 +192,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             );
           })}
 
-          {savedViews.length > 0 ? (
+          {/*
+            Rendered by a client component in the static export.
+
+            The list below is computed from `user_profiles` and `watchlist_items`, which
+            in the export are one shared seeded row — so every visitor saw the seed's
+            industries and watchlist rather than their own answers. It is passed as the
+            fallback and replaced once the browser's own preferences are read.
+          */}
+          {IS_STATIC_EXPORT ? (
+            <SavedViews fallback={savedViews} />
+          ) : savedViews.length > 0 ? (
             <div className="pb-1.5" data-shell-secondary>
               <div className="t-eyebrow px-3.5 pb-1.5 pt-2.5">Saved views</div>
               {savedViews.map((v) => (
@@ -208,9 +219,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                     {v.icon}
                   </span>
                   <span className="truncate">{v.name}</span>
-                  <span className="ml-auto shrink-0 text-[11px] tabular-nums opacity-55">
-                    {v.count}
-                  </span>
                 </Link>
               ))}
             </div>

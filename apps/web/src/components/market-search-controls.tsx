@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { IS_STATIC_BUILD } from '@/lib/static-build';
+import { readPreferences } from '@/lib/local-preferences';
 import type { CompanyOption } from '@/lib/market-shared';
 
 /**
@@ -35,6 +36,31 @@ export function MarketSearchControls({
 }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
+
+  /*
+   * The reader's own companies, when they have chosen some.
+   *
+   * `shortcuts` arrives from the server, where it is read from `watchlist_items` — one
+   * seeded row shared by every visitor to the export. So this row offered Inditex,
+   * Zalando, OpenAI and NVIDIA to someone who had picked Migros and Coop, under the
+   * heading "Your watchlist". Preferences live in the browser; this reads them there.
+   */
+  const [mine, setMine] = useState<{ slug: string; name: string }[] | null>(null);
+  useEffect(() => {
+    if (!IS_STATIC_BUILD) return;
+    const chosen = readPreferences().companies;
+    if (chosen.length === 0) return;
+    const bySlug = new Map(companies.map((c) => [c.slug, c.name]));
+    setMine(
+      chosen
+        .filter((slug) => bySlug.has(slug))
+        .slice(0, 6)
+        .map((slug) => ({ slug, name: bySlug.get(slug)! })),
+    );
+  }, [companies]);
+
+  const shownShortcuts = mine ?? shortcuts;
+  const shownLabel = mine ? 'Your companies' : shortcutsLabel;
 
   const term = query.trim().toLowerCase();
   const matches = term
@@ -101,10 +127,10 @@ export function MarketSearchControls({
         )
       ) : null}
 
-      {shortcuts.length > 0 ? (
+      {shownShortcuts.length > 0 ? (
         <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px]">
-          <span className="text-[var(--text-subtle)]">{shortcutsLabel}:</span>
-          {shortcuts.map((c) => (
+          <span className="text-[var(--text-subtle)]">{shownLabel}:</span>
+          {shownShortcuts.map((c) => (
             <button
               key={c.slug}
               type="button"

@@ -35,6 +35,9 @@ export interface AccountEvent {
   firstPartyOnly: boolean;
   insightId: string | null;
   entityNames: string | null;
+  /** The publisher's link, used when no insight was generated for this event. */
+  sourceUrl: string | null;
+  sourceName: string | null;
 }
 
 export type ScopeLevel = 'company' | 'industry' | 'peers' | 'regulatory' | 'topics';
@@ -95,7 +98,22 @@ const EVENT_COLUMNS = sql`
   (select string_agg(en2.name, ', ')
      from event_entities ee2
      join entities en2 on en2.id = ee2.entity_id
-    where ee2.event_id = e.id) as "entityNames"
+    where ee2.event_id = e.id) as "entityNames",
+  /*
+   * The publisher's own link, for events that never became an insight.
+   *
+   * 139 of 297 events carry no insight — generation is selective — and the UI rendered
+   * those as plain text, so nearly half of every market and company page was unclickable.
+   * A reader who wants the detail should reach the article itself rather than a dead
+   * headline.
+   */
+  (select rd.url from event_documents ed
+     join raw_documents rd on rd.id = ed.document_id
+    where ed.event_id = e.id and rd.url <> '' limit 1) as "sourceUrl",
+  (select s2.name from event_documents ed
+     join raw_documents rd on rd.id = ed.document_id
+     join sources s2 on s2.id = rd.source_id
+    where ed.event_id = e.id limit 1) as "sourceName"
 `;
 
 const rows = <T>(result: { rows?: unknown[] }): T[] => (result.rows ?? []) as T[];

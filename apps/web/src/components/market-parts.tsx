@@ -16,11 +16,33 @@ export function EventRow({ event, index }: { event: AccountEvent; index: number 
             <EvidenceBadge strength={event.evidenceStrength as EvidenceStrength} />
             {event.firstPartyOnly ? <Badge tone="caution">Self-reported</Badge> : null}
           </div>
+          {/*
+            Every headline leads somewhere.
+
+            Insight generation is selective — 139 of 297 events never get one — and the
+            fallback was to render the title as plain text. Nearly half of every market
+            and company page was therefore unclickable, which reads as a broken link
+            rather than a deliberate absence. With no insight the reader is sent to the
+            publisher's own article instead, which is what they wanted anyway.
+          */}
           <h3 className="text-[13.5px] font-medium leading-snug">
             {event.insightId ? (
               <Link href={`/insights/${event.insightId}`} className="hover:underline">
                 {event.title}
               </Link>
+            ) : event.sourceUrl ? (
+              <a
+                href={event.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:underline"
+                title={`Read at ${event.sourceName ?? 'the source'}`}
+              >
+                {event.title}
+                <span aria-hidden className="ml-1 text-[10px] opacity-60">
+                  ↗
+                </span>
+              </a>
             ) : (
               event.title
             )}
@@ -32,6 +54,11 @@ export function EventRow({ event, index }: { event: AccountEvent; index: number 
               </span>
             ) : null}
             <span>{formatAbsolute(event.eventAt ?? event.firstReportedAt)}</span>
+            {!event.insightId && event.sourceUrl ? (
+              <span className="text-[var(--text-muted)]">
+                Read at {event.sourceName ?? 'source'}
+              </span>
+            ) : null}
             <span>
               {event.sourceCount} source{event.sourceCount === 1 ? '' : 's'}
               {event.independentSourceCount > 0

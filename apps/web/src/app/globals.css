@@ -1,6 +1,20 @@
 @import 'tailwindcss';
 
 /*
+ * `dark:` follows the class, not the operating system.
+ *
+ * Tailwind 4 defaults the dark variant to `prefers-color-scheme`. This app switches
+ * themes by toggling a `.dark` class on <html>, and its CSS variables are scoped to that
+ * class — so the two disagreed on any machine whose OS setting differed from the choice
+ * made in the app. Someone on a dark-mode Mac who switched NORTH to light got light
+ * backgrounds with dark-mode text: `text-caution-100` on white is a contrast ratio of
+ * 1.11, which is not a subtle badge, it is an invisible one.
+ *
+ * Declaring the variant makes the utilities and the variables answer to the same switch.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
  * Design tokens.
  *
  * Calm, dense, evidence-first — but not flat. The first pass mistook restraint for
