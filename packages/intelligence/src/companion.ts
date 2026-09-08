@@ -29,11 +29,25 @@ import {
   truncate,
 } from '@mios/domain';
 import { db, schema } from '@mios/database';
-import { queryTerms, assessCoverage, stemForMatch, type CoverageAssessment } from '@mios/domain';
+import {
+  queryTerms,
+  assessCoverage,
+  stemForMatch,
+  termMatchesStems,
+  textStems,
+  type CoverageAssessment,
+} from '@mios/domain';
 import { matchesQuery, rankQuery } from '@mios/search';
 
 // Re-exported so existing importers keep working after the move to @mios/domain.
-export { queryTerms, assessCoverage, stemForMatch, type CoverageAssessment };
+export {
+  queryTerms,
+  assessCoverage,
+  stemForMatch,
+  termMatchesStems,
+  textStems,
+  type CoverageAssessment,
+};
 
 const {
   claimEvidence,
@@ -273,8 +287,9 @@ function selectForCoverage<T extends { text: string }>(
 
   for (const term of terms) {
     if (chosen.length >= limit) break;
-    const stem = stemForMatch(term);
-    const best = ordered.find((r) => !taken.has(r) && r.text.toLowerCase().includes(stem));
+    // Word-level, for the same reason assessCoverage is: `includes` let *ist* match
+    // "specialist", so the claim chosen to represent a term often did not contain it.
+    const best = ordered.find((r) => !taken.has(r) && termMatchesStems(term, textStems(r.text)));
     if (best) {
       chosen.push(best);
       taken.add(best);

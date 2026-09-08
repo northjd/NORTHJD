@@ -1,5 +1,5 @@
 import { assetPath } from '@/lib/asset-path';
-import { queryTerms, assessCoverage, stemForMatch } from '@mios/domain';
+import { queryTerms, assessCoverage, termMatchesStems, textStems } from '@mios/domain';
 import { buildPrompt, isWorthAnswering, type BuiltPrompt } from '@/lib/prompt-builder';
 import type { RetrievedClaim } from '@mios/intelligence';
 
@@ -31,6 +31,15 @@ export interface BrowserClaim {
 }
 
 let cache: BrowserClaim[] | null = null;
+let stemCache: { for: BrowserClaim[]; stems: Set<string>[] } | null = null;
+
+/** Stems per claim, computed once for the corpus and reused across questions. */
+function stemsOf(claims: BrowserClaim[]): Set<string>[] {
+  if (stemCache && stemCache.for === claims) return stemCache.stems;
+  const stems = claims.map((c) => textStems(c.text));
+  stemCache = { for: claims, stems };
+  return stems;
+}
 
 export async function loadEvidence(): Promise<BrowserClaim[]> {
   if (cache) return cache;
@@ -42,11 +51,10 @@ export async function loadEvidence(): Promise<BrowserClaim[]> {
 }
 
 /** How informative a term is here: a word in every claim tells you nothing. */
-function inverseFrequency(term: string, claims: BrowserClaim[]): number {
-  const stem = stemForMatch(term);
-  const hits = claims.reduce((n, c) => (c.text.toLowerCase().includes(stem) ? n + 1 : n), 0);
+function inverseFrequency(term: string, stemmed: Set<string>[]): number {
+  const hits = stemmed.reduce((n, stems) => (termMatchesStems(term, stems) ? n + 1 : n), 0);
   if (hits === 0) return 0;
-  return Math.log(claims.length / hits) + 1;
+  return Math.log(stemmed.length / hits) + 1;
 }
 
 export interface BrowserRetrieval {
@@ -63,14 +71,22 @@ export async function retrieveInBrowser(
   const all = await loadEvidence();
   const terms = queryTerms(question);
 
-  const weights = new Map(terms.map((t) => [t, inverseFrequency(t, all)]));
+  /*
+   * Stem each claim once, not once per term.
+   *
+   * Scoring used to run `haystack.includes(stem)` for every term against every claim,
+   * which is both slower and wrong: *Peru* matched "peruse" and *Mount* matched
+   * "amount". Words are compared with words now, and the stem sets are built here so
+   * the inverse-frequency pass and the scoring pass share them.
+   */
+  const stemmed = stemsOf(all);
+  const weights = new Map(terms.map((t) => [t, inverseFrequency(t, stemmed)]));
 
   const scored = all
-    .map((claim) => {
-      const haystack = claim.text.toLowerCase();
+    .map((claim, i) => {
       let score = 0;
       for (const term of terms) {
-        if (haystack.includes(stemForMatch(term))) score += weights.get(term) ?? 1;
+        if (termMatchesStems(term, stemmed[i]!)) score += weights.get(term) ?? 1;
       }
       // A fact you can weigh beats a forecast you cannot, all else equal.
       if (claim.claimType === 'FACT') score *= 1.15;

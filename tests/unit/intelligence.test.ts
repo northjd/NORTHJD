@@ -4,6 +4,8 @@ import {
   queryTerms,
   stemForMatch,
   assessCoverage,
+  termMatchesStems,
+  textStems,
   classifyEventType,
   classifyValueLevers,
   deriveEvidenceStrength,
@@ -400,9 +402,74 @@ describe('stemForMatch', () => {
   it('matches a question term against the wording sources actually use', () => {
     const corpus =
       'The retailer scaled the deployment across every company store, past the pilot phase.';
-    for (const term of ['scaling', 'companies', 'pilots']) {
-      expect(corpus.toLowerCase().includes(stemForMatch(term))).toBe(true);
+    const stems = textStems(corpus);
+    for (const term of ['scaling', 'companies', 'pilots', 'retail', 'stores']) {
+      expect(termMatchesStems(term, stems)).toBe(true);
     }
+  });
+
+  it('reduces the inflections the non-English feeds actually use', () => {
+    // German plural -n/-en, Nordic -er/-ene. The corpus is 16% these languages, and
+    // English rules leave every one of these endings in place.
+    expect(stemForMatch('Filialen')).toBe(stemForMatch('Filiale'));
+    expect(stemForMatch('Übernahmen')).toBe(stemForMatch('Übernahme'));
+    expect(stemForMatch('Handelspraktiken')).toBe(stemForMatch('Handelspraktik'));
+    expect(stemForMatch('butikker')).toBe(stemForMatch('butikk'));
+    expect(stemForMatch('supermarkten')).toBe(stemForMatch('supermarkt'));
+  });
+
+  it('keeps an English plural on the same stem as its singular', () => {
+    // The Germanic rules run over the English pass's output rather than beside it.
+    // Applied as one list, `consumers` stopped at `consumer` while `consumer` ran on to
+    // `consum`, so a word stopped matching its own plural.
+    expect(stemForMatch('consumers')).toBe(stemForMatch('consumer'));
+    expect(stemForMatch('stores')).toBe(stemForMatch('store'));
+    expect(stemForMatch('retailers')).toBe(stemForMatch('retail'));
+    expect(stemForMatch('prices')).toBe(stemForMatch('pricing'));
+  });
+
+  it('does not strip an English plural twice', () => {
+    // `peruse` losing its `e` and then its `s` gives `peru`, which is how "What is the
+    // capital of Peru?" scored full coverage against a corpus of retail news.
+    expect(stemForMatch('peruse')).not.toBe(stemForMatch('Peru'));
+    expect(stemForMatch('care')).not.toBe(stemForMatch('cars'));
+  });
+});
+
+/**
+ * Word-level matching, and the false positives that made it necessary.
+ *
+ * Coverage used to be `haystack.includes(stem)`, satisfied by a stem appearing anywhere
+ * inside any word. Measured on the live corpus: *ist* matched "specialist" and "Minister"
+ * across 126 claims, *der* matched "under" and "derided" across 179, *Mount* matched
+ * "amount" and "Paramount", *Peru* matched "peruse". Since `assessCoverage` is what
+ * decides whether NORTH claims to have evidence at all, each of those was the product
+ * preparing to answer a question it could not.
+ */
+describe('termMatchesStems', () => {
+  it('rejects a stem that only appears inside another word', () => {
+    expect(termMatchesStems('Peru', textStems('to peruse the latest collection'))).toBe(false);
+    expect(termMatchesStems('ist', textStems('NIST shows that wear and tear'))).toBe(false);
+    expect(termMatchesStems('der', textStems('drawing a line under years of turmoil'))).toBe(false);
+    expect(termMatchesStems('Mount', textStems('almost double the amount of pork'))).toBe(false);
+  });
+
+  it('accepts a word and a longer relative of the same word', () => {
+    expect(termMatchesStems('retail', textStems('retailers are cutting jobs'))).toBe(true);
+    expect(termMatchesStems('companies', textStems('the company said'))).toBe(true);
+  });
+
+  it('accepts the German inflection an English stemmer leaves alone', () => {
+    expect(termMatchesStems('Handelspraktik', textStems('Verbote unfairer Handelspraktiken'))).toBe(
+      true,
+    );
+    expect(termMatchesStems('Filiale', textStems('Filialen in der Innenstadt'))).toBe(true);
+  });
+
+  it('requires an exact stem below five characters', () => {
+    // A four-letter prefix is a coincidence more often than a word.
+    expect(termMatchesStems('cup', textStems('cupboard doors'))).toBe(false);
+    expect(termMatchesStems('cup', textStems('the cup final'))).toBe(true);
   });
 });
 
@@ -422,5 +489,48 @@ describe('assessCoverage', () => {
     const result = assessCoverage(terms, corpus);
     expect(result.sufficient).toBe(false);
     expect(result.missing.length).toBeGreaterThan(0);
+  });
+
+  it('refuses a question whose terms only occur inside longer words', () => {
+    // The measured case: on the live corpus this scored 1.00 and would have been
+    // answered, because "capital" appears in "Capital Management" and "Peru" in "peruse".
+    const news = [
+      'The founder of Rokos Capital Management is preparing a new fund.',
+      'Visitors came to peruse the latest collection at the exhibition centre.',
+    ];
+    expect(assessCoverage(queryTerms('What is the capital of Peru?'), news).sufficient).toBe(false);
+  });
+});
+
+/**
+ * Function words in the languages the registry publishes in.
+ *
+ * Kept out of `QUESTION_NOISE` because that regex has no unicode flag, so `\b` uses ASCII
+ * word characters and `\büber\b` never matches "über" at all — half the list would have
+ * been silently inert.
+ */
+describe('non-English stopwords', () => {
+  it('drops German interrogatives and auxiliaries from a question', () => {
+    const terms = queryTerms('Welche Übernahmen gab es im Handel?');
+    expect(terms).not.toContain('Welche');
+    expect(terms).not.toContain('gab');
+    expect(terms).toContain('Übernahmen');
+  });
+
+  it('drops Dutch and Nordic function words', () => {
+    expect(queryTerms('Welke overnames zijn er in de supermarkten?')).toEqual([
+      'overnames',
+      'supermarkten',
+    ]);
+    expect(queryTerms('Hvilke butikker har lukket?')).toContain('butikker');
+    expect(queryTerms('Hvilke butikker har lukket?')).not.toContain('Hvilke');
+  });
+
+  it('keeps German words that are ordinary English content words', () => {
+    // `war`, `man` and `will` are common German function words and common English nouns
+    // and verbs. Dropping them from an English question costs more than keeping them
+    // costs a German one.
+    expect(queryTerms('How did the price war affect margins?')).toContain('war');
+    expect(queryTerms('Which manufacturer cut its forecast?')).toContain('manufacturer');
   });
 });
