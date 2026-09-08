@@ -110,10 +110,17 @@ nothing and now returns the claim about _Handelspraktiken_. `Filialen→filial`,
 `supermarkten→supermarkt`, `butikker→butik` and `butiker→butik` all unify under their own
 configuration and none under `english`.
 
-Two limits, recorded rather than papered over: Snowball's Dutch stemmer leaves
+Two stemmer limits, recorded rather than papered over: Snowball's Dutch stemmer leaves
 "overnames" whole while reducing "overname" to "overnam", and Finnish consonant gradation
 defeats it outright (`kauppa→kaup`, `kaupat→kaupa`). Those are stemmer limitations, not
 indexing ones.
+
+**Where this applies, precisely.** PostgreSQL full-text search runs on the server build —
+`/search`, `/coverage`, `/explore?q=` and the Companion's claim retrieval. All four are
+excluded from the static export, because each reads a query string at request time. So on
+the published site this fixes the indexing and reaches no query box: the command palette
+and the company search match client-side with `String.includes`, and Ask retrieves through
+`retrieval-browser.ts`. See item 9.
 
 ### 4. ~~Extend financial coverage beyond EDGAR~~ — done, and the premise was half wrong
 
@@ -235,6 +242,26 @@ Three routes, roughly in order of how much they buy against how much they risk:
 3. **Resolve evidence in the browser** from the `evidence.json` the export already ships
    for Ask, rather than prerendering a page per claim. The largest saving and the largest
    change.
+
+### 9. The search a reader actually uses on the published site is English-only
+
+Item 3 fixed PostgreSQL full-text search, which the static export does not run. What the
+export ships instead is `apps/web/src/lib/retrieval-browser.ts`, scoring term overlap over
+`evidence.json`, and `stemForMatch` in `@mios/domain`, which strips `ies`, `ing`, `ed`,
+`es` and `s` — English suffixes and no others.
+
+Its behaviour on German is asymmetric by accident rather than by design. Matching is
+`haystack.includes(stem)`, so a query for _Übernahme_ finds _Übernahmen_ through plain
+prefix containment; a query for _Übernahmen_ finds nothing, because nothing strips the
+`-n`. `queryTerms` drops English stopwords only, so a German question spends its weight
+on _die_, _der_ and _und_.
+
+Not fixed here because the same function decides **whether a question is answerable at
+all** — `assessCoverage` uses it to compute the coverage ratio behind an honest refusal —
+and loosening the matcher makes the product claim it can answer things it cannot. Adding
+German suffixes also cuts real English words: `written` becomes `writt`. It needs the
+before-and-after measurement the PostgreSQL side got, on questions in both languages,
+rather than a plausible-looking patch.
 
 ### Documentation debt
 
