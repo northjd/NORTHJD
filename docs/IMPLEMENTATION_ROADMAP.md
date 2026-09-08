@@ -49,7 +49,7 @@ clean production build.
 
 ## Next
 
-_Last reviewed 2026-09-08. Items are ordered by what limits the product now._
+_Last reviewed 2026-09-08 (twice). Items are ordered by what limits the product now._
 
 ### Delivered since the last review
 
@@ -210,17 +210,17 @@ since monitoring began" when nothing was kept; it now prints the date of the old
 document actually held, read from the material it is describing so it cannot drift from
 it.
 
-### 8. An evidence page costs 109 KB to carry a 284-byte quote
+### 8. ~~An evidence page costs 109 KB to carry a 284-byte quote~~ — a fifth of it removed
 
 The new limit, and it is the one that decides how deep the archive can go.
 
 Measured on the 206.5 MB export, by section:
 
-| Area     | Pages | Size     | Per page |
-| -------- | ----- | -------- | -------- |
-| evidence | 1,123 | 118.9 MB | 109 KB   |
-| account  | 138   | 50.9 MB  | 369 KB   |
-| insights | 152   | 27.8 MB  | 183 KB   |
+| Area     | Pages | Before   | After   | Per page |
+| -------- | ----- | -------- | ------- | -------- |
+| evidence | 1,123 | 118.9 MB | 94.7 MB | 87 KB    |
+| account  | 138   | 50.9 MB  | 40.5 MB | 293 KB   |
+| insights | 152   | 27.8 MB  | 22.2 MB | 146 KB   |
 
 Evidence is 58% of the site and the only section that scales one-for-one with the corpus.
 One page is six files: `index.html` at 43 KB, `index.txt` and `__next._full.txt` at 22 KB
@@ -231,11 +231,31 @@ At 0.214 MB of published site per document, the 850 MB budget is about 4,000 doc
 That is what fixes `CORPUS_MAX_DOCUMENTS` at 2,500, and therefore how far back the corpus
 can reach — which is a limit imposed by page weight, not by anything about the material.
 
-Three routes, roughly in order of how much they buy against how much they risk:
+**Route 1 is done: 206.5 MB → 164.8 MB, a 20% saving on the whole site.**
 
-1. **Stop writing the duplicate.** `index.txt` and `__next._full.txt` are identical; one
-   of them is 20% of the section. They serve different Next router paths, so this needs
-   checking against real client-side navigation rather than assuming.
+`index.txt` and `__next._full.txt` were byte-identical on all 1,452 pairs — zero differed.
+Rather than assume which one Next needs, the client was driven through real navigation
+across a market, a company, an insight and an evidence page: every request was for
+`<route>/index.txt?_rsc=…`, `__next._full.txt` was never fetched once, and with all of
+them deleted the four navigations still worked with no console errors and no failed
+requests. Segment-cache prefetches use a third set of files
+(`__next.<segment>.__PAGE__.txt`), which stay.
+
+`build:static` now prunes them, but only where the two files are byte-identical. If a
+future Next makes them differ it keeps them and emits a warning, rather than quietly
+deleting something that had started to matter.
+
+A document now costs 0.171 MB of published site rather than 0.214, so
+`CORPUS_MAX_DOCUMENTS` rises from 2,500 to 3,500 — 40% more archive, which is what the
+change was for.
+
+**What is left, in order of what it buys against what it risks:**
+
+1. **The layout payload, written 1,450 times.** `__next.!<hash>.txt` is 15.7 MB across
+   1,450 files with only **seven distinct contents** — the shared app shell, copied onto
+   every page. There is no clean fix on a static host: the client fetches them by path,
+   and deduplicating would need symlinks, whose survival through the Pages artifact
+   pipeline is unverified. Worth an experiment, not an assumption.
 2. **Prerender evidence pages only for reachable claims.** An evidence page nobody can
    link to is dead weight. The risk is a 404 in the middle of the evidence chain, which
    is the product's central promise, so the reachability rule would have to be exact.
@@ -243,25 +263,46 @@ Three routes, roughly in order of how much they buy against how much they risk:
    for Ask, rather than prerendering a page per claim. The largest saving and the largest
    change.
 
-### 9. The search a reader actually uses on the published site is English-only
+### 9. ~~The search a reader actually uses on the published site is English-only~~ — done, and it was worse than that
 
 Item 3 fixed PostgreSQL full-text search, which the static export does not run. What the
 export ships instead is `apps/web/src/lib/retrieval-browser.ts`, scoring term overlap over
 `evidence.json`, and `stemForMatch` in `@mios/domain`, which strips `ies`, `ing`, `ed`,
 `es` and `s` — English suffixes and no others.
 
-Its behaviour on German is asymmetric by accident rather than by design. Matching is
-`haystack.includes(stem)`, so a query for _Übernahme_ finds _Übernahmen_ through plain
-prefix containment; a query for _Übernahmen_ finds nothing, because nothing strips the
-`-n`. `queryTerms` drops English stopwords only, so a German question spends its weight
-on _die_, _der_ and _und_.
+Measuring it first turned up something worse than a language gap. Matching was
+`haystack.includes(stem)` — a stem satisfied a term by appearing **anywhere inside any
+word**. On the live corpus _ist_ matched "specialist" and "Minister" across 126 claims,
+_der_ matched "under" and "derided" across 179, _Mount_ matched "amount" and "Paramount",
+and _Peru_ matched "peruse".
 
-Not fixed here because the same function decides **whether a question is answerable at
-all** — `assessCoverage` uses it to compute the coverage ratio behind an honest refusal —
-and loosening the matcher makes the product claim it can answer things it cannot. Adding
-German suffixes also cuts real English words: `written` becomes `writt`. It needs the
-before-and-after measurement the PostgreSQL side got, on questions in both languages,
-rather than a plausible-looking patch.
+Because `assessCoverage` is what decides whether NORTH has evidence at all, **"What is the
+capital of Peru?" scored 1.00 coverage and would have been answered** — by a corpus of
+retail news, on the strength of two substrings. That is the product asserting it can
+answer a question it cannot, which is the failure it exists to prevent.
+
+Three changes, all measured:
+
+- **Words are compared with words.** `textStems` builds the stems of a text once;
+  `termMatchesStems` tests membership, with a bounded prefix tolerance above five
+  characters so `retail` still meets `retailer` while `peru` does not meet `peruse`.
+- **The stemmer knows Germanic and Nordic endings** — `Filialen`/`Filiale`,
+  `Übernahmen`/`Übernahme`, `butikker`/`butikk` — applied as a second pass over the
+  English one rather than in the same list. In one list, `peruse` lost its `e` to give
+  `perus` and then its `s` to give `peru`, which is how Peru got its coverage back.
+- **Non-English function words are dropped**, as a token Set rather than a regex: that
+  regex has no unicode flag, so `\büber\b` never matches "über" at all and half the list
+  would have been silently inert.
+
+Measured before and after, on 63 questions built from real claims in five languages plus
+10 controls the corpus provably cannot answer: **recall unchanged at 63/63; controls
+wrongly answered fell from 1 to 0** — the Peru case. Coverage numbers on the other
+controls dropped too, where the verdict was already right but the ratio was inflated:
+"Wie hoch ist der Mount Everest?" went from 0.67 to 0.00.
+
+One control still answers: _Who won the 1998 World Cup final?_ at 0.80. Its words really
+are in the corpus, just not together — the limit of measuring coverage by term presence
+rather than meaning, and not something this change should paper over.
 
 ### Documentation debt
 

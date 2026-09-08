@@ -26,6 +26,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
@@ -240,6 +241,64 @@ function restoreExcluded(): void {
 }
 
 /**
+ * Removes the RSC payload Next writes twice.
+ *
+ * Every prerendered page gets both `index.txt` and `__next._full.txt`, and on this build
+ * all 1,452 pairs are byte-identical — 41.7 MB, a fifth of the export, of exact
+ * duplicate. Since the corpus started accumulating, published size is what caps how far
+ * back it can reach, so a fifth is worth having.
+ *
+ * Measured which one the client actually asks for, rather than assuming. Driving real
+ * client-side navigation across a market, a company, an insight and an evidence page,
+ * every request was for `<route>/index.txt?_rsc=…`; `__next._full.txt` was never
+ * fetched once, and with all of them deleted the four navigations still worked with no
+ * console errors. The segment-cache prefetches use a third set of files
+ * (`__next.<segment>.__PAGE__.txt`), which stay.
+ *
+ * Guarded rather than assumed: a `_full` file is only removed when it is byte-identical
+ * to its sibling. If a future Next makes them differ, this leaves them alone and says
+ * so, instead of quietly deleting something that had started to matter.
+ */
+function pruneDuplicateRscPayloads(out: string): void {
+  const digest = (path: string) => createHash('sha1').update(readFileSync(path)).digest('hex');
+  let removed = 0;
+  let bytes = 0;
+  let kept = 0;
+
+  const walk = (dir: string): void => {
+    const entries = readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        walk(resolve(dir, entry.name));
+        continue;
+      }
+      if (entry.name !== '__next._full.txt') continue;
+      const full = resolve(dir, entry.name);
+      const sibling = resolve(dir, 'index.txt');
+      if (!existsSync(sibling) || digest(full) !== digest(sibling)) {
+        kept += 1;
+        continue;
+      }
+      bytes += statSync(full).size;
+      rmSync(full);
+      removed += 1;
+    }
+  };
+  walk(out);
+
+  if (removed > 0) {
+    console.log(
+      `  pruned    ${String(removed).padEnd(34)} duplicate RSC payloads, ${(bytes / 1_048_576).toFixed(1)} MB`,
+    );
+  }
+  if (kept > 0) {
+    console.log(
+      `::warning title=RSC payloads::${kept} __next._full.txt files differ from their index.txt sibling and were kept. Next may have changed what these are for — re-check before relying on the saving.`,
+    );
+  }
+}
+
+/**
  * What the output weighs, and whether it still fits.
  *
  * GitHub Pages has a 1 GB soft limit, and until recently nothing here could approach it:
@@ -360,6 +419,7 @@ try {
     ].join('\n'),
   );
   console.log('\n  Static site written to apps/web/out\n');
+  pruneDuplicateRscPayloads(out);
   reportSize(out);
 } finally {
   // Always restore, including after a failed build — otherwise a broken export leaves

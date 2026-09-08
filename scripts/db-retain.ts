@@ -46,11 +46,11 @@ const days = Number.parseInt(args.get('days') ?? process.env.CORPUS_RETENTION_DA
 /**
  * The hard ceiling, and the one that actually binds.
  *
- * Measured on a 964-document corpus: the static export came to 206.5 MB, so a document
- * costs about 0.214 MB of published site once its evidence pages, event pages and
- * insight are written. Against the 850 MB build budget that is roughly 4,000 documents;
- * 2,500 leaves room for the sections that do not scale with the corpus and for the
- * estimate being wrong in the unhelpful direction.
+ * Measured on a 964-document corpus: the static export comes to 164.8 MB once the
+ * duplicate RSC payloads are pruned, so a document costs about 0.171 MB of published
+ * site with its evidence pages, event pages and insight. Against the 850 MB build budget
+ * that is roughly 5,000 documents; 3,500 leaves room for the sections that do not scale
+ * with the corpus and for the estimate being wrong in the unhelpful direction.
  *
  * A window without this would work until the day the feeds got busy, and then fail every
  * build — which is worse than not accumulating at all, because a failing build publishes
@@ -58,7 +58,7 @@ const days = Number.parseInt(args.get('days') ?? process.env.CORPUS_RETENTION_DA
  * prints the date actually reached rather than a promised one.
  */
 const maxDocuments = Number.parseInt(
-  args.get('max') ?? process.env.CORPUS_MAX_DOCUMENTS ?? '2500',
+  args.get('max') ?? process.env.CORPUS_MAX_DOCUMENTS ?? '3500',
   10,
 );
 const dryRun = args.get('dry-run') === 'true';

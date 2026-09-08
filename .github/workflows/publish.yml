@@ -157,12 +157,15 @@ jobs:
           DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
           CORPUS_RETENTION_DAYS: '400'
           # The ceiling that actually binds. Measured on a 964-document corpus: the
-          # export came to 206.5 MB, so a document costs about 0.214 MB of published
-          # site once its evidence, event and insight pages are written. 2,500 is
-          # roughly 535 MB against an 850 MB budget. How many days that buys depends on
-          # how much the publishers publish, which is not ours to decide — the market
-          # index prints the date actually reached rather than a promised one.
-          CORPUS_MAX_DOCUMENTS: '2500'
+          # export comes to 164.8 MB once the duplicate RSC payloads are pruned, so a
+          # document costs about 0.171 MB of published site with its evidence, event and
+          # insight pages. 3,500 is roughly 600 MB against an 850 MB budget, just under
+          # the 75% warning — which is where it should sit, so the warning fires before
+          # the failure does.
+          #
+          # Was 2,500 at 0.214 MB per document. Dropping the duplicate payload bought
+          # 40% more archive, which is what that change was for.
+          CORPUS_MAX_DOCUMENTS: '3500'
 
       # Saved here rather than at the end of the job, deliberately.
       #
