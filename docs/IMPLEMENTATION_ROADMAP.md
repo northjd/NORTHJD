@@ -116,7 +116,7 @@ Amazon ("amazon" against "amazon com"). It fails closed on purpose — six compa
 matched to the wrong filer before that guard existed — but the rule could be smarter
 without becoming loose.
 
-### 5. One source for Public Sector
+### 5. ~~One source for Public Sector~~ — done
 
 Seventeen of eighteen markets have coverage. Public Sector has none, and the page says so
 honestly rather than looking broken. OECD, IMF and the World Bank all refused a feed
@@ -130,11 +130,30 @@ unsubscribe, and the existing workflow would POST the digest. That is a delibera
 into processing personal data and should not be taken until the cheaper option has been
 shown to fail.
 
+### 7. The corpus does not accumulate
+
+Found while closing item 5. The workflow creates the database from scratch on every run —
+only the npm cache is cached — so each publish ingests whatever the registered feeds are
+carrying at that moment and nothing is retained between runs. Healthcare & Payers went
+from two events to zero not because the sector quietened but because Healthcare Dive
+rotated those items out of its feed.
+
+That is a larger limitation than it first appears. A market-intelligence tool that forgets
+everything older than its sources' feed windows cannot answer "what has been happening
+here over the last quarter", and it makes coverage counts fluctuate for reasons that have
+nothing to do with the market. The copy claiming "events published since monitoring began"
+has been corrected, because it described an archive that does not exist.
+
+The fix is `actions/cache` on the PGlite data directory, keyed so it restores the previous
+run's corpus and saves the updated one. Ingestion already deduplicates on a content
+fingerprint, so re-reading the same feed items is safe. Worth weighing against the failure
+modes: caches expire after seven days unused, they are capped at 10 GB, and a corrupted
+one would need a manual reset — so it needs a way to rebuild from empty on demand.
+
 ### Documentation debt
 
-`HANDOVER.md` is dated 2026-09-02 and describes a state three days and several hundred
-commits behind. It should be deleted or rewritten; a dated handover that no longer holds
-is worse than none.
+~~`HANDOVER.md` is dated 2026-09-02 and several hundred commits behind.~~ Deleted — a
+dated handover that no longer holds is worse than none.
 
 ---
 

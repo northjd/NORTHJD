@@ -1920,4 +1920,82 @@ export const SOURCES: SourceSeed[] = [
       'Swedish subscription business daily. Feed verified reachable 2026-09-04; reuse requires a licence. Not ingested.',
     ),
   },
+
+  /*
+   * ── Public sector, added 2026-09-08 ───────────────────────────────────────
+   *
+   * The last of eighteen markets with no source. Every large-institution feed refused a
+   * request — OECD, IMF, the World Bank and the EU tender database all 403 or 404 — so
+   * this is trade press covering government rather than governments publishing about
+   * themselves, which is the same shape as every other sector here.
+   */
+  {
+    slug: 'global-government-forum',
+    name: 'Global Government Forum',
+    officialDomain: 'www.globalgovernmentforum.com',
+    homepageUrl: 'https://www.globalgovernmentforum.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Pendle Media',
+    language: 'en',
+    geographySlugs: ['global'],
+    industrySlugs: ['public-sector'],
+    qualityScore: 62,
+    notes: 'Civil service and public administration across governments.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.globalgovernmentforum.com/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-08, 10 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'publictechnology',
+    name: 'PublicTechnology',
+    officialDomain: 'www.publictechnology.net',
+    homepageUrl: 'https://www.publictechnology.net/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'Dods Group',
+    language: 'en',
+    geographySlugs: ['united-kingdom'],
+    industrySlugs: ['public-sector', 'technology-ai'],
+    qualityScore: 60,
+    notes: 'UK government technology and digital transformation.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.publictechnology.net/feed/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-08, 10 items. Excerpt only.',
+    }),
+  },
+  {
+    slug: 'route-fifty',
+    name: 'Route Fifty',
+    officialDomain: 'www.route-fifty.com',
+    homepageUrl: 'https://www.route-fifty.com/',
+    sourceType: 'industry_publication',
+    perspective: 'INDUSTRY_MEDIA',
+    sourceOwner: 'GovExec',
+    language: 'en',
+    geographySlugs: ['united-states'],
+    industrySlugs: ['public-sector'],
+    qualityScore: 62,
+    notes: 'US state and local government — procurement, policy and services.',
+    connector: {
+      type: 'rss',
+      endpoint: 'https://www.route-fifty.com/rss/all/',
+      isActive: true,
+      schedule: 'daily',
+    },
+    policy: approvedFeed({
+      reviewNotes: 'Publisher-operated feed, fetched 2026-09-08, 24 items. Excerpt only.',
+    }),
+  },
 ];

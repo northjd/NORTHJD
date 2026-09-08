@@ -73,9 +73,18 @@ export default async function MarketSearchPage() {
             </li>
           ))}
         </ul>
+        {/*
+          Not "since monitoring began" — that was false.
+          The database is rebuilt from scratch on every run, so the corpus is whatever the
+          registered feeds are carrying at that moment, typically ten to thirty recent
+          items each. Nothing accumulates, and a market's count can fall as easily as rise
+          when a publisher rotates its feed. Saying otherwise implied an archive we do not
+          keep.
+        */}
         <p className="mt-2.5 text-[11.5px] text-[var(--text-subtle)]">
-          The number is events published since monitoring began — nothing here is filtered to a
-          date, so a quiet week never empties a market.
+          Counts are what the monitored feeds are carrying now, rebuilt every three hours. Nothing
+          here is filtered by date, but a feed only publishes its recent items — so a market can
+          quieten because a publisher moved on, not because its sector did.
         </p>
       </section>
 
