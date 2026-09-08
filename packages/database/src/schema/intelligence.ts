@@ -84,6 +84,16 @@ export const claims = pgTable(
     reviewReason: text('review_reason').notNull().default(''),
     generator: generatorEnum('generator').notNull().default('deterministic_extractive'),
     promptVersionId: uuid('prompt_version_id'),
+    /**
+     * The language its text is written in, denormalised from the document.
+     *
+     * Here rather than joined because `search_vector` is a generated column, and a
+     * generated column may only read the row it belongs to. Without it every
+     * document was stemmed as English — harmless for company names, wrong for word
+     * endings, so a German reader searching "Übernahme" missed every article about
+     * "Übernahmen". See packages/database/sql/002_search_language.sql.
+     */
+    language: varchar('language', { length: 8 }).notNull().default('en'),
     /** Generated tsvector, created by packages/database/sql/001_search.sql. */
     searchVector: tsvector('search_vector'),
     createdAt: createdAt(),
@@ -196,6 +206,16 @@ export const events = pgTable(
     isSuppressed: boolean('is_suppressed').notNull().default(false),
     suppressionReason: text('suppression_reason').notNull().default(''),
     isDemo: boolean('is_demo').notNull().default(false),
+    /**
+     * The language its text is written in, denormalised from the document.
+     *
+     * Here rather than joined because `search_vector` is a generated column, and a
+     * generated column may only read the row it belongs to. Without it every
+     * document was stemmed as English — harmless for company names, wrong for word
+     * endings, so a German reader searching "Übernahme" missed every article about
+     * "Übernahmen". See packages/database/sql/002_search_language.sql.
+     */
+    language: varchar('language', { length: 8 }).notNull().default('en'),
     /** Generated tsvector, created by packages/database/sql/001_search.sql. */
     searchVector: tsvector('search_vector'),
     createdAt: createdAt(),
@@ -411,6 +431,16 @@ export const insights = pgTable(
     needsReview: boolean('needs_review').notNull().default(false),
     reviewReason: text('review_reason').notNull().default(''),
     isDemo: boolean('is_demo').notNull().default(false),
+    /**
+     * The language its text is written in, denormalised from the document.
+     *
+     * Here rather than joined because `search_vector` is a generated column, and a
+     * generated column may only read the row it belongs to. Without it every
+     * document was stemmed as English — harmless for company names, wrong for word
+     * endings, so a German reader searching "Übernahme" missed every article about
+     * "Übernahmen". See packages/database/sql/002_search_language.sql.
+     */
+    language: varchar('language', { length: 8 }).notNull().default('en'),
     /** Generated tsvector, created by packages/database/sql/001_search.sql. */
     searchVector: tsvector('search_vector'),
     createdAt: createdAt(),

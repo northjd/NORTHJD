@@ -21,6 +21,7 @@
 
 import { sql } from 'drizzle-orm';
 import { db } from '@mios/database';
+import { matchesQuery } from '@mios/search';
 
 /** At or below this length, match the start of a word rather than anywhere in it. */
 const BOUNDARY_MAX = 4;
@@ -173,7 +174,7 @@ export async function lookupCoverage(term: string): Promise<CoverageLookup> {
       from events e
       left join insights i on i.event_id = e.id
      where e.is_suppressed = false
-       and e.search_vector @@ to_tsquery('english', ${sql.param(tsquery)})
+       and ${matchesQuery(sql.raw('e.search_vector'), sql.param(tsquery), 'raw')}
      order by coalesce(e.event_at, e.first_reported_at) desc
      limit 15
   `);
@@ -181,7 +182,7 @@ export async function lookupCoverage(term: string): Promise<CoverageLookup> {
   const claims = await db().execute(sql`
     select count(*)::int as n
       from claims c
-     where c.search_vector @@ to_tsquery('english', ${sql.param(tsquery)})
+     where ${matchesQuery(sql.raw('c.search_vector'), sql.param(tsquery), 'raw')}
   `);
 
   const eventRows = (events.rows ?? []) as CoverageLookup['events'];

@@ -4,7 +4,7 @@ import { db, schema } from '@mios/database';
 import { requireUser } from '@/lib/session';
 import { Badge, Card, EmptyState, EvidenceBadge, MaturityBadge, SectionHeading } from '@mios/ui';
 import { formatAbsolute } from '@mios/domain';
-import { toTsQuery } from '@mios/search';
+import { matchesQuery, rankQuery, toTsQuery } from '@mios/search';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,9 +35,7 @@ export default async function SearchPage({
           evidenceStrength: schema.events.evidenceStrength,
           sourceCount: schema.events.sourceCount,
           insightId: schema.insights.id,
-          rank: sql<number>`ts_rank(${schema.events.searchVector}, websearch_to_tsquery('english', ${query}))`.as(
-            'rank',
-          ),
+          rank: sql<number>`${rankQuery(schema.events.searchVector, query)}`.as('rank'),
         })
         .from(schema.events)
         .leftJoin(
@@ -49,7 +47,7 @@ export default async function SearchPage({
         )
         .where(
           and(
-            sql`${schema.events.searchVector} @@ websearch_to_tsquery('english', ${query})`,
+            matchesQuery(schema.events.searchVector, query),
             eq(schema.events.isSuppressed, false),
           ),
         )
@@ -77,9 +75,7 @@ export default async function SearchPage({
           depth: schema.learningUnits.depth,
         })
         .from(schema.learningUnits)
-        .where(
-          sql`${schema.learningUnits.searchVector} @@ websearch_to_tsquery('english', ${query})`,
-        )
+        .where(matchesQuery(schema.learningUnits.searchVector, query))
         .limit(8)
     : [];
 

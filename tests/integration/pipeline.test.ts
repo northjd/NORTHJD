@@ -14,6 +14,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { closeDb, db, pingDb, schema } from '@mios/database';
 import { answerQuestion } from '@mios/intelligence';
 import { runEvaluation } from '@mios/evaluation';
+import { matchesQuery, unsupportedLanguages } from '@mios/search';
 
 let reachable = false;
 let workspaceId = '';
@@ -245,6 +246,123 @@ describe('evaluation suite', () => {
     const failures = run.cases.filter((c) => !c.passed);
     expect(failures.map((f) => `${f.slug}: ${f.detail}`)).toEqual([]);
     expect(run.passed).toBe(run.total);
+  });
+});
+
+/**
+ * Search has to work in the languages the registry actually publishes in.
+ *
+ * These are integration tests rather than unit ones because the thing being asserted is
+ * a property of a generated column and of the rows in it — not of any function. A unit
+ * test can prove the query is built correctly and still miss that every row was indexed
+ * as English.
+ */
+describe('multilingual search', () => {
+  it('queries through a configuration for every language a source publishes in', async () => {
+    if (!reachable) return;
+    const rows = await db()
+      .selectDistinct({ language: schema.sources.language })
+      .from(schema.sources);
+    // Registering a Portuguese source without adding portuguese to SEARCH_CONFIGS would
+    // index it correctly and then never match it. This is the check that catches that.
+    expect(unsupportedLanguages(rows.map((r) => r.language))).toEqual([]);
+  });
+
+  it('indexes every searchable table with per-language stemming', async () => {
+    if (!reachable) return;
+    const { rows } = await db().execute<{ relname: string; expr: string }>(sql`
+      select c.relname, pg_get_expr(ad.adbin, ad.adrelid) as expr
+        from pg_attrdef ad
+        join pg_class c on c.oid = ad.adrelid
+        join pg_attribute a on a.attrelid = c.oid and a.attnum = ad.adnum
+       where a.attname = 'search_vector'
+         and c.relname in ('claims', 'events', 'insights')`);
+    expect(rows.length).toBe(3);
+    // `001_search.sql` adds these with IF NOT EXISTS, so a database carrying the old
+    // english-only definition would keep it silently. This fails when that happens.
+    for (const row of rows) expect(row.expr).toContain('north_lang');
+  });
+
+  it('gives every claim the language of the document it came from', async () => {
+    if (!reachable) return;
+    const [row] = await db()
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.claims)
+      .innerJoin(
+        schema.documentVersions,
+        eq(schema.documentVersions.id, schema.claims.documentVersionId),
+      )
+      .innerJoin(
+        schema.rawDocuments,
+        eq(schema.rawDocuments.id, schema.documentVersions.documentId),
+      )
+      .where(
+        sql`${schema.rawDocuments.language} is not null
+            and ${schema.claims.language} is distinct from ${schema.rawDocuments.language}`,
+      );
+    expect(row?.n).toBe(0);
+  });
+
+  it('matches an inflected query against the language it was written in', async () => {
+    if (!reachable) return;
+    // Corpus-dependent by nature: pick a real German claim, take a word from it, and
+    // ask whether its stem is findable. Skipped rather than faked when the feeds happen
+    // to be carrying no German that day.
+    const [sample] = await db()
+      .select({ text: schema.claims.text })
+      .from(schema.claims)
+      .where(sql`${schema.claims.language} = 'de'`)
+      .limit(1);
+    if (!sample) return;
+
+    const word = sample.text
+      .split(/\s+/)
+      .map((w) => w.replace(/[^\p{L}]/gu, ''))
+      .find((w) => w.length > 8 && /^[A-ZÄÖÜ]/.test(w));
+    if (!word) return;
+
+    const [hit] = await db()
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.claims)
+      .where(matchesQuery(schema.claims.searchVector, word));
+    expect(hit?.n ?? 0).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * The corpus survives between runs now, which makes pruning a real operation rather
+ * than a hypothetical one — and pruning is where referential honesty gets broken.
+ */
+describe('corpus retention', () => {
+  it('leaves no event without the documents it was clustered from', async () => {
+    if (!reachable) return;
+    // `db:retain` deletes documents by age; the cascade takes their `event_documents`
+    // rows but not the events themselves. An event whose last document has gone is a
+    // headline with no evidence under it, which is the one thing this product must not
+    // publish.
+    const [row] = await db()
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.events)
+      .where(
+        sql`not exists (select 1 from event_documents ed where ed.event_id = ${schema.events.id})`,
+      );
+    expect(row?.n).toBe(0);
+  });
+
+  it('holds nothing older than the retention window', async () => {
+    if (!reachable) return;
+    const days = Number.parseInt(process.env.CORPUS_RETENTION_DAYS ?? '400', 10);
+    const [row] = await db()
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.rawDocuments)
+      .where(
+        sql`${schema.rawDocuments.isDemo} = false
+            and coalesce(${schema.rawDocuments.publishedAt}, ${schema.rawDocuments.discoveredAt})
+                < now() - (${days} || ' days')::interval`,
+      );
+    // Seeded demo material is exempt: it is deliberately placed reference content and
+    // the seed would put it straight back.
+    expect(row?.n).toBe(0);
   });
 });
 

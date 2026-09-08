@@ -30,6 +30,7 @@ import {
 } from '@mios/domain';
 import { db, schema } from '@mios/database';
 import { queryTerms, assessCoverage, stemForMatch, type CoverageAssessment } from '@mios/domain';
+import { matchesQuery, rankQuery } from '@mios/search';
 
 // Re-exported so existing importers keep working after the move to @mios/domain.
 export { queryTerms, assessCoverage, stemForMatch, type CoverageAssessment };
@@ -146,19 +147,19 @@ export async function retrieveClaims(
     ? sql<number>`(${sql.join(
         terms.map(
           (t) =>
-            sql`(case when ${claims.searchVector} @@ plainto_tsquery('english', ${t}) then 1 else 0 end)`,
+            sql`(case when ${matchesQuery(claims.searchVector, t, 'plainto')} then 1 else 0 end)`,
         ),
         sql` + `,
       )})`
     : sql<number>`0`;
 
   const rankExpr = hasQuery
-    ? sql<number>`ts_rank(${claims.searchVector}, websearch_to_tsquery('english', ${query}))`
+    ? sql<number>`${rankQuery(claims.searchVector, query)}`
     : sql<number>`0`;
 
   const conditions = [sql`1 = 1`];
   if (hasQuery) {
-    conditions.push(sql`${claims.searchVector} @@ websearch_to_tsquery('english', ${query})`);
+    conditions.push(matchesQuery(claims.searchVector, query));
   }
   if (entityFilterIds.length > 0) {
     conditions.push(
@@ -794,12 +795,10 @@ async function learningUnitsFor(
       commonMisconceptions: learningUnits.commonMisconceptions,
       practicalQuestions: learningUnits.practicalQuestions,
       depth: learningUnits.depth,
-      rank: sql<number>`ts_rank(${learningUnits.searchVector}, websearch_to_tsquery('english', ${query}))`.as(
-        'rank',
-      ),
+      rank: sql<number>`${rankQuery(learningUnits.searchVector, query)}`.as('rank'),
     })
     .from(learningUnits)
-    .where(sql`${learningUnits.searchVector} @@ websearch_to_tsquery('english', ${query})`)
+    .where(matchesQuery(learningUnits.searchVector, query))
     .orderBy(desc(sql`rank`))
     .limit(5);
 

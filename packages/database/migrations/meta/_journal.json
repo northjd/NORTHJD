@@ -15,6 +15,13 @@
       "when": 1788379408207,
       "tag": "0001_tough_zemo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789000000000,
+      "tag": "0002_language_columns",
+      "breakpoints": true
     }
   ]
 }

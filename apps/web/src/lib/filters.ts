@@ -31,6 +31,7 @@ import {
   type StrategicImpact,
 } from '@mios/domain';
 import { schema } from '@mios/database';
+import { matchesQuery } from '@mios/search';
 
 const { eventDocuments, eventEntities, eventTaxonomy, events, insights, rawDocuments, sources } =
   schema;
@@ -402,7 +403,7 @@ export function filterConditions(f: ExploreFilters, now: Date = new Date()): SQL
   if (f.excludeDemo) where.push(eq(insights.isDemo, false));
 
   if (f.query) {
-    where.push(sql`${events.searchVector} @@ websearch_to_tsquery('english', ${f.query})`);
+    where.push(matchesQuery(events.searchVector, f.query));
   }
 
   return where;

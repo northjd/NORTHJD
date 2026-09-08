@@ -557,6 +557,9 @@ async function extractAll(summary: PipelineSummary, log: (m: string) => void): P
           eventAt: document.publishedAt,
           lastVerifiedAt: new Date(),
           generator: 'deterministic_extractive',
+          // Denormalised so the generated search vector can stem it correctly; a
+          // generated column cannot join back to the document to find out.
+          language: document.language ?? 'en',
         })
         .returning();
 
@@ -634,6 +637,7 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
       sourceId: rawDocuments.sourceId,
       perspective: sources.perspective,
       isDemo: rawDocuments.isDemo,
+      language: rawDocuments.language,
     })
     .from(rawDocuments)
     .innerJoin(sources, eq(sources.id, rawDocuments.sourceId))
@@ -712,6 +716,13 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
       isIndependent: isIndependent(doc.perspective),
     };
   });
+
+  /*
+   * The event's language is the originating document's, not a vote across the cluster.
+   * The title and summary are taken from that one document, so stemming the event under
+   * anything else would index text in a language it is not written in.
+   */
+  const languageByDocument = new Map(unclustered.map((doc) => [doc.documentId, doc.language]));
 
   const clusters = clusterDocuments(clusterables);
   const taxonomyTerms = await loadTaxonomyTerms();
@@ -793,6 +804,7 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
         strategicImpact,
         caseMaturity: maturity,
         changeNote: rationale,
+        language: languageByDocument.get(originating.documentId) ?? 'en',
         evidenceStrength: strongest ?? 'WEAK_OR_UNVERIFIED_SIGNAL',
         verificationStatus:
           cluster.independentSourceCount >= 2
@@ -1133,6 +1145,9 @@ async function buildInsights(
         estimatedReadingMinutes: assembled.estimatedReadingMinutes,
         generator: 'deterministic_extractive',
         isDemo: event.isDemo,
+        // An insight is assembled out of its event's text, so it is written in the
+        // event's language whatever the reader's is.
+        language: event.language,
       })
       .onConflictDoNothing()
       .returning();
