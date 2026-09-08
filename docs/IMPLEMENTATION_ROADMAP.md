@@ -90,7 +90,7 @@ three times an evidence page. Next writes each page's RSC payload twice — `ind
 anything in the page's own markup. Worth investigating before assuming more sources need
 more room: at 247 MB of a 1 GB soft limit there is roughly 4× headroom regardless.
 
-### 2. A keep-alive so the schedule cannot lapse
+### 2. ~~A keep-alive so the schedule cannot lapse~~ — done
 
 GitHub disables scheduled workflows on a repository with no activity for 60 days. It does
 not error; the cron simply stops and the site freezes at its last build, which is the kind

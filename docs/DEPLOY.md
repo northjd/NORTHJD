@@ -128,6 +128,9 @@ the repository name matches the URL, and reproduce locally with `npm run serve:s
 
 **The site is stale.** Check Actions. GitHub disables scheduled workflows on repositories
 with no activity for 60 days; a single push or a manual run re-enables them.
+`.github/workflows/keepalive.yml` exists to prevent that: it commits a date stamp on the
+first of each month so the repository is never quiet long enough for the clock to expire.
+If the site has frozen anyway, check that workflow ran.
 
 ---
 

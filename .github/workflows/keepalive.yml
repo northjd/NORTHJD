@@ -1,0 +1,38 @@
+name: Keep the schedule alive
+
+# GitHub disables scheduled workflows on a repository with no activity for 60 days. It
+# does not warn and it does not error: the cron simply stops, the site freezes at whatever
+# it last built, and the only symptom is that the dates stop moving — which is the kind of
+# failure noticed weeks late, by a colleague, in a meeting.
+#
+# This exists solely to be activity. It runs monthly, writes the date into a file nobody
+# reads, and commits only when that changes, so the repository is never quiet for long
+# enough for the clock to run out.
+on:
+  schedule:
+    - cron: '23 6 1 * *' # 06:23 on the first of each month
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  touch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Record that the repository is still tended
+        run: |
+          date -u +'%Y-%m-%d' > .github/last-keepalive
+          if git diff --quiet; then
+            echo "already recorded today; nothing to commit"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .github/last-keepalive
+          # [skip ci] so this does not trigger a full publish run: the point is a commit,
+          # not a rebuild. The three-hourly schedule handles rebuilding.
+          git commit -m 'chore: keep the publish schedule alive [skip ci]'
+          git push
