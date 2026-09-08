@@ -9,7 +9,7 @@
  * Leave it running in its own terminal: `npm run db:up`.
  */
 
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
@@ -20,7 +20,44 @@ const host = process.env.PGLITE_HOST ?? '127.0.0.1';
 
 mkdirSync(dataDir, { recursive: true });
 
-const db = await PGlite.create({ dataDir });
+/**
+ * A data directory that will not open must not stop the site publishing.
+ *
+ * Since the publish workflow began carrying `data/pglite` between runs, the directory
+ * this opens is usually one restored from a cache rather than one this machine wrote.
+ * That is a new failure mode: a truncated archive, a directory written by a different
+ * PostgreSQL major version, or a run cancelled mid-checkpoint all produce a directory
+ * PGlite refuses.
+ *
+ * Refusing back would freeze the published site at its last good build until somebody
+ * noticed — the same slow, quiet failure the keep-alive workflow exists to prevent. So
+ * when `PGLITE_RESET_ON_CORRUPT` is set, a directory that will not open is moved out of
+ * the way and rebuilt from empty. The run then ingests whatever the feeds are carrying,
+ * which is a worse day than usual and a great deal better than a frozen one.
+ *
+ * Deliberately opt-in. On a laptop, silently deleting a database you were working with
+ * is not a recovery, and the right response is the error.
+ */
+async function open(): Promise<PGlite> {
+  try {
+    return await PGlite.create({ dataDir });
+  } catch (err) {
+    if (process.env.PGLITE_RESET_ON_CORRUPT !== '1') throw err;
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`\n  The data directory would not open: ${message}`);
+    console.error(`  PGLITE_RESET_ON_CORRUPT=1 — rebuilding from empty at ${dataDir}`);
+    // Announced where CI will surface it, so a run that quietly lost its history is
+    // visible in the log rather than only in the event counts.
+    console.error(
+      `::warning title=Corpus reset::Restored data directory was unreadable; rebuilt empty. Accumulated history for this run is lost.`,
+    );
+    rmSync(dataDir, { recursive: true, force: true });
+    mkdirSync(dataDir, { recursive: true });
+    return await PGlite.create({ dataDir });
+  }
+}
+
+const db = await open();
 
 /**
  * `maxConnections` defaults to 1, and that default caused every "Connection terminated

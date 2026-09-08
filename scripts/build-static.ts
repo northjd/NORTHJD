@@ -22,6 +22,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs';
 import { execSync } from 'node:child_process';
@@ -238,6 +239,66 @@ function restoreExcluded(): void {
   rmSync(stash, { recursive: true, force: true });
 }
 
+/**
+ * What the output weighs, and whether it still fits.
+ *
+ * GitHub Pages has a 1 GB soft limit, and until recently nothing here could approach it:
+ * the corpus was rebuilt from empty every three hours, so the page count was pinned to
+ * whatever the feeds were carrying. Now that the corpus accumulates, the export grows
+ * with it, and the growth is not gentle — an evidence page costs about 110 KB to carry a
+ * quote averaging under 300 bytes, because Next writes each page's RSC payload twice
+ * alongside the markup.
+ *
+ * A build that silently crosses the limit fails at the deploy step with a message about
+ * artifact size, several minutes later and nowhere near the cause. This fails here
+ * instead, with the section breakdown and the lever that fixes it.
+ */
+function reportSize(out: string): void {
+  const sections = new Map<string, { bytes: number; files: number }>();
+
+  const walk = (dir: string, section: string): void => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = resolve(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(full, section === '' ? entry.name : section);
+      } else {
+        const bucket = sections.get(section) ?? { bytes: 0, files: 0 };
+        bucket.bytes += statSync(full).size;
+        bucket.files += 1;
+        sections.set(section, bucket);
+      }
+    }
+  };
+  walk(out, '');
+
+  const total = [...sections.values()].reduce((sum, s) => sum + s.bytes, 0);
+  const mb = (bytes: number) => (bytes / 1_048_576).toFixed(1).padStart(7);
+
+  console.log('  Output size\n');
+  for (const [name, s] of [...sections].sort((a, b) => b[1].bytes - a[1].bytes).slice(0, 8)) {
+    console.log(`    ${mb(s.bytes)} MB  ${String(s.files).padStart(6)} files  ${name || '(root)'}`);
+  }
+  console.log(
+    `    ${mb(total)} MB  ${String([...sections.values()].reduce((n, s) => n + s.files, 0)).padStart(6)} files  total\n`,
+  );
+
+  const budgetMb = Number.parseInt(process.env.PAGES_SIZE_BUDGET_MB ?? '850', 10);
+  const totalMb = total / 1_048_576;
+  if (totalMb > budgetMb) {
+    console.error(
+      `::error title=Export over budget::${totalMb.toFixed(0)} MB exceeds the ${budgetMb} MB budget. ` +
+        `GitHub Pages soft-limits a site at 1 GB. Lower CORPUS_RETENTION_DAYS in the publish workflow and re-run.`,
+    );
+    throw new Error(`static export is ${totalMb.toFixed(0)} MB, over the ${budgetMb} MB budget`);
+  }
+  if (totalMb > budgetMb * 0.75) {
+    console.log(
+      `::warning title=Export approaching the limit::${totalMb.toFixed(0)} MB of a ${budgetMb} MB budget. ` +
+        `Consider shortening CORPUS_RETENTION_DAYS before it fails a build.`,
+    );
+  }
+}
+
 console.log('\n  Building the static site\n');
 
 // The palette's lists are identical on every page, so they ship as one fetched file
@@ -299,6 +360,7 @@ try {
     ].join('\n'),
   );
   console.log('\n  Static site written to apps/web/out\n');
+  reportSize(out);
 } finally {
   // Always restore, including after a failed build — otherwise a broken export leaves
   // the repository missing a third of its routes.

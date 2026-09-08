@@ -614,6 +614,29 @@ export async function queryMarketIndex(): Promise<
   );
 }
 
+/**
+ * How far back the corpus actually reaches.
+ *
+ * The market index used to claim its counts covered "events published since monitoring
+ * began", which was false: the database was rebuilt from empty every three hours, so
+ * nothing survived a run. It now carries forward, and the honest version of that
+ * sentence is a date rather than an adjective — one the page reads from the material it
+ * is describing, so it can never drift from it.
+ *
+ * `null` when there is nothing dated to report, which is what a first run looks like.
+ */
+export async function queryCorpusReach(): Promise<{ oldest: string | null; documents: number }> {
+  const [row] = rows<{ oldest: string | null; documents: number }>(
+    await db().execute(sql`
+      select min(coalesce(published_at, discovered_at))::date::text as oldest,
+             count(*)::int                                          as documents
+        from raw_documents
+       where is_demo = false
+    `),
+  );
+  return row ?? { oldest: null, documents: 0 };
+}
+
 /* ── Company profile ───────────────────────────────────────────────────────── */
 
 export interface ProfileFact {

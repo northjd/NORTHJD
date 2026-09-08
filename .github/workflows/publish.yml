@@ -10,6 +10,11 @@ on:
   schedule:
     - cron: '17 */3 * * *'
   workflow_dispatch:
+    inputs:
+      rebuild_corpus:
+        description: 'Start from an empty corpus instead of restoring the last one'
+        type: boolean
+        default: false
   push:
     branches: [main]
 
@@ -37,6 +42,40 @@ jobs:
 
       - run: npm ci
 
+      # The corpus, carried from the previous run.
+      #
+      # Without this the database was created from scratch every three hours, so the
+      # site only ever held what the feeds happened to be carrying at that moment —
+      # typically their last twenty-five items. Healthcare & Payers went from two events
+      # to zero not because the sector quietened but because Healthcare Dive rotated
+      # those items out. A market-intelligence tool that forgets everything older than
+      # its publishers' feed windows cannot answer what happened last quarter, which is
+      # most of the job.
+      #
+      # The key is unique per run, so every run writes a new entry and none of them
+      # collide; `restore-keys` then matches the newest by prefix. Bump the version in
+      # the prefix to abandon the accumulated corpus for everybody at once — a schema
+      # change that cannot be migrated forward, say.
+      #
+      # Ingestion deduplicates on a content fingerprint, so re-reading feed items that
+      # are already here costs a fetch and writes nothing.
+      - name: Restore the corpus
+        id: corpus
+        if: ${{ !inputs.rebuild_corpus }}
+        uses: actions/cache/restore@v4
+        with:
+          path: data/pglite
+          key: corpus-v1-${{ github.run_id }}
+          restore-keys: corpus-v1-
+
+      - name: Say what we start from
+        run: |
+          if [ -d data/pglite/base ]; then
+            echo "Restored corpus: $(du -sh data/pglite | cut -f1) on disk"
+          else
+            echo "::notice title=Empty corpus::No cache restored — this run starts from nothing and will hold only what the feeds are carrying now."
+          fi
+
       # PGlite is real PostgreSQL compiled to WASM, so the whole pipeline runs here with
       # no database service to provision. It is single-connection and slow under load,
       # which is fine: nothing else is using it.
@@ -60,6 +99,11 @@ jobs:
           # Next renders pages and route handlers as separate module instances, each with
           # its own client. One connection means the second evicts the first.
           PGLITE_MAX_CONNECTIONS: '20'
+          # A restored directory that will not open is rebuilt from empty rather than
+          # failing the run. Losing the accumulated history is bad; freezing the
+          # published site at its last good build until somebody notices is worse, and
+          # quieter. The reset announces itself as a warning on the run.
+          PGLITE_RESET_ON_CORRUPT: '1'
 
       - name: Create the schema and reference data
         run: |
@@ -98,6 +142,38 @@ jobs:
         run: npm run eval
         env:
           DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+
+      # Prune, compact and checkpoint, then hand the directory to the cache.
+      #
+      # Retention is what keeps "it accumulates" from meaning "for ever": a corpus with
+      # no ceiling eventually exceeds both the 10 GB cache and the 1 GB Pages site, and
+      # it would do it slowly enough not to be noticed until it broke. CHECKPOINT is
+      # what makes the archive consistent — dirty buffers still in memory would not be
+      # in the tar, and the next run would restore a database referencing a WAL that
+      # only half exists.
+      - name: Prune the corpus to its retention window
+        run: npm run db:retain
+        env:
+          DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+          CORPUS_RETENTION_DAYS: '400'
+          # The ceiling that actually binds. Measured on a 964-document corpus: the
+          # export came to 206.5 MB, so a document costs about 0.214 MB of published
+          # site once its evidence, event and insight pages are written. 2,500 is
+          # roughly 535 MB against an 850 MB budget. How many days that buys depends on
+          # how much the publishers publish, which is not ours to decide — the market
+          # index prints the date actually reached rather than a promised one.
+          CORPUS_MAX_DOCUMENTS: '2500'
+
+      # Saved here rather than at the end of the job, deliberately.
+      #
+      # `actions/cache`'s own post step does not run when the job fails, so a build that
+      # broke after a successful ingest would throw away everything this run collected.
+      # The corpus is worth keeping whether or not the site built.
+      - name: Save the corpus for the next run
+        uses: actions/cache/save@v4
+        with:
+          path: data/pglite
+          key: corpus-v1-${{ github.run_id }}
 
       - name: Build the site
         run: npm run build:static

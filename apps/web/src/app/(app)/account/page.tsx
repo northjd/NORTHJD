@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { requireUser, IS_STATIC_EXPORT } from '@/lib/session';
-import { queryMarketIndex } from '@/lib/account-queries';
+import { queryCorpusReach, queryMarketIndex } from '@/lib/account-queries';
 import { listAllCompanies, listWatchlistShortcuts } from '@/lib/market-shared';
 import { MarketSearchControls } from '@/components/market-search-controls';
 
@@ -25,10 +25,11 @@ export const metadata = { title: 'Market search' };
  */
 export default async function MarketSearchPage() {
   const user = await requireUser();
-  const [companies, shortcuts, markets] = await Promise.all([
+  const [companies, shortcuts, markets, reach] = await Promise.all([
     listAllCompanies(),
     listWatchlistShortcuts(user.workspaceId),
     queryMarketIndex(),
+    queryCorpusReach(),
   ]);
 
   const covered = markets.filter((m) => m.events > 0);
@@ -74,17 +75,29 @@ export default async function MarketSearchPage() {
           ))}
         </ul>
         {/*
-          Not "since monitoring began" — that was false.
-          The database is rebuilt from scratch on every run, so the corpus is whatever the
-          registered feeds are carrying at that moment, typically ten to thirty recent
-          items each. Nothing accumulates, and a market's count can fall as easily as rise
-          when a publisher rotates its feed. Saying otherwise implied an archive we do not
-          keep.
+          A date, not an adjective.
+
+          This claimed to count "events published since monitoring began" while the
+          database was being rebuilt from empty every three hours — so the archive it
+          described did not exist, and a market's count could fall simply because a
+          publisher rotated its feed. The corpus is now carried between builds, which
+          makes the original sentence true and this one checkable: the date comes from
+          the oldest thing actually held, so it cannot drift from what it describes.
         */}
         <p className="mt-2.5 text-[11.5px] text-[var(--text-subtle)]">
-          Counts are what the monitored feeds are carrying now, rebuilt every three hours. Nothing
-          here is filtered by date, but a feed only publishes its recent items — so a market can
-          quieten because a publisher moved on, not because its sector did.
+          {reach.oldest ? (
+            <>
+              Every event kept since {reach.oldest} — {reach.documents.toLocaleString('en-GB')}{' '}
+              documents, carried forward between builds and refreshed every three hours. Nothing
+              here is filtered by date. A market with few events has few sources covering it, not a
+              quiet quarter.
+            </>
+          ) : (
+            <>
+              Counts are what the monitored feeds are carrying now, refreshed every three hours.
+              Nothing here is filtered by date.
+            </>
+          )}
         </p>
       </section>
 

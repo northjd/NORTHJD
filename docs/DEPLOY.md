@@ -73,15 +73,56 @@ a request that does not arrive with everyone else's.
 
 Each run:
 
-1. starts PGlite — real PostgreSQL compiled to WASM, so there is no database service to
+1. **restores the corpus** from the previous run's cache;
+2. starts PGlite — real PostgreSQL compiled to WASM, so there is no database service to
    provision or pay for;
-2. creates the schema and loads the reference data;
-3. fetches every registered source with an approved rights review;
-4. **runs `npm run eval`** and fails the build if any evidence invariant breaks;
-5. builds the static site and publishes it.
+3. creates the schema and loads the reference data;
+4. fetches every registered source with an approved rights review;
+5. **runs `npm run eval`** and fails the build if any evidence invariant breaks;
+6. prunes anything past the retention window and saves the corpus for the next run;
+7. builds the static site and publishes it.
 
-Step 4 is the important one. A site that is stale is a nuisance; a site showing a claim
+Step 5 is the important one. A site that is stale is a nuisance; a site showing a claim
 with no evidence behind it is a lie, and this refuses to publish one.
+
+## The corpus accumulates
+
+Steps 1 and 6 are what make this a record rather than a reader. Without them the database
+was created from empty every three hours, so the site only ever held what the feeds
+happened to be carrying — usually their last twenty-five items. Healthcare & Payers once
+went from two events to zero, not because the sector quietened but because Healthcare
+Dive rotated those items out of its feed.
+
+`data/pglite` is now cached between runs under a rolling key, and ingestion deduplicates
+on a content fingerprint, so re-reading feed items already held costs a fetch and writes
+nothing.
+
+**Retention has two ceilings**, both set in the workflow. `CORPUS_RETENTION_DAYS` (400)
+says how far back to reach; `CORPUS_MAX_DOCUMENTS` (2,500) says how much may be kept, and
+it is the one that actually binds. A window alone would work until the day the feeds got
+busy and then fail every build — which is worse than not accumulating at all, because a
+failing build publishes nothing.
+
+2,500 comes from measurement, not preference: a 964-document corpus produced a 206.5 MB
+export, so a document costs about 0.214 MB of published site once its evidence, event and
+insight pages are written. Against the 850 MB budget that is roughly 4,000; 2,500 leaves
+room for the sections that do not scale with the corpus.
+
+How many days that buys depends on how much the publishers publish, which is not ours to
+decide — so the market index prints the date the corpus actually reaches rather than a
+promised one. Documents past either ceiling are deleted, along with any event left with
+no documents behind it: an event whose last document has gone is a headline with nothing
+under it. Seeded demo material is never pruned.
+
+**To start again from nothing:** Actions → Publish NORTH → Run workflow, and tick _Start
+from an empty corpus_. Do that after a schema change that cannot be migrated forward, or
+if a cache is ever suspected of being wrong. A cache that will not open is handled without
+help: the run rebuilds from empty, publishes a warning saying so, and carries on rather
+than freezing the site.
+
+Caches expire after seven days unused and are capped at 10 GB per repository, evicted
+least-recently-used. Only the newest is ever restored, so eviction takes the ones already
+superseded.
 
 ## The sub-path
 
@@ -104,13 +145,22 @@ worked on every local check got caught before it reached production.
 | Thing                    | Limit                   | Where we are    |
 | ------------------------ | ----------------------- | --------------- |
 | Actions minutes (public) | unlimited               | ~10 min × 8/day |
-| Published site size      | 1 GB soft limit         | ~290 MB         |
+| Published site size      | 1 GB soft limit         | see below       |
+| Actions cache            | 10 GB, 7-day expiry     | ~15 MB per run  |
 | Pages bandwidth          | 100 GB/month soft limit | far below       |
 | Builds per hour          | 10                      | 1 every 3 hours |
 
-The site is uploaded as a build artifact rather than committed. The output is ~290 MB and
-changes substantially every three hours; committing it would make the repository unusable
-inside a week.
+The site is uploaded as a build artifact rather than committed. It changes substantially
+every three hours; committing it would make the repository unusable inside a week.
+
+**Site size is the constraint that accumulation pushes on**, and it is not gentle: an
+evidence page costs roughly 110 KB to carry a quote averaging under 300 bytes, because
+Next writes each page's RSC payload twice alongside the markup. `npm run build:static`
+prints the size by section at the end of every build and **fails** above
+`PAGES_SIZE_BUDGET_MB` (850 by default), with a warning from 75% of it. Failing in the
+build is deliberate: crossing the limit silently would fail minutes later at the deploy
+step, with a message about artifact size and no hint of the cause. If it ever fires, the
+lever is `CORPUS_RETENTION_DAYS`.
 
 ## When something breaks
 
@@ -125,6 +175,11 @@ code.
 
 **The site loads but has no styling and dead links.** The `BASE_PATH` is wrong. Confirm
 the repository name matches the URL, and reproduce locally with `npm run serve:static`.
+
+**A market's event count fell.** Expect this only at the retention boundary now — the
+corpus carries forward, so counts otherwise rise. A fall elsewhere means either an
+admin suppressed events or a run reset the corpus; the run log says which, because a
+reset publishes a warning.
 
 **The site is stale.** Check Actions. GitHub disables scheduled workflows on repositories
 with no activity for 60 days; a single push or a manual run re-enables them.
