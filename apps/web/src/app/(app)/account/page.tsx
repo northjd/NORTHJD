@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { requireUser } from '@/lib/session';
+import { requireUser, IS_STATIC_EXPORT } from '@/lib/session';
 import { queryMarketIndex } from '@/lib/account-queries';
 import { listAllCompanies, listWatchlistShortcuts } from '@/lib/market-shared';
 import { MarketSearchControls } from '@/components/market-search-controls';
@@ -94,7 +94,11 @@ export default async function MarketSearchPage() {
           what would change it rather than returning an empty page.
         </p>
         <div className="mt-3">
-          <MarketSearchControls companies={companies} activeCompany={null} shortcuts={shortcuts} />
+          <MarketSearchControls
+            companies={IS_STATIC_EXPORT ? [] : companies}
+            activeCompany={null}
+            shortcuts={shortcuts}
+          />
         </div>
       </section>
 

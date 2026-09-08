@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { requireUser } from '@/lib/session';
+import { requireUser, IS_STATIC_EXPORT } from '@/lib/session';
 import { queryAccount, queryCompanyProfile } from '@/lib/account-queries';
 import { listAllCompanies, listWatchlistShortcuts } from '@/lib/market-shared';
 import { MarketSearchControls } from '@/components/market-search-controls';
@@ -134,7 +134,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
 
       <div className="mt-5 border-y border-[var(--border)] py-4">
         <MarketSearchControls
-          companies={companies}
+          companies={IS_STATIC_EXPORT ? [] : companies}
           activeCompany={board.entity.slug}
           shortcuts={
             board.peers.length > 0

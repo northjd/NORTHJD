@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { assetPath } from '@/lib/asset-path';
 import { IS_STATIC_BUILD } from '@/lib/static-build';
 import { readPreferences } from '@/lib/local-preferences';
 import type { CompanyOption } from '@/lib/market-shared';
@@ -23,12 +24,24 @@ import type { CompanyOption } from '@/lib/market-shared';
  * argues for.
  */
 export function MarketSearchControls({
-  companies,
+  companies = [],
   activeCompany,
   shortcuts,
   shortcutsLabel = 'Your watchlist',
 }: {
-  companies: CompanyOption[];
+  /**
+   * Optional, and empty in the static export.
+   *
+   * Passing the list as a prop put all 119 companies into the RSC payload of every one of
+   * the 102 market and company pages — Audemars Piguet and Kesko embedded in H&M's page,
+   * for no reason but that the control might be typed into. That is the duplication which
+   * took the command palette from 161 MB to 133 MB, in a second place.
+   *
+   * The export fetches `palette.json` instead: one 10 KB file, already built, already
+   * carrying slug, name and event count. The server build keeps passing the prop, because
+   * there is no static file for it to read.
+   */
+  companies?: CompanyOption[];
   activeCompany: string | null;
   shortcuts: { slug: string; name: string }[];
   /** What these shortcuts are, since they change with the view. */
@@ -36,6 +49,23 @@ export function MarketSearchControls({
 }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
+
+  const [fetched, setFetched] = useState<CompanyOption[] | null>(null);
+  useEffect(() => {
+    if (companies.length > 0) return;
+    void fetch(assetPath('/palette.json'))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => data?.entities && setFetched(data.entities as CompanyOption[]))
+      // The shortcuts and the market list still work; only free-text search needs this.
+      .catch(() => setFetched([]));
+  }, [companies.length]);
+
+  // Memoised because the shortcut effect depends on it; a fresh array each render would
+  // re-run that effect on every keystroke.
+  const all = useMemo(
+    () => (companies.length > 0 ? companies : (fetched ?? [])),
+    [companies, fetched],
+  );
 
   /*
    * The reader's own companies, when they have chosen some.
@@ -50,22 +80,20 @@ export function MarketSearchControls({
     if (!IS_STATIC_BUILD) return;
     const chosen = readPreferences().companies;
     if (chosen.length === 0) return;
-    const bySlug = new Map(companies.map((c) => [c.slug, c.name]));
+    const bySlug = new Map(all.map((c) => [c.slug, c.name]));
     setMine(
       chosen
         .filter((slug) => bySlug.has(slug))
         .slice(0, 6)
         .map((slug) => ({ slug, name: bySlug.get(slug)! })),
     );
-  }, [companies]);
+  }, [all]);
 
   const shownShortcuts = mine ?? shortcuts;
   const shownLabel = mine ? 'Your companies' : shortcutsLabel;
 
   const term = query.trim().toLowerCase();
-  const matches = term
-    ? companies.filter((c) => c.name.toLowerCase().includes(term)).slice(0, 8)
-    : [];
+  const matches = term ? all.filter((c) => c.name.toLowerCase().includes(term)).slice(0, 8) : [];
 
   const go = (slug: string) => {
     setQuery('');

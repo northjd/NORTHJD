@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { requireUser } from '@/lib/session';
+import { requireUser, IS_STATIC_EXPORT } from '@/lib/session';
 import { queryMarket } from '@/lib/account-queries';
 import { listAllCompanies } from '@/lib/market-shared';
 import { MarketSearchControls } from '@/components/market-search-controls';
@@ -68,7 +68,7 @@ export default async function MarketPage({ params }: { params: Promise<{ industr
 
       <div className="mt-5 border-y border-[var(--border)] py-4">
         <MarketSearchControls
-          companies={companies}
+          companies={IS_STATIC_EXPORT ? [] : companies}
           activeCompany={null}
           shortcuts={market.companies.filter((c) => c.events > 0).slice(0, 6)}
           shortcutsLabel="Most active here"

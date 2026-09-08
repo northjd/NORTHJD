@@ -60,19 +60,35 @@ media, non-English sources — is done. The site is published at
 from SEC EDGAR; and an Atom feed delivers what changed without storing anything about
 anyone.
 
-### 1. Stop serialising the company list into every page
+### 1. ~~Stop serialising the company list into every page~~ — done, and the premise was wrong
 
-`MarketSearchControls` receives all 119 companies as a prop, and it appears on all 102
-market and company pages — so Audemars Piguet and Kesko are embedded in H&M's page. This
-is the same duplication that took the command palette from 161 MB to 133 MB, reappearing
-somewhere new.
+`MarketSearchControls` now fetches `palette.json` rather than receiving all 119 companies
+as a prop on each of the 138 market and company pages. Audemars Piguet is no longer
+embedded in H&M's page.
 
-Costs size, not correctness: the export is 290 MB against a 1 GB Pages soft limit, so
-roughly 3.5× headroom. The fix is the one that worked before — fetch the list once from a
-shared JSON file rather than embedding it per page.
+**Measured A/B on one corpus: 1 MB saved, 0%.** The reasoning for putting this first — that
+it would buy headroom before adding sources — was wrong, and the earlier 290 MB → 246 MB
+figure quoted for it was the corpus changing between builds rather than the change itself.
+119 companies at roughly 50 bytes across 138 pages is about 800 KB, which is what turned
+up. The command-palette version of this saved 28 MB because it touched all 831 pages and
+carried aliases too; the arithmetic does not transfer.
 
-**Do this before adding more sources**, because more sources means more pages and this is
-headroom bought back for nothing.
+Kept because it is still correct — a page should not carry a list it does not use — but
+it is a tidiness fix, not a capacity one.
+
+**Where the size actually is**, measured on the 247 MB export:
+
+| Area     | Pages | Size   | Per page |
+| -------- | ----- | ------ | -------- |
+| evidence | 1,064 | 125 MB | 109 KB   |
+| account  | 138   | 73 MB  | 391 KB   |
+| insights | 158   | 39 MB  | 186 KB   |
+
+Evidence dominates by volume; account pages are the heaviest individually, at more than
+three times an evidence page. Next writes each page's RSC payload twice — `index.txt` and
+`__next._full.txt`, about 91 KB each on a company page — which is a larger lever than
+anything in the page's own markup. Worth investigating before assuming more sources need
+more room: at 247 MB of a 1 GB soft limit there is roughly 4× headroom regardless.
 
 ### 2. A keep-alive so the schedule cannot lapse
 
