@@ -4,8 +4,7 @@ One URL, no server, no bill. GitHub builds the site every three hours on its own
 machines and publishes it — your laptop can be shut.
 
 **What you end up with:** a real URL you can send to a colleague, a site that refreshes
-itself eight times a day, and a build that refuses to publish if the evidence rules
-break.
+itself through the day, and a build that refuses to publish if the evidence rules break.
 
 **What it costs: nothing.** GitHub Actions minutes are unlimited on public repositories,
 and Pages is free.
@@ -70,6 +69,13 @@ That is the link you send people.
 `17 */3 * * *` — seventeen minutes past, every three hours. The odd minute is
 deliberate: scheduled jobs everywhere cluster on the hour, and the sources are politer to
 a request that does not arrive with everyone else's.
+
+**In practice it fires four to six times a day, not eight.** Measured across 7–8
+September: scheduled runs at 12:32, 19:09, 23:29, 04:36 and 11:18 — intervals of four to
+seven hours against a three-hour cron. GitHub runs scheduled workflows on a best-effort
+queue and drops or delays them under load; this is documented behaviour on free runners
+and no configuration changes it. A push always runs immediately, so this only affects how
+fresh the site is when nobody is committing.
 
 Each run:
 
@@ -142,16 +148,16 @@ worked on every local check got caught before it reached production.
 
 ## Costs and limits
 
-| Thing                    | Limit                   | Where we are    |
-| ------------------------ | ----------------------- | --------------- |
-| Actions minutes (public) | unlimited               | ~10 min × 8/day |
-| Published site size      | 1 GB soft limit         | see below       |
-| Actions cache            | 10 GB, 7-day expiry     | ~15 MB per run  |
-| Pages bandwidth          | 100 GB/month soft limit | far below       |
-| Builds per hour          | 10                      | 1 every 3 hours |
+| Thing                    | Limit                   | Where we are     |
+| ------------------------ | ----------------------- | ---------------- |
+| Actions minutes (public) | unlimited               | ~10 min × 5/day  |
+| Published site size      | 1 GB soft limit         | see below        |
+| Actions cache            | 10 GB, 7-day expiry     | ~15 MB per run   |
+| Pages bandwidth          | 100 GB/month soft limit | far below        |
+| Builds per hour          | 10                      | ~1 every 5 hours |
 
 The site is uploaded as a build artifact rather than committed. It changes substantially
-every three hours; committing it would make the repository unusable inside a week.
+on every run; committing it would make the repository unusable inside a week.
 
 **Site size is the constraint that accumulation pushes on**, and it is not gentle: an
 evidence page costs roughly 110 KB to carry a quote averaging under 300 bytes, because

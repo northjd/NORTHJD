@@ -75,27 +75,29 @@ export default async function MarketSearchPage() {
           ))}
         </ul>
         {/*
-          A date, not an adjective.
+          A date, not an adjective — and a date that claims only what it is.
 
-          This claimed to count "events published since monitoring began" while the
-          database was being rebuilt from empty every three hours — so the archive it
-          described did not exist, and a market's count could fall simply because a
-          publisher rotated its feed. The corpus is now carried between builds, which
-          makes the original sentence true and this one checkable: the date comes from
-          the oldest thing actually held, so it cannot drift from what it describes.
+          This first read "events published since monitoring began" while the database
+          was being rebuilt from empty on every run, so the archive it described did not
+          exist. The corpus is carried between builds now, but "every event kept since
+          2025-09-17" was still an overclaim: that is the oldest item held, not the start
+          of continuous coverage, and a few feeds carry something a year old among items
+          from last week. So it says which date the oldest document has and leaves the
+          reader to draw the rest. Both numbers are read from the material itself, so
+          neither can drift from what it describes.
         */}
         <p className="mt-2.5 text-[11.5px] text-[var(--text-subtle)]">
           {reach.oldest ? (
             <>
-              Every event kept since {reach.oldest} — {reach.documents.toLocaleString('en-GB')}{' '}
-              documents, carried forward between builds and refreshed every three hours. Nothing
-              here is filtered by date. A market with few events has few sources covering it, not a
-              quiet quarter.
+              {reach.documents.toLocaleString('en-GB')} documents, the oldest published{' '}
+              {reach.oldest} — carried forward from one build to the next rather than re-fetched
+              each time. Nothing here is filtered by date. A market with few events has few sources
+              covering it, not a quiet quarter.
             </>
           ) : (
             <>
-              Counts are what the monitored feeds are carrying now, refreshed every three hours.
-              Nothing here is filtered by date.
+              Counts are what the monitored feeds are carrying now. Nothing here is filtered by
+              date.
             </>
           )}
         </p>
