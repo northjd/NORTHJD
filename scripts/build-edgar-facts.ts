@@ -20,13 +20,26 @@
  *     and is shown with both.
  *   - **No estimates, ever.** A company with no matching filer keeps an empty profile.
  *
- * Coverage is about a third of the tracked companies: US filers only, so Aldi,
- * Breuninger, Bestseller and Adyen are permanently outside it. That is a property of the
- * source, and the page already knows how to say a figure is missing.
+ * Coverage is about a third of the tracked companies, and it is no longer US-only.
+ * Foreign private issuers file a 20-F with the SEC under the `ifrs-full` taxonomy rather
+ * than a 10-K under `us-gaap`, and reading only the latter is what made this look like a
+ * US-only source: Stellantis, Nokia, Ericsson, Unilever, Novo Nordisk and British
+ * American Tobacco were all in EDGAR the whole time, in a shape the script did not read.
+ *
+ * They report in their own currency — DKK, SEK, GBP, EUR — which the first version would
+ * have rendered with a dollar sign. Every figure now carries the currency it was filed
+ * in, and no figure is ever converted: an exchange rate is a number we would have had to
+ * invent, and the rate on which date is a question with no honest default.
+ *
+ * Still outside it, and permanently: companies that file nowhere in the United States.
+ * Aldi, Migros, Breuninger, Bestseller and Rewe are private, or listed only in Europe, so
+ * EDGAR holds nothing on them at all. The page already knows how to say a figure is
+ * missing.
  */
 
 import { sql } from 'drizzle-orm';
 import { db } from '@mios/database';
+import { buildIndex, resolveFiler, type Filer } from './lib/edgar-matching';
 
 /*
  * SEC wants a contact address, and refuses anything else.
@@ -68,7 +81,33 @@ type Unit = {
   filed?: string;
   accn?: string;
   frame?: string;
+  /**
+   * The unit the value was filed in — `USD`, `EUR`, `SEK`, and for headcount `pure`.
+   *
+   * XBRL nests values under the unit, and the first version flattened that away. On a
+   * US filer nothing was lost; on Stellantis it would have printed €153.5bn as $153.5bn,
+   * which is a fabricated number wearing a real one's clothes.
+   */
+  currency: string;
 };
+
+/** Every value for a tag, each carrying the unit it was filed under. */
+function unitSeries(facts: any, taxonomy: string, tag: string): Unit[] {
+  const units = facts?.[taxonomy]?.[tag]?.units;
+  if (!units) return [];
+  return Object.entries(units).flatMap(([currency, list]) =>
+    (list as Omit<Unit, 'currency'>[]).map((u) => ({ ...u, currency })),
+  );
+}
+
+/**
+ * Annual report forms, across the two filer populations EDGAR holds.
+ *
+ * `10-K` is a domestic registrant, `20-F` a foreign private issuer and `40-F` a Canadian
+ * one under the multijurisdictional system. All three are the audited annual; a `6-K` is
+ * an interim furnished report and is deliberately absent.
+ */
+const ANNUAL_FORMS = new Set(['10-K', '20-F', '40-F']);
 
 const days = (a: string, b: string): number =>
   Math.round((Date.parse(b) - Date.parse(a)) / 86_400_000);
@@ -99,49 +138,90 @@ function annualFlow(
   facts: any,
   taxonomy: string,
   tags: readonly string[],
-  pinTo?: string,
+  pin?: { end?: string; currency?: string },
 ): Unit | null {
-  const bucket = facts?.[taxonomy];
-  if (!bucket) return null;
+  const perTag: Unit[] = [];
+
   for (const tag of tags) {
-    const units = bucket[tag]?.units;
-    if (!units) continue;
-    const series: Unit[] = (Object.values(units).flat() as Unit[]).filter(
+    const series = unitSeries(facts, taxonomy, tag).filter(
       (u) => u.start && days(u.start, u.end) >= 350 && days(u.start, u.end) <= 380,
     );
     const framed = series.filter((u) => /^CY\d{4}$/.test(u.frame ?? ''));
-    const annualReport = series.filter((u) => u.form === '10-K' && u.fp === 'FY');
+    const annualReport = series.filter((u) => ANNUAL_FORMS.has(u.form ?? '') && u.fp === 'FY');
     const pool = framed.length ? framed : annualReport;
     if (!pool.length) continue;
 
-    // Every measure must describe the same year, or the margin is two unrelated numbers
-    // divided and the panel reads as one period when it is several.
-    const scoped = pinTo ? pool.filter((u) => u.end === pinTo) : pool;
+    /*
+     * Every measure must describe the same year *and* the same currency.
+     *
+     * The year, or the margin is two unrelated numbers divided and the panel reads as
+     * one period when it is several. The currency, because a filer that also reports a
+     * USD convenience translation has both in the same tag, and revenue in euros over
+     * operating income in dollars is a ratio of nothing.
+     */
+    const scoped = pool.filter(
+      (u) => (!pin?.end || u.end === pin.end) && (!pin?.currency || u.currency === pin.currency),
+    );
     if (!scoped.length) continue;
-    return scoped.sort((a, b) => (a.end < b.end ? -1 : 1))[scoped.length - 1]!;
+    perTag.push(scoped.sort((a, b) => (a.end < b.end ? -1 : 1))[scoped.length - 1]!);
   }
-  return null;
+
+  if (!perTag.length) return null;
+
+  /*
+   * The newest year across the tags, not the first tag that has one.
+   *
+   * Companies change the concept they report revenue under, and the old tag keeps its
+   * history. Taking the first tag in the list meant NVIDIA reported a 2022 revenue and
+   * Kraft Heinz a 2014 one — not the latest filing, just the latest use of a tag they
+   * had stopped using. Both were then dropped by the staleness guard, so the page said
+   * "not available" about two of the best-documented companies in the corpus.
+   *
+   * List order still decides a tie, which is where it belongs: it encodes which concept
+   * is more specific, and that only matters between figures for the same year.
+   */
+  return perTag.reduce((best, u) => (u.end > best.end ? u : best));
 }
 
 /** Point-in-time values carry no duration, so they are selected on recency alone. */
 function latestPoint(facts: any, taxonomy: string, tags: readonly string[]): Unit | null {
-  const bucket = facts?.[taxonomy];
-  if (!bucket) return null;
   for (const tag of tags) {
-    const units = bucket[tag]?.units;
-    if (!units) continue;
-    const series: Unit[] = Object.values(units).flat() as Unit[];
+    const series = unitSeries(facts, taxonomy, tag);
     if (!series.length) continue;
     return series.sort((a, b) => (a.end < b.end ? -1 : 1))[series.length - 1]!;
   }
   return null;
 }
 
-const REVENUE_TAGS = [
-  'RevenueFromContractWithCustomerExcludingAssessedTax',
-  'Revenues',
-  'RevenueFromContractWithCustomerIncludingAssessedTax',
-  'SalesRevenueNet',
+/**
+ * The same three measures, named differently by the two accounting standards.
+ *
+ * Reading only the `us-gaap` set is what made this look like a US-only source. A foreign
+ * private issuer's 20-F is tagged under `ifrs-full`, where revenue is `Revenue` and
+ * operating income is `ProfitLossFromOperatingActivities`. Order matters within each
+ * list: the first tag that yields a clean consolidated annual wins, so the most specific
+ * concept comes first.
+ */
+const TAXONOMIES = [
+  {
+    name: 'us-gaap',
+    revenue: [
+      'RevenueFromContractWithCustomerExcludingAssessedTax',
+      'Revenues',
+      'RevenueFromContractWithCustomerIncludingAssessedTax',
+      'SalesRevenueNet',
+    ],
+    operating: ['OperatingIncomeLoss'],
+    net: ['NetIncomeLoss'],
+  },
+  {
+    name: 'ifrs-full',
+    revenue: ['RevenueFromContractsWithCustomers', 'Revenue'],
+    operating: ['ProfitLossFromOperatingActivities'],
+    // `ProfitLoss` is profit for the period including non-controlling interests, which
+    // is the line IFRS calls net profit. Not `ProfitLossBeforeTax`.
+    net: ['ProfitLoss'],
+  },
 ] as const;
 
 /** The year before `current`, from the same tag, so a growth rate compares like with like. */
@@ -151,17 +231,15 @@ function priorAnnual(
   tags: readonly string[],
   current: Unit,
 ): Unit | null {
-  const bucket = facts?.[taxonomy];
-  if (!bucket) return null;
   for (const tag of tags) {
-    const units = bucket[tag]?.units;
-    if (!units) continue;
-    const series: Unit[] = (Object.values(units).flat() as Unit[]).filter(
+    const series = unitSeries(facts, taxonomy, tag).filter(
       (u) =>
         u.start &&
         days(u.start, u.end) >= 350 &&
         days(u.start, u.end) <= 380 &&
-        (/^CY\d{4}$/.test(u.frame ?? '') || (u.form === '10-K' && u.fp === 'FY')) &&
+        (/^CY\d{4}$/.test(u.frame ?? '') || (ANNUAL_FORMS.has(u.form ?? '') && u.fp === 'FY')) &&
+        // Same currency, or the growth rate is an unstated exchange-rate movement.
+        u.currency === current.currency &&
         u.end < current.end,
     );
     if (!series.length) continue;
@@ -173,11 +251,32 @@ function priorAnnual(
   return null;
 }
 
-const money = (v: number): string => {
+/**
+ * The number, in the currency it was filed in — never converted.
+ *
+ * Converting would need a rate, and a rate needs a date: the balance-sheet date, the
+ * average for the year, today? Each gives a different answer and none of them is in the
+ * filing. So Novo Nordisk's revenue reads DKK 309.06bn, and a reader who wants dollars
+ * knows they are the one doing the conversion.
+ */
+const SYMBOL: Record<string, string> = { USD: '$', EUR: '\u20ac', GBP: '\u00a3', JPY: '\u00a5' };
+
+const money = (v: number, currency: string): string => {
+  const symbol = SYMBOL[currency];
   const abs = Math.abs(v);
-  if (abs >= 1e9) return `$${(v / 1e9).toFixed(2)}bn`;
-  if (abs >= 1e6) return `$${(v / 1e6).toFixed(0)}m`;
-  return `$${v.toLocaleString('en-GB')}`;
+  // Sign outside the unit: Stellantis's 2025 operating loss read "€-26.25bn", which
+  // looks like a typo rather than a number.
+  const sign = v < 0 ? '-' : '';
+  // A trillion tier, because NVIDIA's public float rendered as "$4000.00bn".
+  const magnitude =
+    abs >= 1e12
+      ? `${(abs / 1e12).toFixed(2)}tn`
+      : abs >= 1e9
+        ? `${(abs / 1e9).toFixed(2)}bn`
+        : abs >= 1e6
+          ? `${(abs / 1e6).toFixed(0)}m`
+          : abs.toLocaleString('en-GB');
+  return symbol ? `${sign}${symbol}${magnitude}` : `${sign}${currency} ${magnitude}`;
 };
 
 /** A link to the filing the number came from, so every figure is checkable in one click. */
@@ -213,69 +312,17 @@ async function main(): Promise<void> {
     );
     process.exit(0);
   }
-  const filers = Object.values(tickers) as { cik_str: number; ticker: string; title: string }[];
+  const filers = Object.values(tickers) as Filer[];
 
   /*
-   * The name decides. The ticker is not evidence.
+   * The name decides. The ticker corroborates. Neither alone is enough.
    *
-   * Matching on ticker attributed six companies' financials to entirely different
-   * businesses, because tickers are unique per exchange and not globally: Ahold Delhaize
-   * is AD in Amsterdam and Array Digital Infrastructure is AD in New York, Danone is BN
-   * in Paris and Brookfield is BN in Toronto, LVMH is MC in Paris and Moelis is MC in New
-   * York. Richemont, L'Oréal and Telstra collided the same way. Every one produced a
-   * plausible-looking revenue figure for the wrong company, which is the single worst
-   * thing this product could do.
-   *
-   * So a filer is accepted only when the names agree after folding diacritics, stripping
-   * apostrophes and dropping corporate suffixes. It fails closed: Google does not match
-   * Alphabet and simply keeps an empty profile, which costs one line of "not available"
-   * and no credibility.
+   * The rules, and the six mis-attributions that produced them, live in
+   * `scripts/lib/edgar-matching.ts` — extracted so those six can be regression tests
+   * rather than a comment nobody can run.
    */
-  const norm = (s: string): string =>
-    s
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/['\u2019]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9 ]/g, ' ')
-      .replace(
-        /\b(inc|corp|corporation|company|companies|co|plc|nv|sa|ag|se|group|holding|holdings|ltd|limited|the|de)\b/g,
-        ' ',
-      )
-      .replace(/\s+/g, ' ')
-      .trim();
-
-  const named = filers.map((f) => ({ ...f, key: norm(f.title) }));
-  const byName = new Map(named.map((f) => [f.key, f]));
-
-  const resolve = (entityName: string, ticker: string) => {
-    const key = norm(entityName);
-    if (!key) return null;
-    const exact = byName.get(key);
-    if (exact) return exact;
-    // A containment match needs enough characters to be meaningful; "on" inside
-    // "onsemi" is a coincidence, "philip morris international" inside a longer legal
-    // name is not.
-    /*
-     * Containment alone is not enough either.
-     *
-     * "coca cola hbc" is contained in nothing, but "coca cola" is contained in both the
-     * bottler and the brand owner — and the bottler was handed the brand owner's $47.9bn
-     * against its own ~€10bn. "valio" matched a shell with $780,000 of revenue. So the
-     * two names must also be close in length: a genuine variant differs by a suffix, not
-     * by half the string.
-     */
-    const candidates = named.filter((f) => {
-      if (key.length < 5 || f.key.length < 5) return false;
-      if (!f.key.includes(key) && !key.includes(f.key)) return false;
-      const shorter = Math.min(key.length, f.key.length);
-      const longer = Math.max(key.length, f.key.length);
-      return shorter / longer >= 0.75;
-    });
-    if (candidates.length === 1) return candidates[0]!;
-    // Several plausible names: the ticker is allowed to break the tie, never to make it.
-    return candidates.find((c) => c.ticker.toUpperCase() === ticker) ?? null;
-  };
+  const index = buildIndex(filers);
+  const refused: string[] = [];
 
   const entities = (
     await db().execute(sql`select id, slug, name, ticker from entities order by name`)
@@ -286,8 +333,11 @@ async function main(): Promise<void> {
   const stale: string[] = [];
 
   for (const e of entities) {
-    const filer = resolve(e.name, (e.ticker ?? '').toUpperCase());
-    if (!filer) continue;
+    const { filer, reason, detail } = resolveFiler(index, e.name, e.ticker);
+    if (!filer) {
+      if (reason === 'ambiguous') refused.push(`${e.name}: ${detail}`);
+      continue;
+    }
     matched++;
 
     const cik = String(filer.cik_str).padStart(10, '0');
@@ -296,17 +346,35 @@ async function main(): Promise<void> {
     if (!facts?.facts) continue;
 
     const f = facts.facts;
-    const revenue = annualFlow(f, 'us-gaap', REVENUE_TAGS);
+
+    /*
+     * Whichever standard the filer reports under, and only one of them.
+     *
+     * A dual filer can carry both taxonomies; taking the first that yields a clean
+     * consolidated annual keeps every measure on one basis, which is what makes the
+     * operating margin below a real ratio rather than an IFRS numerator over a US-GAAP
+     * denominator.
+     */
+    let standard: (typeof TAXONOMIES)[number] | null = null;
+    let revenue: Unit | null = null;
+    for (const candidate of TAXONOMIES) {
+      const found = annualFlow(f, candidate.name, candidate.revenue);
+      if (found) {
+        standard = candidate;
+        revenue = found;
+        break;
+      }
+    }
 
     /*
      * No revenue, no profile.
      *
      * Without a consolidated annual figure there is no period to pin the rest to, and an
      * operating income floating free of the revenue it was earned on is worse than
-     * silence. Foreign private issuers filing 20-F rather than 10-K land here, which is
-     * correct: EDGAR does not hold their consolidated annuals in this shape.
+     * silence. What lands here now is a filer with no annual in either taxonomy —
+     * typically an unsponsored ADR line that has a ticker and no filings of its own.
      */
-    if (!revenue) continue;
+    if (!revenue || !standard) continue;
 
     /*
      * Stale means wrong, here.
@@ -324,10 +392,10 @@ async function main(): Promise<void> {
       continue;
     }
 
-    const period = revenue.end;
+    const pin = { end: revenue.end, currency: revenue.currency };
 
-    const operating = annualFlow(f, 'us-gaap', ['OperatingIncomeLoss'], period);
-    const net = annualFlow(f, 'us-gaap', ['NetIncomeLoss'], period);
+    const operating = annualFlow(f, standard.name, standard.operating, pin);
+    const net = annualFlow(f, standard.name, standard.net, pin);
     const float = latestPoint(f, 'dei', ['EntityPublicFloat']);
     const employees = latestPoint(f, 'dei', ['EntityNumberOfEmployees']);
 
@@ -341,7 +409,7 @@ async function main(): Promise<void> {
       });
     };
 
-    add('Latest annual revenue', revenue, (u) => money(u.val));
+    add('Latest annual revenue', revenue, (u) => money(u.val, u.currency));
 
     /*
      * Growth from two filed revenues, never from one.
@@ -350,29 +418,29 @@ async function main(): Promise<void> {
      * computed when the prior year comes from the same tag — comparing a figure filed
      * under one revenue concept against another is how a restatement becomes a trend.
      */
-    const prior = priorAnnual(f, 'us-gaap', REVENUE_TAGS, revenue);
+    const prior = priorAnnual(f, standard.name, standard.revenue, revenue);
     if (prior && prior.val > 0) {
       const pct = ((revenue.val - prior.val) / prior.val) * 100;
       profile.push({
         label: 'Revenue growth',
-        value: `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}% — ${money(prior.val)} (FY ${prior.end}) to ${money(revenue.val)} (FY ${revenue.end})`,
+        value: `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}% — ${money(prior.val, prior.currency)} (FY ${prior.end}) to ${money(revenue.val, revenue.currency)} (FY ${revenue.end})`,
         sourceUrl: filingUrl(cik, revenue),
       });
     }
-    add('Operating income', operating, (u) => money(u.val));
-    add('Net income', net, (u) => money(u.val));
+    add('Operating income', operating, (u) => money(u.val, u.currency));
+    add('Net income', net, (u) => money(u.val, u.currency));
 
     // Two filed numbers divided, shown with both, rather than a ratio out of nowhere.
     if (operating && revenue.val > 0) {
       profile.push({
         label: 'Operating margin',
-        value: `${((operating.val / revenue.val) * 100).toFixed(1)}% — ${money(operating.val)} on ${money(revenue.val)}, FY ending ${revenue.end}`,
+        value: `${((operating.val / revenue.val) * 100).toFixed(1)}% — ${money(operating.val, operating.currency)} on ${money(revenue.val, revenue.currency)}, FY ending ${revenue.end}`,
         sourceUrl: filingUrl(cik, revenue),
       });
     }
 
     // Deliberately not called market capitalisation: it is the non-affiliate holding.
-    add('Public float', float, (u) => money(u.val));
+    add('Public float', float, (u) => money(u.val, u.currency));
     add('Employees', employees, (u) => u.val.toLocaleString('en-GB'));
 
     if (profile.length === 0) continue;
@@ -389,6 +457,12 @@ async function main(): Promise<void> {
   console.log(
     `[edgar] ${matched} of ${entities.length} companies matched a filer · ${written} profiles written`,
   );
+  if (refused.length) {
+    // Named rather than counted: a refusal is usually right, and when it is not, the
+    // line says which company to look at.
+    console.log(`[edgar] ${refused.length} refused as ambiguous:`);
+    for (const r of refused) console.log(`          ${r}`);
+  }
   if (written === 0) {
     warn('Connected to EDGAR but wrote no profiles — the matcher found nothing it trusts.');
   }
