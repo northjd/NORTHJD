@@ -323,7 +323,13 @@ including Ahold Delhaize (€92.35bn), L'Oréal (€44.05bn), Heineken (€34.26
 (€27.38bn), Capgemini (€22.10bn), Kering (€19.57bn), Philips (€17.83bn) and Adyen
 (€2.65bn) — every one of which the previous entry described as unreachable.
 
-Three things this had to get right, all found by looking at real filings:
+Four things this had to get right, three of them found by looking at real filings and
+one by clicking a link after it had already deployed:
+
+- **The viewer URL comes from the API.** Deriving it from the JSON filename dropped a
+  `<report-name>/reports/` segment, so every one of the seventeen "filing" links was a
+  404 — on a page whose entire claim is that each figure links to the document it came
+  from. It shipped that way for one build. The integration suite now asserts the shape.
 
 - **Group figures, not parent-only ones.** The Maersk A/S filing tags all 230 of its
   facts with `ConsolidatedAndSeparateFinancialStatementsAxis = SeparateMember` — the

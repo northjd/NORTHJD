@@ -198,7 +198,13 @@ interface EntityRow {
   attributes: { identifier: string | null; name: string | null };
 }
 interface FilingRow {
-  attributes: { period_end: string; country: string; json_url: string | null };
+  attributes: {
+    period_end: string;
+    country: string;
+    json_url: string | null;
+    /** The Inline XBRL viewer for this filing. Given by the API — never constructed. */
+    viewer_url: string | null;
+  };
 }
 
 async function main(): Promise<void> {
@@ -263,9 +269,18 @@ async function main(): Promise<void> {
     const filings = await get<{ data: FilingRow[] }>(`/api/entities/${lei}/filings`);
     const candidates = (filings?.data ?? [])
       .filter((f) => f.attributes.json_url)
-      .sort((a, b) => (a.attributes.period_end < b.attributes.period_end ? 1 : -1));
-    const latest = candidates[0];
-    if (!latest) continue;
+      .sort((a, b) => {
+        // Newest first; among filings for the same period, the English rendering.
+        // Finnish and Nordic issuers file the same report twice, once in each language,
+        // and taking whichever the index happened to return first gave Kesko a set of
+        // Finnish labels.
+        if (a.attributes.period_end !== b.attributes.period_end) {
+          return a.attributes.period_end < b.attributes.period_end ? 1 : -1;
+        }
+        const english = (f: FilingRow) => (/-en\b|-en\./.test(f.attributes.json_url ?? '') ? 0 : 1);
+        return english(a) - english(b);
+      });
+    if (candidates.length === 0) continue;
 
     /*
      * Stale means wrong, here — the same rule EDGAR uses.
@@ -274,22 +289,40 @@ async function main(): Promise<void> {
      * has an entry. A four-year-old revenue on a page headed "latest annual" is a false
      * statement however carefully it is dated.
      */
-    const ageYears =
-      (Date.now() - Date.parse(latest.attributes.period_end)) / (365.25 * 86_400_000);
+    const newest = candidates[0]!.attributes.period_end;
+    const ageYears = (Date.now() - Date.parse(newest)) / (365.25 * 86_400_000);
     if (ageYears > 3) {
-      stale.push(`${e.name} (latest filing was ${latest.attributes.period_end})`);
+      stale.push(`${e.name} (latest filing was ${newest})`);
       continue;
     }
 
-    await sleep(GAP_MS);
-    const report = await get<{ facts: Record<string, JsonFact> }>(
-      `${BASE}${latest.attributes.json_url}`,
-    );
-    if (!report?.facts) continue;
-
-    const facts = Object.values(report.facts);
-    const revenue = annualSeries(facts, REVENUE);
-    if (revenue.length === 0) continue;
+    /*
+     * Work down the filings until one yields a consolidated annual, rather than giving
+     * up on the newest.
+     *
+     * The index carries interim reports alongside annual ones — Carlsberg's most recent
+     * entry is a half-year — and some filings tag their primary statements in a shape
+     * this cannot read. Both are reasons to look at the year before, not reasons to
+     * leave the company blank.
+     */
+    let chosen: FilingRow | null = null;
+    let revenue: AnnualFact[] = [];
+    let facts: JsonFact[] = [];
+    for (const candidate of candidates.slice(0, 4)) {
+      await sleep(GAP_MS);
+      const report = await get<{ facts: Record<string, JsonFact> }>(
+        `${BASE}${candidate.attributes.json_url}`,
+      );
+      if (!report?.facts) continue;
+      const parsed = Object.values(report.facts);
+      const series = annualSeries(parsed, REVENUE);
+      if (series.length === 0) continue;
+      chosen = candidate;
+      revenue = series;
+      facts = parsed;
+      break;
+    }
+    if (!chosen || revenue.length === 0) continue;
     const current = revenue[0]!;
 
     // Every measure on the same year and the same currency, or the margin below is two
@@ -299,7 +332,18 @@ async function main(): Promise<void> {
     const operating = sameYear(annualSeries(facts, OPERATING));
     const net = sameYear(annualSeries(facts, NET));
 
-    const viewer = `${BASE}${latest.attributes.json_url!.replace(/\/[^/]+\.json$/, '/ixbrlviewer.html')}`;
+    /*
+     * The viewer URL the API gives, not one derived from the JSON path.
+     *
+     * Deriving it produced a 404 on every single figure: the real path carries an extra
+     * `<report-name>/reports/` segment that a filename substitution cannot know about.
+     * A page whose whole claim is "every figure links to the filing it came from" cannot
+     * afford a link that does not resolve, and this one was published before anyone
+     * clicked it.
+     */
+    const viewer = chosen.attributes.viewer_url
+      ? `${BASE}${chosen.attributes.viewer_url}`
+      : `${BASE}/${lei}`;
     const profile: { label: string; value: string; sourceUrl: string }[] = [
       {
         label: 'Latest annual revenue',

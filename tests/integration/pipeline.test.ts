@@ -425,6 +425,15 @@ describe('company financials', () => {
     for (const row of rows) {
       const expected = row.cik ? 'sec.gov' : 'filings.xbrl.org';
       expect(row.url, `${row.name} (cik=${row.cik ?? 'none'})`).toContain(expected);
+      /*
+       * And an ESEF link must point at the viewer the index gave us.
+       *
+       * The first version derived this path from the JSON filename and dropped a
+       * `<report-name>/reports/` segment, so all seventeen were 404 — published on a
+       * page whose whole claim is that every figure links to the filing it came from.
+       * Nobody clicked one until after it deployed.
+       */
+      if (!row.cik) expect(row.url, row.name).toContain('/reports/ixbrlviewer.html');
     }
   });
 
