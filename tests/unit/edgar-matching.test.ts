@@ -93,14 +93,17 @@ describe('name parsing', () => {
     expect(parseCompanyName('Stellantis N.V.')).toEqual({
       key: 'stellantis',
       forms: new Set(['nl']),
+      isHolding: false,
     });
     expect(parseCompanyName('British American Tobacco p.l.c.')).toEqual({
       key: 'british american tobacco',
       forms: new Set(['uk']),
+      isHolding: false,
     });
     expect(parseCompanyName('NOVO NORDISK A S')).toEqual({
       key: 'novo nordisk',
       forms: new Set(['scandinavian']),
+      isHolding: false,
     });
   });
 
@@ -132,6 +135,45 @@ describe('the ticker confirms a name, it never supplies one', () => {
 
   it('refuses a bare ticker match with no name overlap at all', () => {
     expect(resolve('Aviation Industries', 'AIR')).toBeNull();
+  });
+});
+
+describe('a holding company is a different company', () => {
+  const esef = buildIndex([
+    { cik_str: 1, ticker: '', title: 'NESTLE HOLDINGS, INC.' },
+    { cik_str: 2, ticker: '', title: 'Heineken Holding N.V.' },
+    { cik_str: 3, ticker: 'ONON', title: 'On Holding AG' },
+    { cik_str: 4, ticker: '', title: 'Colruyt Group' },
+  ]);
+
+  it('refuses the financing subsidiary when asked about the parent', () => {
+    // Nestlé S.A. is the Swiss parent; NESTLE HOLDINGS, INC. is its US financing arm.
+    // Treating "holdings" as filler matched them and would have published one company's
+    // revenue under the other's name.
+    expect(resolveFiler(esef, 'Nestlé', null).filer).toBeNull();
+  });
+
+  it('refuses the holding when asked about the operating company', () => {
+    // Heineken Holding N.V. and Heineken N.V. are separate registrants.
+    expect(resolveFiler(esef, 'Heineken', 'HEIA').filer).toBeNull();
+  });
+
+  it('accepts it when the ticker agrees on both sides', () => {
+    // On Holding AG is the company; ONON is its only listing.
+    expect(resolveFiler(esef, 'On', 'ONON').filer?.title).toBe('On Holding AG');
+  });
+
+  it('leaves "Group" alone, which usually names the parent we want', () => {
+    expect(resolveFiler(esef, 'Colruyt Group', null).filer?.title).toBe('Colruyt Group');
+    expect(resolveFiler(esef, 'Colruyt', null).filer?.title).toBe('Colruyt Group');
+  });
+});
+
+describe('a registry with holes in it', () => {
+  it('parses a missing name instead of throwing on it', () => {
+    // 36 of the 7,357 entities in the ESEF index have a null name.
+    expect(parseCompanyName(null).key).toBe('');
+    expect(parseCompanyName(undefined).key).toBe('');
   });
 });
 

@@ -366,6 +366,89 @@ describe('corpus retention', () => {
   });
 });
 
+/**
+ * Filed financials, from two regulatory registers.
+ *
+ * The rule the brief set is absolute — do not estimate, do not invent — so these check
+ * the property that matters: every figure on a company page came from a filing, carries
+ * the currency it was filed in, and links back to the document.
+ */
+describe('company financials', () => {
+  it('gives every figure a period, a currency and a source', async () => {
+    if (!reachable) return;
+    const { rows } = await db().execute<{
+      name: string;
+      label: string;
+      value: string;
+      url: string;
+    }>(
+      sql`select en.name, f->>'label' as label, f->>'value' as value, f->>'sourceUrl' as url
+            from entities en, jsonb_array_elements(en.public_profile) f
+           where jsonb_typeof(en.public_profile) = 'array'`,
+    );
+    // Guard against a vacuous pass: an empty corpus satisfies every loop below.
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      // "FY ending 2025-12-31" or "(FY 2024-12-31) to". Either way, a dated period.
+      expect(row.value, `${row.name} — ${row.label}`).toMatch(/\d{4}-\d{2}-\d{2}/);
+      expect(row.url, `${row.name} — ${row.label}`).toMatch(/^https:\/\//);
+    }
+  });
+
+  it('never converts a currency', async () => {
+    if (!reachable) return;
+    // A figure filed in kroner is shown in kroner. Converting needs an exchange rate,
+    // and a rate needs a date the filing does not give — the balance-sheet date, the
+    // average for the year, today? Each gives a different answer.
+    const { rows } = await db().execute<{ name: string; value: string }>(
+      sql`select en.name, f->>'value' as value
+            from entities en, jsonb_array_elements(en.public_profile) f
+           where jsonb_typeof(en.public_profile) = 'array'
+             and f->>'label' = 'Latest annual revenue'`,
+    );
+    for (const row of rows) {
+      // One currency marker, at the front: a symbol or a three-letter code.
+      expect(row.value, row.name).toMatch(/^-?([$€£¥]|[A-Z]{3} )/);
+    }
+  });
+
+  it('draws SEC figures from sec.gov and European ones from the ESEF index', async () => {
+    if (!reachable) return;
+    // `cik` is set only by the EDGAR script, so it is what separates the two sources.
+    // A profile whose figures point somewhere else means a connector wrote a link it
+    // cannot support.
+    const { rows } = await db().execute<{ name: string; cik: string | null; url: string }>(
+      sql`select en.name, en.cik, f->>'sourceUrl' as url
+            from entities en, jsonb_array_elements(en.public_profile) f
+           where jsonb_typeof(en.public_profile) = 'array'`,
+    );
+    for (const row of rows) {
+      const expected = row.cik ? 'sec.gov' : 'filings.xbrl.org';
+      expect(row.url, `${row.name} (cik=${row.cik ?? 'none'})`).toContain(expected);
+    }
+  });
+
+  it('holds nothing older than three years', async () => {
+    if (!reachable) return;
+    // Kraft Heinz once resolved to a 2014 revenue and NVIDIA to 2022 — not the latest
+    // filing, just the latest use of a tag they had stopped using. A twelve-year-old
+    // figure on a page headed "latest annual" is a false statement however carefully it
+    // is dated.
+    const { rows } = await db().execute<{ name: string; value: string }>(
+      sql`select en.name, f->>'value' as value
+            from entities en, jsonb_array_elements(en.public_profile) f
+           where jsonb_typeof(en.public_profile) = 'array'
+             and f->>'label' = 'Latest annual revenue'`,
+    );
+    const cutoff = Date.now() - 3 * 365.25 * 86_400_000;
+    for (const row of rows) {
+      const date = row.value.match(/(\d{4}-\d{2}-\d{2})/)?.[1];
+      expect(date, row.name).toBeDefined();
+      expect(Date.parse(date!), `${row.name} reports ${date}`).toBeGreaterThan(cutoff);
+    }
+  });
+});
+
 describe('teardown', () => {
   it('closes the connection', async () => {
     await closeDb();

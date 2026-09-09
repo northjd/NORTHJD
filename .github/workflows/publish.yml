@@ -129,6 +129,22 @@ jobs:
           # step works without anyone having to configure anything first.
           SEC_CONTACT_EMAIL: ${{ secrets.SEC_CONTACT_EMAIL || 'jan.diederichs@accenture.com' }}
 
+      # The European half of the same job. ESEF has required every issuer on an EU
+      # regulated market to file its annual report as Inline XBRL since 2020, and XBRL
+      # International republishes those filings as xBRL-JSON at filings.xbrl.org, under
+      # terms that state there are no restrictions on how the data may be used.
+      #
+      # Runs after EDGAR and never overwrites it: a company filing both a 20-F and an
+      # ESEF report keeps the SEC figures, whose "filing" link points at the SEC.
+      - name: Fetch European company financials
+        run: npm run build:esef
+        env:
+          DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+          # No contact address is required here — unlike the SEC, filings.xbrl.org does
+          # not refuse an anonymous agent. Sent anyway when it is set, because a bot
+          # someone can reach is a better citizen than one they cannot.
+          SEC_CONTACT_EMAIL: ${{ secrets.SEC_CONTACT_EMAIL || 'jan.diederichs@accenture.com' }}
+
       # Fetches the sources. This is the step that makes the published site current, and
       # the only one that touches the network on purpose.
       - name: Ingest

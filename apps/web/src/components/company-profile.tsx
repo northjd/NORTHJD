@@ -40,10 +40,12 @@ export function CompanyProfileBlock({ profile }: { profile: CompanyProfile }) {
         <div className="mt-5 border-t border-[var(--border)] pt-4">
           <p className="t-section">Reported financials</p>
           <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--text-subtle)]">
-            From the company&rsquo;s own annual filing to the SEC — a 10-K for a US registrant, a
-            20-F for a European one. Each figure carries its reporting period, the currency it was
-            filed in, and a link to the filing it came from. Nothing here is estimated and nothing
-            is converted: an exchange rate would need a date the filing does not give.
+            {financialKnown.some((f) => f.source?.includes('sec.gov'))
+              ? 'From the company’s own annual filing to the SEC — a 10-K for a US registrant, a 20-F for a foreign one.'
+              : 'From the company’s own annual report, filed in ESEF — the format every issuer on an EU regulated market has had to publish in since 2020.'}{' '}
+            Each figure carries its reporting period, the currency it was filed in, and a link to
+            the filing it came from. Nothing here is estimated and nothing is converted: an exchange
+            rate would need a date the filing does not give.
           </p>
           <dl className="mt-3 grid gap-x-8 gap-y-4 sm:grid-cols-2">
             {financialKnown.map((f) => (

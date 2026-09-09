@@ -667,14 +667,15 @@ export interface CompanyProfile {
  * for exactly these figures, annotated "only what a public source states, never inferred
  * financials", and it is empty.
  *
- * Two ways to fill it were examined and rejected today rather than quietly fudged.
- * Wikidata carries revenue and headcount for most large companies, but its statements are
- * years stale — it returns H&M's revenue as the 2014 figure, and a 2014 number on a 2026
- * page is worse than a blank one because it looks like an answer. SEC EDGAR is current
- * and authoritative but covers US filers only, which excludes Migros, Coop, Aldi, Rewe
- * and Breuninger — precisely the companies this practice cares about.
+ * Wikidata was examined and rejected rather than quietly fudged: it carries revenue and
+ * headcount for most large companies, but its statements are years stale — it returns
+ * H&M's revenue as the 2014 figure, and a 2014 number on a 2026 page is worse than a
+ * blank one because it looks like an answer.
  *
- * So every financial field returns `null` with the reason it is null. That is the
+ * Two regulatory sources fill it now, and between them they cover 49 of 119 companies:
+ * SEC EDGAR for anyone filing a 10-K or 20-F in the United States, and ESEF — the
+ * European Single Electronic Format — for issuers on an EU regulated market. Every
+ * remaining financial field returns `null` with the reason it is null. That is the
  * behaviour the brief asked for: do not estimate, do not invent, say what is not there.
  */
 export async function queryCompanyProfile(slug: string): Promise<CompanyProfile | null> {
@@ -737,15 +738,21 @@ export async function queryCompanyProfile(slug: string): Promise<CompanyProfile 
   /*
    * Two different absences, and they are not the same statement.
    *
-   * A US filer with no figure means the tag was not filed or the value was too stale to
-   * trust; a non-filer means EDGAR does not hold it at all and never will. Saying "no
-   * monitored source publishes company financials" was true before the EDGAR connector
-   * and is now false for a third of the list, so the reason has to distinguish them.
+   * A filer with no figure means the tag was not filed under that concept, or the value
+   * was too stale to trust; a non-filer means neither register holds it. Saying "no
+   * monitored source publishes company financials" was true before the connectors and is
+   * now false for 49 of 119 companies, so the reason has to distinguish them.
+   *
+   * The non-filer sentence names what would change it, because for these companies
+   * something might. Aldi, Migros, Breuninger and Rewe are private or co-operative and
+   * file nothing on any regulated market — but several of them do file annual accounts
+   * with a national register, which is a connector nobody has written rather than a fact
+   * about the world.
    */
   const isFiler = (row.publicProfile ?? []).length > 0;
   const NOT_FILED = isFiler
     ? 'Not reported under this concept in the company’s latest annual filing.'
-    : 'EDGAR covers US filers, and this company is not one. No monitored source publishes its financials — a national-register or investor-relations connector would.';
+    : 'This company files neither with the SEC nor on an EU regulated market, so neither register holds its accounts. A national business register — Germany’s Bundesanzeiger, Denmark’s Erhvervsstyrelsen — is where a private company’s figures would come from.';
 
   return {
     identity: [

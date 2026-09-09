@@ -49,7 +49,7 @@ clean production build.
 
 ## Next
 
-_Last reviewed 2026-09-08 (twice). Items are ordered by what limits the product now._
+_Last reviewed 2026-09-09. Items are ordered by what limits the product now._
 
 ### Delivered since the last review
 
@@ -158,11 +158,12 @@ comparing them handed one the other's accounts. Two forms that disagree mean two
 companies. A ticker may confirm a name overlap and never create one; all six historical
 mis-attributions are held as regression tests in `tests/unit/edgar-matching.test.ts`.
 
-**What remains genuinely out of reach:** Aldi, Migros, Breuninger, Bestseller and Rewe
-file nowhere in the United States, and there is no free, licence-clean, structured
-financials API for private or Europe-only-listed companies. Investor-relations feeds
-carry press releases, not tagged accounts. Anything else would be estimation, which the
-brief forbids.
+**A claim in this section was wrong, and it was corrected by checking rather than by
+thinking harder.** It read: "there is no free, licence-clean, structured financials API
+for private or Europe-only-listed companies", and named Adyen as permanently out of
+reach. Adyen files a full ESEF annual report every year, downloadable as tagged
+xBRL-JSON, in euros, without a key. See item 10 — the error was checking one source,
+finding it worked, and generalising from it.
 
 ### 5. ~~One source for Public Sector~~ — done
 
@@ -303,6 +304,62 @@ controls dropped too, where the verdict was already right but the ratio was infl
 One control still answers: _Who won the 1998 World Cup final?_ at 0.80. Its words really
 are in the corpus, just not together — the limit of measuring coverage by term presence
 rather than meaning, and not something this change should paper over.
+
+### 10. ~~"Why only look in the US?"~~ — because I only looked in the US
+
+A fair question, asked after item 4 claimed no free structured source existed for
+European companies. The claim was wrong, and wrong in the way that is hardest to catch:
+EDGAR was checked, it worked, and everything else was assumed to be unlike it.
+
+**ESEF** — the European Single Electronic Format — has required every issuer on an EU
+regulated market to file its annual report as Inline XBRL since 2020. XBRL International
+indexes those filings at `filings.xbrl.org` and republishes each as xBRL-JSON. Their
+stated terms: _"At present, there are no restrictions on the ways that the data can be
+used."_ It uses the same `ifrs-full` taxonomy the EDGAR script already reads for 20-F
+filers, so `Revenue` means there what it means here.
+
+**19 → 32 → 49 of 119 companies** now carry filed financials. Seventeen came from this,
+including Ahold Delhaize (€92.35bn), L'Oréal (€44.05bn), Heineken (€34.26bn), Danone
+(€27.38bn), Capgemini (€22.10bn), Kering (€19.57bn), Philips (€17.83bn) and Adyen
+(€2.65bn) — every one of which the previous entry described as unreachable.
+
+Three things this had to get right, all found by looking at real filings:
+
+- **Group figures, not parent-only ones.** The Maersk A/S filing tags all 230 of its
+  facts with `ConsolidatedAndSeparateFinancialStatementsAxis = SeparateMember` — the
+  parent company's standalone accounts, $36.96bn of revenue where the group reports
+  around $56bn. A real number describing the wrong thing. Only undimensioned facts and
+  those explicitly marked `ConsolidatedMember` are read.
+- **"Holding" is not filler.** Dropping it matched our Nestlé to NESTLE HOLDINGS, INC. —
+  a US financing subsidiary — and our Heineken to Heineken Holding N.V. rather than
+  Heineken N.V. It now behaves like a legal form: when only one side carries it, a
+  ticker has to say they are the same company. Heineken resolves to Heineken N.V.
+- **Refresh, not write-once.** The skip is keyed on `cik`, which only EDGAR sets. Keying
+  it on "has a profile" would have skipped everything this script wrote on its own
+  previous run — and now that the corpus survives between runs, those figures would have
+  frozen at whatever year they were first written in.
+
+**What is genuinely still missing, and why:**
+
+- **Germany is in the index but its filings are not.** adidas, Puma, Zalando and Henkel
+  have entity records at filings.xbrl.org with **zero filings** attached. Only some
+  national officially-appointed mechanisms expose an API the index can harvest, and
+  Germany's is not among them. Nothing here can fix that; a Bundesanzeiger connector
+  could.
+- **Spain likewise** — Inditex is absent entirely.
+- **Non-EU Europe has no ESEF at all.** Richemont, Swatch and Migros are Swiss.
+- **Private companies file nationally or not at all.** Aldi, Breuninger, Rewe, Edeka,
+  dm and Rossmann file annual accounts with the Bundesanzeiger, free to read since 2022
+  but not offered as structured data. Bestseller and LEGO file with Denmark's
+  Erhvervsstyrelsen, which does publish XBRL — the closest remaining target. Migros and
+  Coop are Swiss co-operatives with no filing obligation at all; they publish PDFs
+  voluntarily.
+- **Six more are in the index and the matcher cannot reach them**: LVMH ("LVMH MOET
+  HENNESSY LOUIS VUITTON"), Hermès ("HERMES INTERNATIONAL"), Campari ("DAVIDE
+  CAMPARI-MILANO N.V."), H&M ("H & M Hennes & Mauritz AB", whose initials vanish under a
+  rule that drops single letters). These want curated aliases, which the entity model
+  already supports — not looser matching rules, which is how six companies got the wrong
+  accounts in the first place.
 
 ### Documentation debt
 
