@@ -391,7 +391,13 @@ describe('company financials', () => {
     for (const row of rows) {
       // "FY ending 2025-12-31" or "(FY 2024-12-31) to". Either way, a dated period.
       expect(row.value, `${row.name} — ${row.label}`).toMatch(/\d{4}-\d{2}-\d{2}/);
-      expect(row.url, `${row.name} — ${row.label}`).toMatch(/^https:\/\//);
+      // http is allowed for one register only. Denmark's `virk.dk` does not serve TLS at
+      // all — port 443 times out rather than redirecting — and it is the only route to a
+      // private European company's accounts. Recorded here so that an http link
+      // appearing anywhere else fails.
+      expect(row.url, `${row.name} — ${row.label}`).toMatch(
+        /^(https:\/\/|http:\/\/[a-z]+\.virk\.dk\/)/,
+      );
     }
   });
 
@@ -412,19 +418,32 @@ describe('company financials', () => {
     }
   });
 
-  it('draws SEC figures from sec.gov and European ones from the ESEF index', async () => {
+  it('links each figure to the register that holds the identifier it was found by', async () => {
     if (!reachable) return;
-    // `cik` is set only by the EDGAR script, so it is what separates the two sources.
-    // A profile whose figures point somewhere else means a connector wrote a link it
-    // cannot support.
-    const { rows } = await db().execute<{ name: string; cik: string | null; url: string }>(
-      sql`select en.name, en.cik, f->>'sourceUrl' as url
+    /*
+     * Three registers, and each writes an identifier that says which one it was.
+     *
+     * `cik` is set only by the EDGAR script; `registration_number` is curated in the
+     * seed and only the Danish connector reads it; ESEF matches on the name and sets
+     * neither. A figure pointing somewhere that does not match its identifier means a
+     * connector wrote a link it cannot support.
+     */
+    const { rows } = await db().execute<{
+      name: string;
+      cik: string | null;
+      reg: string | null;
+      url: string;
+    }>(
+      sql`select en.name, nullif(en.cik, '') as cik,
+                 nullif(en.registration_number, '') as reg,
+                 f->>'sourceUrl' as url
             from entities en, jsonb_array_elements(en.public_profile) f
            where jsonb_typeof(en.public_profile) = 'array'`,
     );
+    expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) {
-      const expected = row.cik ? 'sec.gov' : 'filings.xbrl.org';
-      expect(row.url, `${row.name} (cik=${row.cik ?? 'none'})`).toContain(expected);
+      const expected = row.cik ? 'sec.gov' : row.reg ? 'virk.dk' : 'filings.xbrl.org';
+      expect(row.url, `${row.name} (cik=${row.cik}, reg=${row.reg})`).toContain(expected);
       /*
        * And an ESEF link must point at the viewer the index gave us.
        *
@@ -433,7 +452,7 @@ describe('company financials', () => {
        * page whose whole claim is that every figure links to the filing it came from.
        * Nobody clicked one until after it deployed.
        */
-      if (!row.cik) expect(row.url, row.name).toContain('/reports/ixbrlviewer.html');
+      if (!row.cik && !row.reg) expect(row.url, row.name).toContain('/reports/ixbrlviewer.html');
     }
   });
 

@@ -19,6 +19,16 @@ export interface EntitySeed {
   description: string;
   officialDomain: string;
   ticker?: string;
+  /**
+   * The company's number in its national business register.
+   *
+   * Only for companies whose accounts are reachable only that way — a private European
+   * company files nothing on a regulated market, so neither EDGAR nor ESEF holds it.
+   * Verified by hand against the register before it goes in: a wrong number here is
+   * another company's revenue under this one's name, which is the failure the whole
+   * matching apparatus exists to prevent.
+   */
+  registrationNumber?: string;
   hq?: string;
   primaryIndustrySlug?: string;
   industrySlugs?: string[];
@@ -1765,6 +1775,10 @@ export const ENTITIES: EntitySeed[] = [
     slug: 'bestseller',
     kind: 'company',
     name: 'Bestseller',
+    legalName: 'BESTSELLER A/S',
+    // Danish CVR. Verified against the register: 31 filings, the newest for the year
+    // ending 2025-07-31 reporting DKK 38.07bn of consolidated revenue and 21,638 staff.
+    registrationNumber: '88216512',
     description:
       'Danish family-owned fashion group behind Jack & Jones, Vero Moda and Only, and a major Zalando shareholder.',
     officialDomain: 'bestseller.com',

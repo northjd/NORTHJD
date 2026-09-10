@@ -431,6 +431,7 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
         description: ent.description,
         officialDomain: ent.officialDomain,
         ticker: ent.ticker ?? '',
+        registrationNumber: ent.registrationNumber ?? '',
         headquartersGeographySlug: ent.hq ?? '',
         primaryIndustrySlug: undefined as never,
         primaryIndustryId: ent.primaryIndustrySlug
@@ -463,6 +464,7 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
           description: ent.description,
           officialDomain: ent.officialDomain,
           ticker: ent.ticker ?? '',
+          registrationNumber: ent.registrationNumber ?? '',
           headquartersGeographySlug: ent.hq ?? '',
           businessModelSlug: ent.businessModelSlug ?? '',
           primaryIndustryId: ent.primaryIndustrySlug

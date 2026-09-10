@@ -345,27 +345,67 @@ one by clicking a link after it had already deployed:
   previous run — and now that the corpus survives between runs, those figures would have
   frozen at whatever year they were first written in.
 
+**Then a third register, and a fourth correction.** Resolving on the registered name
+rather than the display name reached H&M ("H & M Hennes & Mauritz AB"), Inditex
+("Industria de Diseño Textil, S.A.") and LVMH, and corrected Maersk — which had matched
+"Maersk A/S", a subsidiary filing parent-only accounts of DKK 36.96bn where the group
+reports $53.99bn. The seed already carried those registered names for thirty companies
+and nothing was reading them. **Spain was never absent from the index**; the earlier
+entry said so because it was searched for "Inditex", which is not what Inditex is
+registered as.
+
+Two silent failures surfaced doing it. The ESEF script declared `legalName` in its row
+type and never selected the column, so every lookup fell through to the display name —
+a `as` cast on a raw SQL result asserts a shape the query does not deliver, and
+TypeScript cannot catch that. And the seed's upsert updated only name, description,
+domain, kind and `isDemo`, so adding a registered name for Hermès changed nothing at all
+and nothing said so. That was survivable while every run began from an empty database;
+now the corpus is carried between runs it means any curated field added after the first
+run silently never lands.
+
+**Denmark, for the companies nobody lists.** Danish law requires annual accounts from
+every company, listed or not, and Erhvervsstyrelsen publishes both the filing index and
+the XBRL with no key. **Bestseller** — private, family-owned, DKK 38.07bn of revenue,
+15.6% operating margin and 21,638 staff — is reachable this way and no other. It is one
+company, and worth saying so plainly; it is also the archetype of everything the two
+market registers structurally cannot see.
+
+Two things to know before touching it. The consolidation rule is the **opposite** of the
+ESEF one: an undimensioned fact here is the parent company alone (DKK 20.6bn) and the
+group figure is the one carrying `cmn:ConsolidatedMember` (DKK 38.1bn), so reusing the
+ESEF logic would publish a real number describing the wrong company. And `virk.dk`
+serves **no TLS at all** — port 443 times out rather than redirecting. These are public
+regulatory filings so nothing confidential is in transit, but there is no transport
+integrity either, and the integration suite pins http to that one host so it cannot
+spread.
+
+Which companies it looks at is deliberately narrow: only those carrying a hand-verified
+`registration_number`. There is no name matching, because a Danish register search
+returns dormant holding shells with the right name — LEGO Holding A/S files three
+employees and no revenue, and LEGO A/S, the real group parent, tags **two concepts in
+total**, both headcount. Danish law lets a filer omit turnover from the published
+accounts, so that is a complete filing, not a broken one.
+
+**56 of 119 companies now carry filed financials.**
+
 **What is genuinely still missing, and why:**
 
-- **Germany is in the index but its filings are not.** adidas, Puma, Zalando and Henkel
-  have entity records at filings.xbrl.org with **zero filings** attached. Only some
-  national officially-appointed mechanisms expose an API the index can harvest, and
-  Germany's is not among them. Nothing here can fix that; a Bundesanzeiger connector
-  could.
-- **Spain likewise** — Inditex is absent entirely.
-- **Non-EU Europe has no ESEF at all.** Richemont, Swatch and Migros are Swiss.
-- **Private companies file nationally or not at all.** Aldi, Breuninger, Rewe, Edeka,
-  dm and Rossmann file annual accounts with the Bundesanzeiger, free to read since 2022
-  but not offered as structured data. Bestseller and LEGO file with Denmark's
-  Erhvervsstyrelsen, which does publish XBRL — the closest remaining target. Migros and
-  Coop are Swiss co-operatives with no filing obligation at all; they publish PDFs
-  voluntarily.
-- **Six more are in the index and the matcher cannot reach them**: LVMH ("LVMH MOET
-  HENNESSY LOUIS VUITTON"), Hermès ("HERMES INTERNATIONAL"), Campari ("DAVIDE
-  CAMPARI-MILANO N.V."), H&M ("H & M Hennes & Mauritz AB", whose initials vanish under a
-  rule that drops single letters). These want curated aliases, which the entity model
-  already supports — not looser matching rules, which is how six companies got the wrong
-  accounts in the first place.
+- **Germany is in the ESEF index but its filings are not.** adidas, Puma, Zalando and
+  Henkel have entity records at filings.xbrl.org with **zero filings** attached. Only
+  some national officially-appointed mechanisms expose an API the index can harvest and
+  Germany's does not; measured, the 1,000 most recent filings carry GB, DK, FI, FR, NL,
+  AT, IT, BE, IS, LT, SI, SK, GR, PL and SE, and no DE at all. This is the largest
+  remaining gap — seventeen tracked companies are German.
+- **Germany has no machine-readable route of its own either.** Bundesanzeiger,
+  Unternehmensregister and publikations-plattform all serve HTML and nothing else, so
+  Aldi, Rewe, Edeka, dm, Rossmann and Breuninger would need a scraper rather than a
+  connector. Free to read since 2022, still not data.
+- **Non-EU Europe has no ESEF at all.** Richemont, Swatch and Migros are Swiss; Zefix
+  gives company identity, never accounts, and a Swiss co-operative has no filing
+  obligation in the first place.
+- **Norway and Finland are the same shape as Denmark** and untried: Brønnøysund's entity
+  API answers without a key, and both countries require public accounts. That is the next
+  connector, not a research question.
 
 ### Documentation debt
 

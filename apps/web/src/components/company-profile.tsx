@@ -42,7 +42,9 @@ export function CompanyProfileBlock({ profile }: { profile: CompanyProfile }) {
           <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--text-subtle)]">
             {financialKnown.some((f) => f.source?.includes('sec.gov'))
               ? 'From the company’s own annual filing to the SEC — a 10-K for a US registrant, a 20-F for a foreign one.'
-              : 'From the company’s own annual report, filed in ESEF — the format every issuer on an EU regulated market has had to publish in since 2020.'}{' '}
+              : financialKnown.some((f) => f.source?.includes('virk.dk'))
+                ? 'From the company’s own annual accounts, filed with Erhvervsstyrelsen — which Danish law requires of every company, listed or not.'
+                : 'From the company’s own annual report, filed in ESEF — the format every issuer on an EU regulated market has had to publish in since 2020.'}{' '}
             Each figure carries its reporting period, the currency it was filed in, and a link to
             the filing it came from. Nothing here is estimated and nothing is converted: an exchange
             rate would need a date the filing does not give.

@@ -672,11 +672,13 @@ export interface CompanyProfile {
  * H&M's revenue as the 2014 figure, and a 2014 number on a 2026 page is worse than a
  * blank one because it looks like an answer.
  *
- * Two regulatory sources fill it now, and between them they cover 49 of 119 companies:
- * SEC EDGAR for anyone filing a 10-K or 20-F in the United States, and ESEF — the
- * European Single Electronic Format — for issuers on an EU regulated market. Every
- * remaining financial field returns `null` with the reason it is null. That is the
- * behaviour the brief asked for: do not estimate, do not invent, say what is not there.
+ * Three regulatory registers fill it now, and between them they cover 56 of 119
+ * companies: SEC EDGAR for anyone filing a 10-K or 20-F in the United States, ESEF — the
+ * European Single Electronic Format — for issuers on an EU regulated market, and
+ * Denmark's Erhvervsstyrelsen, which requires accounts from every company whether or not
+ * anybody can buy its shares. Every remaining financial field returns `null` with the
+ * reason it is null. That is the behaviour the brief asked for: do not estimate, do not
+ * invent, say what is not there.
  */
 export async function queryCompanyProfile(slug: string): Promise<CompanyProfile | null> {
   const [row] = rows<{
@@ -752,7 +754,7 @@ export async function queryCompanyProfile(slug: string): Promise<CompanyProfile 
   const isFiler = (row.publicProfile ?? []).length > 0;
   const NOT_FILED = isFiler
     ? 'Not reported under this concept in the company’s latest annual filing.'
-    : 'This company files neither with the SEC nor on an EU regulated market, so neither register holds its accounts. A national business register — Germany’s Bundesanzeiger, Denmark’s Erhvervsstyrelsen — is where a private company’s figures would come from.';
+    : 'This company files neither with the SEC nor on an EU regulated market, and is not one of the private companies reachable through a national register we read. Germany’s Bundesanzeiger holds accounts for Aldi, Rewe and Breuninger but publishes them as documents rather than data; Swiss co-operatives such as Migros have no filing obligation at all.';
 
   return {
     identity: [
