@@ -1163,6 +1163,8 @@ export const ENTITIES: EntitySeed[] = [
     slug: 'campari-group',
     kind: 'company',
     name: 'Campari Group',
+    // Redomiciled to the Netherlands in 2020; this is the name it files under.
+    legalName: 'Davide Campari-Milano N.V.',
     description: 'Italian spirits and aperitif group.',
     officialDomain: 'camparigroup.com',
     ticker: 'CPR',
@@ -1522,6 +1524,7 @@ export const ENTITIES: EntitySeed[] = [
     slug: 'hermes',
     kind: 'company',
     name: 'Hermès',
+    legalName: 'Hermès International',
     description:
       'French luxury house, family-controlled, known for leather goods and for deliberately constrained production.',
     officialDomain: 'hermes.com',

@@ -168,6 +168,30 @@ export function buildIndex(filers: readonly Filer[]) {
   return { named, byName };
 }
 
+/**
+ * Resolve on the registered name first, then the everyday one.
+ *
+ * A register indexes what a company is called on its incorporation documents, and our
+ * seed already carries that for thirty of them. "Inditex" appears in the ESEF index as
+ * INDUSTRIA DE DISEÑO TEXTIL, S.A. and "LVMH" as LVMH MOET HENNESSY LOUIS VUITTON —
+ * neither reachable from the display name by any matching rule that is also safe.
+ *
+ * Where both resolve and disagree, the legal name wins: our Maersk matched "Maersk A/S",
+ * a subsidiary whose filing carries parent-only accounts, while the legal name
+ * "A.P. Møller - Mærsk A/S" reaches the listed group. The registered name is the
+ * identity; the short one is a label we chose.
+ */
+export function resolveCompany(
+  index: ReturnType<typeof buildIndex>,
+  company: { name: string; legalName?: string | null; ticker?: string | null },
+): Resolution {
+  if (company.legalName) {
+    const byLegal = resolveFiler(index, company.legalName, company.ticker ?? null);
+    if (byLegal.filer) return byLegal;
+  }
+  return resolveFiler(index, company.name, company.ticker ?? null);
+}
+
 export function resolveFiler(
   index: ReturnType<typeof buildIndex>,
   entityName: string,

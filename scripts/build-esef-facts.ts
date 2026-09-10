@@ -34,7 +34,7 @@
 
 import { sql } from 'drizzle-orm';
 import { db } from '@mios/database';
-import { buildIndex, resolveFiler, type Filer } from './lib/edgar-matching';
+import { buildIndex, resolveCompany, type Filer } from './lib/edgar-matching';
 
 const BASE = 'https://filings.xbrl.org';
 const CONTACT = (process.env.SEC_CONTACT_EMAIL ?? '').trim();
@@ -227,11 +227,14 @@ async function main(): Promise<void> {
   console.log(`[esef] index: ${named.length} entities with a name`);
 
   const entities = (
-    await db().execute(sql`select id, slug, name, ticker, cik from entities order by name`)
+    await db().execute(
+      sql`select id, slug, name, legal_name as "legalName", ticker, cik from entities order by name`,
+    )
   ).rows as {
     id: string;
     slug: string;
     name: string;
+    legalName: string | null;
     ticker: string | null;
     cik: string | null;
   }[];
@@ -240,6 +243,14 @@ async function main(): Promise<void> {
   let written = 0;
   let skippedHasEdgar = 0;
   const stale: string[] = [];
+  /*
+   * Matched a filer and wrote nothing.
+   *
+   * Worth naming rather than counting: it is the difference between "this company is not
+   * in the register" and "it is, and we could not read its filing" — and only the second
+   * is ours to fix.
+   */
+  const unreadable: string[] = [];
 
   for (const e of entities) {
     /*
@@ -260,7 +271,7 @@ async function main(): Promise<void> {
       continue;
     }
 
-    const { filer } = resolveFiler(matcher, e.name, e.ticker);
+    const { filer } = resolveCompany(matcher, e);
     if (!filer) continue;
     matched += 1;
     const lei = leiByIndex[filer.cik_str]!;
@@ -322,7 +333,12 @@ async function main(): Promise<void> {
       facts = parsed;
       break;
     }
-    if (!chosen || revenue.length === 0) continue;
+    if (!chosen || revenue.length === 0) {
+      unreadable.push(
+        `${e.name} → ${filer.title} (${candidates.length} filings, newest ${newest})`,
+      );
+      continue;
+    }
     const current = revenue[0]!;
 
     // Every measure on the same year and the same currency, or the margin below is two
@@ -405,6 +421,10 @@ async function main(): Promise<void> {
   if (stale.length) {
     console.log(`[esef] ${stale.length} skipped for stale filings:`);
     for (const s of stale) console.log(`          ${s}`);
+  }
+  if (unreadable.length) {
+    console.log(`[esef] ${unreadable.length} matched a filer but had no consolidated annual:`);
+    for (const s of unreadable) console.log(`          ${s}`);
   }
   process.exit(0);
 }

@@ -39,7 +39,7 @@
 
 import { sql } from 'drizzle-orm';
 import { db } from '@mios/database';
-import { buildIndex, resolveFiler, type Filer } from './lib/edgar-matching';
+import { buildIndex, resolveCompany, type Filer } from './lib/edgar-matching';
 
 /*
  * SEC wants a contact address, and refuses anything else.
@@ -325,15 +325,23 @@ async function main(): Promise<void> {
   const refused: string[] = [];
 
   const entities = (
-    await db().execute(sql`select id, slug, name, ticker from entities order by name`)
-  ).rows as { id: string; slug: string; name: string; ticker: string | null }[];
+    await db().execute(
+      sql`select id, slug, name, legal_name as "legalName", ticker from entities order by name`,
+    )
+  ).rows as {
+    id: string;
+    slug: string;
+    name: string;
+    legalName: string | null;
+    ticker: string | null;
+  }[];
 
   let matched = 0;
   let written = 0;
   const stale: string[] = [];
 
   for (const e of entities) {
-    const { filer, reason, detail } = resolveFiler(index, e.name, e.ticker);
+    const { filer, reason, detail } = resolveCompany(index, e);
     if (!filer) {
       if (reason === 'ambiguous') refused.push(`${e.name}: ${detail}`);
       continue;

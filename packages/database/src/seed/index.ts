@@ -439,16 +439,39 @@ export async function seed(log: (m: string) => void = console.log): Promise<Seed
         businessModelSlug: ent.businessModelSlug ?? '',
         isDemo: ent.isDemo ?? false,
       } as never)
+      /*
+       * Every seed-owned field, not just the ones that happened to be listed.
+       *
+       * `legalName`, `ticker`, headquarters, business model and industry were all
+       * missing from this list, so editing any of them in the seed had no effect on a
+       * database that already existed — the insert was skipped and the update did not
+       * mention them. Adding a registered name for Hermès changed nothing at all, and
+       * nothing said so.
+       *
+       * That was survivable while every run started from an empty database. Since the
+       * corpus is carried between runs, an existing database is now the normal case and
+       * a curated field that silently never lands is the normal outcome.
+       *
+       * `publicProfile` is deliberately absent: it belongs to the EDGAR and ESEF
+       * connectors, and resetting it here would blank the financials on every seed.
+       */
       .onConflictDoUpdate({
         target: entities.slug,
         set: {
           name: ent.name,
+          legalName: ent.legalName ?? '',
           description: ent.description,
           officialDomain: ent.officialDomain,
+          ticker: ent.ticker ?? '',
+          headquartersGeographySlug: ent.hq ?? '',
+          businessModelSlug: ent.businessModelSlug ?? '',
+          primaryIndustryId: ent.primaryIndustrySlug
+            ? (industryIdBySlug.get(ent.primaryIndustrySlug) ?? null)
+            : null,
           kind: ent.kind,
           isDemo: ent.isDemo ?? false,
           updatedAt: new Date(),
-        },
+        } as never,
       })
       .returning();
     entityIdBySlug.set(ent.slug, row!.id);
