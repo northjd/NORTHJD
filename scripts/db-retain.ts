@@ -44,24 +44,67 @@ for (const arg of process.argv.slice(2)) {
 const days = Number.parseInt(args.get('days') ?? process.env.CORPUS_RETENTION_DAYS ?? '400', 10);
 
 /**
- * The hard ceiling, and the one that actually binds.
+ * The ceiling that actually binds, and the estimate behind it that was wrong.
  *
- * Measured on a 964-document corpus: the static export comes to 164.8 MB once the
- * duplicate RSC payloads are pruned, so a document costs about 0.171 MB of published
- * site with its evidence pages, event pages and insight. Against the 850 MB build budget
- * that is roughly 5,000 documents; 3,500 leaves room for the sections that do not scale
- * with the corpus and for the estimate being wrong in the unhelpful direction.
+ * It was set from a single measurement: a 964-document corpus produced a 164.8 MB
+ * export, so a document seemed to cost 0.171 MB of published site and 3,500 of them
+ * seemed to fit in 600 MB. At 2,700 documents the real export was 940 MB — nearer 0.32
+ * MB per document, almost double.
  *
- * A window without this would work until the day the feeds got busy, and then fail every
- * build — which is worse than not accumulating at all, because a failing build publishes
- * nothing. How many days 2,500 documents buys is not ours to decide; the market index
- * prints the date actually reached rather than a promised one.
+ * The error was extrapolating a straight line from one point. Page weight does not stay
+ * flat as the corpus grows: a market page listing five hundred events is not the size of
+ * one listing fifty, and the sections that *are* fixed were a much larger share of the
+ * total at 964 documents than they are at 2,700.
+ *
+ * So this number is now a starting point rather than a promise. `--target-mb` below
+ * re-derives it from whatever the last build actually weighed, which is the only figure
+ * that cannot be wrong about itself.
  */
 const maxDocuments = Number.parseInt(
-  args.get('max') ?? process.env.CORPUS_MAX_DOCUMENTS ?? '3500',
+  args.get('max') ?? process.env.CORPUS_MAX_DOCUMENTS ?? '2200',
   10,
 );
 const dryRun = args.get('dry-run') === 'true';
+
+/**
+ * A document cap derived from what the site just weighed.
+ *
+ * `build:static` writes `BUILD_SIZE.json` next to the export. Given a target, this reads
+ * the measured total, divides by the documents that produced it, and caps the corpus at
+ * whatever number fits — with a tenth held back, because the relationship is not quite
+ * linear and erring small costs a few days of history while erring large costs the whole
+ * publication.
+ *
+ * Only ever lowers the cap. A build that came in under budget is not an invitation to
+ * grow past `CORPUS_MAX_DOCUMENTS`.
+ */
+async function capFromLastBuild(current: number): Promise<number> {
+  const targetMb = Number.parseFloat(args.get('target-mb') ?? '');
+  const sizeFile = args.get('from-build');
+  if (!Number.isFinite(targetMb) || !sizeFile) return maxDocuments;
+
+  const { readFileSync, existsSync } = await import('node:fs');
+  if (!existsSync(sizeFile)) {
+    console.log(`  no build size at ${sizeFile}; keeping the configured cap`);
+    return maxDocuments;
+  }
+  const { totalMb } = JSON.parse(readFileSync(sizeFile, 'utf8')) as { totalMb: number };
+  if (!Number.isFinite(totalMb) || totalMb <= 0 || current <= 0) return maxDocuments;
+
+  const perDocument = totalMb / current;
+  const fits = Math.floor((targetMb / perDocument) * 0.9);
+  console.log(
+    `  measured    ${totalMb.toFixed(0)} MB from ${current} documents · ${perDocument.toFixed(3)} MB each`,
+  );
+  if (fits >= maxDocuments) {
+    console.log(`  cap         ${maxDocuments} (build is within ${targetMb} MB; cap unchanged)`);
+    return maxDocuments;
+  }
+  console.log(
+    `  cap         ${fits} — lowered from ${maxDocuments} to come in under ${targetMb} MB`,
+  );
+  return fits;
+}
 
 if (!Number.isFinite(days) || days < 1) {
   console.error(`\n  --days must be a positive number of days; got ${args.get('days')}\n`);
@@ -107,20 +150,27 @@ const [expiring] = (
     where is_demo = false and ${age} < ${cutoff}`)
 ).rows;
 
+const [live] = (
+  await d.execute<{ n: number }>(
+    sql`select count(*)::int as n from raw_documents where is_demo = false`,
+  )
+).rows;
+const effectiveMax = await capFromLastBuild(live!.n);
+
 const [overflow] = (
   await d.execute<{ n: number }>(sql`
-    select greatest(0, count(*) - ${maxDocuments})::int as n
+    select greatest(0, count(*) - ${effectiveMax})::int as n
       from raw_documents where is_demo = false`)
 ).rows;
 
-console.log(`\n  Corpus retention — keeping ${days} days, at most ${maxDocuments} documents\n`);
+console.log(`\n  Corpus retention — keeping ${days} days, at most ${effectiveMax} documents\n`);
 console.log(
   `  before      ${before.rows[0]!.documents} documents · ${before.rows[0]!.claims} claims · ${before.rows[0]!.events} events`,
 );
 console.log(
   `  expiring    ${expiring!.n} documents${expiring!.oldest ? `, oldest ${expiring!.oldest}` : ''}`,
 );
-console.log(`  over cap    ${overflow!.n} documents beyond ${maxDocuments}`);
+console.log(`  over cap    ${overflow!.n} documents beyond ${effectiveMax}`);
 
 if (dryRun) {
   console.log(`\n  --dry-run: nothing deleted.\n`);
@@ -148,7 +198,7 @@ const capped = await d.execute<{ n: number }>(sql`
        select id from raw_documents
         where is_demo = false
         order by ${age} desc nulls last
-        offset ${maxDocuments}
+        offset ${effectiveMax}
      )
     returning 1
   )

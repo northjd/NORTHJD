@@ -187,16 +187,14 @@ jobs:
         env:
           DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
           CORPUS_RETENTION_DAYS: '400'
-          # The ceiling that actually binds. Measured on a 964-document corpus: the
-          # export comes to 164.8 MB once the duplicate RSC payloads are pruned, so a
-          # document costs about 0.171 MB of published site with its evidence, event and
-          # insight pages. 3,500 is roughly 600 MB against an 850 MB budget, just under
-          # the 75% warning — which is where it should sit, so the warning fires before
-          # the failure does.
+          # A starting point, not a promise — the post-build step below re-derives it
+          # from what the site actually weighed.
           #
-          # Was 2,500 at 0.214 MB per document. Dropping the duplicate payload bought
-          # 40% more archive, which is what that change was for.
-          CORPUS_MAX_DOCUMENTS: '3500'
+          # 3,500 was set from a single measurement at 964 documents, where a document
+          # looked like 0.171 MB of published site. At 2,700 documents the export was
+          # 940 MB: nearer 0.32 MB each, because page weight does not stay flat as the
+          # corpus grows. That estimate froze the site for nine consecutive runs.
+          CORPUS_MAX_DOCUMENTS: '2200'
 
       # Saved here rather than at the end of the job, deliberately.
       #
@@ -227,6 +225,34 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/out
+
+      # Then shrink the corpus to whatever the site just proved it can carry.
+      #
+      # This is the step whose absence froze the site. The corpus is saved *before* the
+      # build on purpose, so a broken build does not discard three hours of ingest — but
+      # that meant a build failing on size left the cause of the failure in the cache,
+      # to be restored and grown and fail again. It did that nine times over two days.
+      #
+      # So the correction happens here, after the artifact is safely uploaded, using the
+      # size the build measured rather than an estimate made months earlier. Publication
+      # never waits on it: if this step fails, the site has already gone out.
+      - name: Trim the corpus to what the build proved it can carry
+        if: always()
+        run: npm run db:retain -- --from-build=apps/web/out/BUILD_SIZE.json --target-mb=700
+        env:
+          DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+          CORPUS_RETENTION_DAYS: '400'
+          CORPUS_MAX_DOCUMENTS: '2200'
+
+      # Saved second, under a later key. `restore-keys` takes the most recently created
+      # entry matching the prefix, so this trimmed copy is the one the next run starts
+      # from rather than the pre-build one saved above.
+      - name: Save the trimmed corpus
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/pglite
+          key: corpus-v1-${{ github.run_id }}-trimmed
 
   deploy:
     needs: build

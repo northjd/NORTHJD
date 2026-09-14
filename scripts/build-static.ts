@@ -341,19 +341,48 @@ function reportSize(out: string): void {
     `    ${mb(total)} MB  ${String([...sections.values()].reduce((n, s) => n + s.files, 0)).padStart(6)} files  total\n`,
   );
 
-  const budgetMb = Number.parseInt(process.env.PAGES_SIZE_BUDGET_MB ?? '850', 10);
+  /*
+   * Over budget shrinks the corpus. It does not stop the site publishing.
+   *
+   * The first version threw here, and that was the wrong trade in two ways.
+   *
+   * The 1 GB Pages limit is a *soft* one, so turning "somewhat too big" into "nothing
+   * published at all" is strictly worse than publishing it. And because the workflow
+   * saves the corpus before the build — deliberately, so a broken build does not throw
+   * away three hours of ingest — failing here left the cause of the failure sitting in
+   * the cache. The next run restored it, ingested more, and failed again. It did that
+   * nine times over two days while the site stayed frozen at its last good build.
+   *
+   * So: measure, write the measurement where the workflow can read it, and let the
+   * retention step downstream use the *measured* cost per document rather than the
+   * estimate that got this wrong. The estimate was 0.171 MB per document, taken from a
+   * 964-document corpus; at 2,700 documents the real figure was nearer 0.32, because
+   * page weight does not stay flat as the corpus grows — a market page listing five
+   * hundred events is not the same size as one listing fifty.
+   *
+   * The throw is kept for a genuinely broken artifact, where uploading would fail
+   * anyway and publishing nothing is no longer the worse option.
+   */
+  const budgetMb = Number.parseInt(process.env.PAGES_SIZE_BUDGET_MB ?? '700', 10);
+  const hardMb = Number.parseInt(process.env.PAGES_SIZE_HARD_MB ?? '1100', 10);
   const totalMb = total / 1_048_576;
-  if (totalMb > budgetMb) {
+
+  writeFileSync(
+    resolve(out, 'BUILD_SIZE.json'),
+    JSON.stringify({ totalMb: Number(totalMb.toFixed(1)), budgetMb, hardMb }, null, 2),
+  );
+
+  if (totalMb > hardMb) {
     console.error(
-      `::error title=Export over budget::${totalMb.toFixed(0)} MB exceeds the ${budgetMb} MB budget. ` +
-        `GitHub Pages soft-limits a site at 1 GB. Lower CORPUS_RETENTION_DAYS in the publish workflow and re-run.`,
+      `::error title=Export unpublishable::${totalMb.toFixed(0)} MB is past the ${hardMb} MB ceiling, ` +
+        `where the Pages artifact upload itself is at risk. Nothing was published.`,
     );
-    throw new Error(`static export is ${totalMb.toFixed(0)} MB, over the ${budgetMb} MB budget`);
+    throw new Error(`static export is ${totalMb.toFixed(0)} MB, past the ${hardMb} MB ceiling`);
   }
-  if (totalMb > budgetMb * 0.75) {
+  if (totalMb > budgetMb) {
     console.log(
-      `::warning title=Export approaching the limit::${totalMb.toFixed(0)} MB of a ${budgetMb} MB budget. ` +
-        `Consider shortening CORPUS_RETENTION_DAYS before it fails a build.`,
+      `::warning title=Export over budget::${totalMb.toFixed(0)} MB against a ${budgetMb} MB budget. ` +
+        `Publishing anyway; the corpus is being pruned so the next build comes in under it.`,
     );
   }
 }
