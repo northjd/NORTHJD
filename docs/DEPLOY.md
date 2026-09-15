@@ -104,16 +104,21 @@ on a content fingerprint, so re-reading feed items already held costs a fetch an
 nothing.
 
 **Retention has two ceilings**, both set in the workflow. `CORPUS_RETENTION_DAYS` (400)
-says how far back to reach; `CORPUS_MAX_DOCUMENTS` (3,500) says how much may be kept, and
-it is the one that actually binds. A window alone would work until the day the feeds got
-busy and then fail every build — which is worse than not accumulating at all, because a
-failing build publishes nothing.
+says how far back to reach; `CORPUS_MAX_DOCUMENTS` (2,200) says how much may be kept, and
+it is the one that actually binds.
 
-3,500 comes from measurement, not preference: a 964-document corpus produces a 164.8 MB
-export, so a document costs about 0.171 MB of published site once its evidence, event and
-insight pages are written. Against the 850 MB budget that is roughly 5,000; 3,500 leaves
-room for the sections that do not scale with the corpus and sits just under the 75%
-warning, which is where it belongs — the warning should fire before the failure does.
+2,200 is a starting point, not a promise. The cap before it was 3,500, derived from one
+measurement at 964 documents where a document looked like 0.171 MB of published site. At
+2,700 documents the export was 940 MB — nearer 0.32 MB each — and the build guard threw,
+so the site published nothing for nine consecutive runs. A straight line through a single
+point was the wrong model: page weight does not stay flat as the corpus grows, because a
+market page listing five hundred events is not the size of one listing fifty.
+
+So the cap corrects itself. After each build the workflow re-derives it from what the
+site actually weighed — `BUILD_SIZE.json`, written next to the export — and prunes to
+whatever fits a 700 MB target, holding back a tenth for the non-linearity. It only ever
+lowers the cap; a build that came in small is not licence to grow past the configured
+maximum.
 
 How many days that buys depends on how much the publishers publish, which is not ours to
 decide — so the market index prints the date the corpus actually reaches rather than a
@@ -168,11 +173,16 @@ The build removes one avoidable part of that. Next writes each page's RSC payloa
 41.7 MB of pure duplicate. Only `index.txt` is ever fetched; the prune is guarded on the
 two files being identical, so if a future Next makes them differ it keeps them and warns.
 
-`npm run build:static` prints the size by section at the end of every build and **fails**
-above `PAGES_SIZE_BUDGET_MB` (850 by default), with a warning from 75% of it. Failing in the
-build is deliberate: crossing the limit silently would fail minutes later at the deploy
-step, with a message about artifact size and no hint of the cause. If it ever fires, the
-lever is `CORPUS_RETENTION_DAYS`.
+`npm run build:static` prints the size by section at the end of every build. Above
+`PAGES_SIZE_BUDGET_MB` (700) it **warns and publishes anyway**, because the 1 GB Pages
+limit is a soft one and turning "somewhat too big" into "nothing published" is the worse
+outcome — that is exactly what froze the site for two days. It throws only above
+`PAGES_SIZE_HARD_MB` (1,100), where the artifact upload is itself at risk and publishing
+nothing is no longer the worse option.
+
+The corpus, not the build, is what gets corrected. The trim step runs **after** the
+artifact has been uploaded, so publication never waits on it: if the trim fails, the site
+has already gone out.
 
 ## When something breaks
 
@@ -188,8 +198,13 @@ code.
 **The site loads but has no styling and dead links.** The `BASE_PATH` is wrong. Confirm
 the repository name matches the URL, and reproduce locally with `npm run serve:static`.
 
-**A market's event count fell.** Expect this only at the retention boundary now — the
-corpus carries forward, so counts otherwise rise. A fall elsewhere means either an
+**A market's event count fell sharply after a large build.** The trim step lowered the
+document cap because the last export was over its target. That is the mechanism working:
+a smaller archive that publishes beats a larger one that does not. The run log prints the
+measured cost per document and the new cap.
+
+**A market's event count fell slightly.** Expect this only at the retention boundary now
+— the corpus carries forward, so counts otherwise rise. A fall elsewhere means either an
 admin suppressed events or a run reset the corpus; the run log says which, because a
 reset publishes a warning.
 

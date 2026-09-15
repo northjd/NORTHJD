@@ -407,6 +407,42 @@ accounts, so that is a complete filing, not a broken one.
   API answers without a key, and both countries require public accounts. That is the next
   connector, not a research question.
 
+### 10. ~~The size guard froze the site for two days~~ — fixed, and it was a design error
+
+Nine consecutive scheduled runs failed between 12 and 14 September and the site stayed at
+its last good build. The export reached 940 MB against an 850 MB budget and the guard
+from item 8 threw.
+
+The size estimate was wrong, and wrong in a way worth remembering. `CORPUS_MAX_DOCUMENTS`
+was 3,500 because a 964-document corpus produced a 164.8 MB export — 0.171 MB per
+document, so 3,500 looked like 600 MB. At 2,700 documents the real figure was nearer 0.32.
+**A straight line through a single measurement was the wrong model**: page weight does not
+stay flat as a corpus grows, because a market page listing five hundred events is not the
+size of one listing fifty, and the sections that do not scale at all were a much larger
+share of the total at 964 documents than at 2,700.
+
+But the estimate being wrong should have cost one bad run, not nine. Two design errors
+turned it into an outage:
+
+- **A soft limit was treated as hard.** GitHub soft-limits Pages at 1 GB. Turning
+  "somewhat too big" into "publish nothing" is strictly worse than publishing it.
+- **The guard could not fix what it was complaining about.** The corpus is saved _before_
+  the build on purpose, so a broken build does not discard three hours of ingest. That
+  meant a build failing on size left the cause of the failure in the cache, to be
+  restored, grown, and failed on again. Every run made the next one worse, and nothing in
+  the loop could break it.
+
+Now the build warns and publishes, throwing only past 1,100 MB where the artifact upload
+is itself at risk. It writes `BUILD_SIZE.json`, and after the artifact is uploaded a trim
+step re-derives the cap from what the site actually weighed, prunes to fit a 700 MB
+target, and saves the corpus under a later cache key so the next run starts from the
+trimmed copy. The cap only ever comes down. Publication never waits on the trim — if it
+fails, the site has already gone out.
+
+The general lesson, and the one that applies beyond this item: **a guard that fails the
+build must be able to act on the thing it is guarding against, or it is just a way of
+stopping.**
+
 ### Documentation debt
 
 ~~`HANDOVER.md` is dated 2026-09-02 and several hundred commits behind.~~ Deleted — a
