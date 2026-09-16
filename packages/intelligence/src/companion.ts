@@ -234,6 +234,66 @@ export async function retrieveClaims(
     .orderBy(...(hasQuery ? [desc(termHits), desc(rankExpr)] : []), desc(rawDocuments.publishedAt))
     .limit(limit * 4);
 
+  /*
+   * Then a guaranteed share for each term on its own.
+   *
+   * The window above is ordered by how many of the question's terms a claim matches, and
+   * when every candidate matches exactly one — which is the ordinary case for a three-word
+   * question — that ordering carries no information and the tie-breaks decide everything.
+   * ts_rank has no notion of rarity, so what actually decides is recency, and the corpus
+   * fills with whichever term is commonest.
+   *
+   * Measured on a 3,740-claim corpus: "What is happening with markdown and allocation in
+   * retail?" matched 97 claims, of which 92 contained only *retail*, three *markdown* and
+   * two *allocation*. All 97 scored one term, so the forty-eight kept were the
+   * forty-eight most recent — all retail, none of them the answer — and the question was
+   * refused against a corpus that held it.
+   *
+   * `pickDiverse` below exists to take the best claim for each term, but it could only
+   * ever choose from what this query returned. A rare term's only claims were cut before
+   * diversity was applied, so it had nothing to rescue. The fix has to be here, in the
+   * query, not after it.
+   *
+   * Four per term, which at the twelve-term ceiling is one extra indexed lookup each and
+   * a set the ordering below re-sorts anyway.
+   */
+  const perTerm = hasQuery
+    ? (
+        await Promise.all(
+          terms.map((term) =>
+            d
+              .select({
+                claimId: claims.id,
+                text: claims.text,
+                claimType: claims.claimType,
+                quantified: claims.quantified,
+                evidenceStrength: claims.evidenceStrength,
+                verificationStatus: claims.verificationStatus,
+                spanId: evidenceSpans.id,
+                quote: evidenceSpans.quote,
+                documentTitle: rawDocuments.title,
+                documentUrl: rawDocuments.url,
+                sourceName: sources.name,
+                perspective: sources.perspective,
+                publishedAt: rawDocuments.publishedAt,
+                eventAt: claims.eventAt,
+                rank: rankExpr,
+                termHits,
+              })
+              .from(claims)
+              .innerJoin(documentVersions, eq(documentVersions.id, claims.documentVersionId))
+              .innerJoin(rawDocuments, eq(rawDocuments.id, documentVersions.documentId))
+              .innerJoin(sources, eq(sources.id, claims.sourceId))
+              .leftJoin(claimEvidence, eq(claimEvidence.claimId, claims.id))
+              .leftJoin(evidenceSpans, eq(evidenceSpans.id, claimEvidence.evidenceSpanId))
+              .where(and(matchesQuery(claims.searchVector, term, 'plainto')))
+              .orderBy(desc(rankExpr), desc(rawDocuments.publishedAt))
+              .limit(4),
+          ),
+        )
+      ).flat()
+    : [];
+
   // Prefer FACT claims, then strongest evidence, then most recent.
   const priority: Record<string, number> = {
     FACT: 0,
@@ -245,7 +305,7 @@ export async function retrieveClaims(
   const seen = new Set<string>();
   // No per-claim floor: the relevant claims each match only one term, so filtering
   // claim-by-claim discards them. Relevance is judged on the set, in assessCoverage.
-  const ordered = rows
+  const ordered = [...rows, ...perTerm]
     .filter((r) => (seen.has(r.claimId) ? false : (seen.add(r.claimId), true)))
     // Term coverage outranks claim type. Preferring a FACT that matches one common word
     // over an INTERPRETATION matching three of the question's terms is how a relevant

@@ -122,9 +122,26 @@ maximum.
 
 How many days that buys depends on how much the publishers publish, which is not ours to
 decide — so the market index prints the date the corpus actually reaches rather than a
-promised one. Documents past either ceiling are deleted, along with any event left with
-no documents behind it: an event whose last document has gone is a headline with nothing
-under it. Seeded demo material is never pruned.
+promised one.
+
+**What gets deleted is chosen by what it produced, not only by when it arrived.** Three
+rules, in order:
+
+1. **Anything past the window.**
+2. **Anything inert** — a document that has been through clustering and produced no
+   event renders nothing at all: no market row, no insight, no timeline entry. It still
+   costs storage, and each of its claims still costs a prerendered evidence page that
+   nothing links to. A two-day grace period protects material that simply has not been
+   clustered yet.
+3. **Then the cap, oldest first, with a six-month bonus for documents behind a
+   high-impact event.** Pure recency lets a regulator's decision age out at the same rate
+   as a product announcement, so the first question this archive exists to answer — what
+   actually mattered here last quarter — degrades exactly as fast as the noise around it.
+   A date bonus rather than a sort tier, deliberately: a tier would let a large enough
+   pile of old high-impact material evict everything recent.
+
+Any event left with no documents behind it goes too — a headline with nothing under it.
+Seeded demo material is never pruned.
 
 **To start again from nothing:** Actions → Publish NORTH → Run workflow, and tick _Start
 from an empty corpus_. Do that after a schema change that cannot be migrated forward, or

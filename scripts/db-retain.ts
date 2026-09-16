@@ -185,20 +185,66 @@ if (expiring!.n > 0) {
 }
 
 /*
- * Then the count, oldest first.
+ * Then the inert ones, whatever their age.
  *
- * Ordered by the same date the window uses, so the two rules agree about what "old"
- * means and the corpus keeps a contiguous stretch ending at now — an archive with holes
- * in the middle would make every count unreadable.
+ * A document that has been through clustering and produced no event renders nothing: no
+ * market row, no insight, no timeline entry. It still costs storage, and its claims
+ * still cost a prerendered evidence page each that nothing on the site links to.
+ * Measured before the pipeline was rebalanced: 662 of 958 documents were in this state,
+ * and 749 of 1,123 evidence pages were unreachable because of it.
+ *
+ * The grace period matters. A document ingested in the last two days may simply not have
+ * been clustered yet — a run can fail, and one did, nine times. Deleting on the first
+ * sight of no event would throw away material that was about to become an event.
  */
-const capped = await d.execute<{ n: number }>(sql`
+const graceDays = Number.parseInt(args.get('grace-days') ?? '2', 10);
+const inert = await d.execute<{ n: number }>(sql`
   with gone as (
+    delete from raw_documents rd
+     where rd.is_demo = false
+       and ${age} < now() - (${graceDays} || ' days')::interval
+       and not exists (select 1 from event_documents ed where ed.document_id = rd.id)
+    returning 1
+  )
+  select count(*)::int as n from gone`);
+
+/*
+ * Then the count — oldest first, but not impact-blind.
+ *
+ * Pure recency treats a regulator's decision and a product announcement as the same
+ * thing, so the first question this archive exists to answer — what actually mattered in
+ * this market last quarter — degrades at exactly the same rate as the noise around it.
+ *
+ * So a document behind a high-impact event carries a bonus on its effective date and
+ * survives roughly six months longer than a routine one from the same week. Expressed as
+ * a date bonus rather than a sort tier on purpose: a tier would let a large enough pile
+ * of old high-impact material evict everything recent, which is a worse failure than the
+ * one being fixed. Measured on this corpus, 28 of 587 events are high or very high, so
+ * the bonus reshapes the tail without touching the bulk.
+ *
+ * Within a tier the order is still the date the window uses, so the two rules agree
+ * about what "old" means and the corpus keeps a contiguous stretch ending at now.
+ */
+const impactBonusDays = Number.parseInt(args.get('impact-bonus-days') ?? '180', 10);
+const capped = await d.execute<{ n: number }>(sql`
+  with ranked as (
+    select rd.id,
+           ${age} + (
+             case when exists (
+               select 1 from event_documents ed
+                 join events e on e.id = ed.event_id
+                where ed.document_id = rd.id
+                  and e.strategic_impact in ('high', 'very_high')
+             ) then (${impactBonusDays} || ' days')::interval
+             else '0 days'::interval end
+           ) as effective_at
+      from raw_documents rd
+     where rd.is_demo = false
+  ),
+  gone as (
     delete from raw_documents
      where id in (
-       select id from raw_documents
-        where is_demo = false
-        order by ${age} desc nulls last
-        offset ${effectiveMax}
+       select id from ranked order by effective_at desc nulls last offset ${effectiveMax}
      )
     returning 1
   )
@@ -232,7 +278,7 @@ const after = await d.execute<{
     (select count(*)::int from insights)      as insights`);
 
 console.log(
-  `  removed     ${expiring!.n} past the window · ${capped.rows[0]!.n} past the cap · ${orphans.rows[0]!.n} orphaned events`,
+  `  removed     ${expiring!.n} past the window · ${inert.rows[0]!.n} inert · ${capped.rows[0]!.n} past the cap · ${orphans.rows[0]!.n} orphaned events`,
 );
 console.log(
   `  after       ${after.rows[0]!.documents} documents · ${after.rows[0]!.claims} claims · ${after.rows[0]!.events} events · ${after.rows[0]!.insights} insights`,
@@ -245,7 +291,7 @@ console.log(
  * here is the size of the directory that gets carried to the next run. FULL rewrites
  * the tables, which on a corpus this size costs a second or two.
  */
-if (expiring!.n > 0 || capped.rows[0]!.n > 0 || orphans.rows[0]!.n > 0) {
+if (expiring!.n > 0 || inert.rows[0]!.n > 0 || capped.rows[0]!.n > 0 || orphans.rows[0]!.n > 0) {
   await d.execute(sql.raw('vacuum (full, analyze)'));
   console.log(`  vacuumed    tables rewritten, free space returned to the filesystem`);
 } else {

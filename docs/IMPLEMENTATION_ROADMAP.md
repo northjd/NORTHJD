@@ -443,6 +443,57 @@ The general lesson, and the one that applies beyond this item: **a guard that fa
 build must be able to act on the thing it is guarding against, or it is just a way of
 stopping.**
 
+### 11. ~~Two-thirds of the corpus rendered nothing~~ — the pipeline could not keep up with itself
+
+Found while designing a smarter eviction rule, and it changed what the rule needed to be.
+
+**Measured: 662 of 958 documents had never become an event**, and **749 of 1,123 evidence
+pages were unreachable** because of it — nothing on the site linked to them. The corpus
+was storing, and the export was publishing, three documents for every one it rendered.
+
+The cause was a limit that had outlived its reason. `buildEvents` took 300 documents per
+run and ingestion adds up to 1,850 — 25 items from each of 74 sources. One real run:
+**821 documents ingested, 295 events created.** The backlog grew every run and could
+never drain. `extractAll` had the same shape at 500. Neither had an `ORDER BY`, so which
+subset got picked was whatever the heap returned — a backlog that churns rather than
+drains.
+
+The limit existed to bound an O(n²) comparison, and the comment above it said a run
+"processes tens to low hundreds of documents, not millions". That was true when written.
+Measured now: **60 ms for 1,779 real documents**, because `sharesEntity` rejects almost
+every pair before any string work happens.
+
+Raised both to 2,500 and ordered oldest-first. The backlog drained to **zero** in one run.
+
+Counter-intuitively this made the export _cheaper per document_, not dearer: 0.264 MB
+against 0.324 before, measured on a real build. The inert two-thirds were paying for
+evidence pages while rendering nothing.
+
+**Eviction now depends on what a document produced** — see DEPLOY.md for the three rules.
+The impact bonus is the part worth keeping: under a 900-document cap on the test corpus,
+all 97 high-impact documents survive while 804 of 1,683 routine ones do.
+
+### 12. ~~A rare term was crowded out of retrieval as the corpus grew~~
+
+Surfaced by the corpus tripling, and it would have reached production unnoticed.
+
+Ordering candidates by _how many_ of the question's terms they match carries no
+information when every candidate matches exactly one, which is the ordinary case for a
+short question. ts_rank knows nothing about rarity, so recency decided, and the window
+filled with whichever term was commonest.
+
+Measured at 3,740 claims: _"What is happening with markdown and allocation in retail?"_
+matched 97 claims — 92 on **retail** alone, three on **markdown**, two on **allocation**.
+All 97 scored one term, so the 48 kept were the 48 most recent, none of them the answer.
+The question was refused against a corpus that held it.
+
+`pickDiverse` exists precisely to take the best claim per term, but it ran _after_ the SQL
+limit, so a rare term's only claims were already gone. The fix had to be in the query:
+each term now gets a guaranteed four rows of its own, merged into the window before
+ordering. `tests/integration/pipeline.test.ts` pins it, and fails with the specific
+diagnostic — _"markdown occurs in 3 claims and was crowded out"_ — when the fix is
+reverted.
+
 ### Documentation debt
 
 ~~`HANDOVER.md` is dated 2026-09-02 and several hundred commits behind.~~ Deleted — a

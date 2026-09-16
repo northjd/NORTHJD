@@ -489,7 +489,15 @@ async function extractAll(summary: PipelineSummary, log: (m: string) => void): P
     .innerJoin(sources, eq(sources.id, rawDocuments.sourceId))
     .leftJoin(claims, eq(claims.documentVersionId, documentVersions.id))
     .where(isNull(claims.id))
-    .limit(500);
+    /*
+     * Above what one run can ingest, or the backlog is permanent.
+     *
+     * Ingestion's ceiling is 25 items from each of 74 sources — about 1,850 documents.
+     * At 500, every busy run left hundreds of documents that would never have claims
+     * extracted, and the next run took another 500 off a pile that had grown again.
+     */
+    .orderBy(documentVersions.retrievedAt)
+    .limit(2500);
 
   if (pending.length === 0) return;
 
@@ -628,7 +636,23 @@ async function loadEntityCandidates(): Promise<EntityCandidate[]> {
 async function buildEvents(summary: PipelineSummary, log: (m: string) => void): Promise<void> {
   const d = db();
 
-  // Documents with claims but no event yet.
+  /*
+   * Documents with no event yet, oldest first.
+   *
+   * Two things were wrong here, and together they built a backlog that could not drain.
+   *
+   * The limit was 300 while a run ingests up to 1,850, so each run converted a fraction
+   * of what it took in: measured on one real run, 821 documents ingested and 295 events
+   * created. Two-thirds of the corpus had never become an event and never would — it
+   * cost storage and evidence pages while rendering nothing.
+   *
+   * And there was no ORDER BY, so which 300 got picked was whatever the heap returned.
+   * A backlog needs to drain in a defined order or it is not draining, it is churning.
+   *
+   * The O(n²) comparison this feeds was the reason for the cap, and the reason no longer
+   * holds: measured at 60 ms for 1,779 real documents, because `sharesEntity` rejects
+   * almost every pair before any string work happens.
+   */
   const unclustered = await d
     .select({
       documentId: rawDocuments.id,
@@ -643,7 +667,8 @@ async function buildEvents(summary: PipelineSummary, log: (m: string) => void): 
     .innerJoin(sources, eq(sources.id, rawDocuments.sourceId))
     .leftJoin(eventDocuments, eq(eventDocuments.documentId, rawDocuments.id))
     .where(isNull(eventDocuments.id))
-    .limit(300);
+    .orderBy(rawDocuments.discoveredAt)
+    .limit(2500);
 
   if (unclustered.length === 0) return;
 

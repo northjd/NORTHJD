@@ -12,9 +12,10 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { and, eq, sql } from 'drizzle-orm';
 import { closeDb, db, pingDb, schema } from '@mios/database';
-import { answerQuestion } from '@mios/intelligence';
+import { answerQuestion, retrieveClaims } from '@mios/intelligence';
 import { runEvaluation } from '@mios/evaluation';
 import { matchesQuery, unsupportedLanguages } from '@mios/search';
+import { queryTerms, termMatchesStems, textStems } from '@mios/domain';
 
 let reachable = false;
 let workspaceId = '';
@@ -174,6 +175,62 @@ describe('the Companion', () => {
         expect(citation).toBeDefined();
         expect(citation!.evidenceSpanId).toBeTruthy();
       }
+    }
+  });
+
+  it('retrieves a rare term even when a common one dominates the corpus', async () => {
+    if (!reachable || !workspaceId) return;
+    /*
+     * The failure this pins is invisible until the corpus is large enough.
+     *
+     * Every candidate for a three-word question typically matches exactly one of its
+     * terms, so ordering by "how many terms matched" carries no information and the
+     * tie-breaks decide. ts_rank knows nothing about rarity, so recency decides, and the
+     * window fills with whichever term is commonest.
+     *
+     * Measured at 3,740 claims: "markdown and allocation in retail" matched 97 claims,
+     * 92 of them on *retail* alone. The forty-eight kept were the forty-eight most
+     * recent, none of which was the answer, and the question was refused against a
+     * corpus that held it.
+     */
+    const question = 'What is happening with markdown and allocation in retail?';
+    const terms = queryTerms(question);
+    expect(terms.length).toBeGreaterThan(1);
+
+    // How often each term occurs. The test only means something when they differ sharply.
+    const frequency = new Map<string, number>();
+    for (const term of terms) {
+      const [row] = await db()
+        .select({ n: sql<number>`count(*)::int` })
+        .from(schema.claims)
+        .where(matchesQuery(schema.claims.searchVector, term, 'plainto'));
+      frequency.set(term, row?.n ?? 0);
+    }
+    const present = terms.filter((t) => (frequency.get(t) ?? 0) > 0);
+    if (present.length < 2) return;
+
+    const retrieved = await retrieveClaims(question, {
+      workspaceId,
+      userId,
+      request: {
+        question,
+        mode: 'explore_it',
+        depth: 'executive',
+        length: 'standard',
+        conversationId: null,
+        pageContext: null,
+        selectedEntityIds: [],
+      },
+    } as never);
+
+    // Every term that exists in the corpus at all must survive into the retrieved set,
+    // however rare it is next to the others.
+    const corpus = retrieved.map((c) => c.text);
+    for (const term of present) {
+      expect(
+        corpus.some((text) => termMatchesStems(term, textStems(text))),
+        `"${term}" occurs in ${frequency.get(term)} claims and was crowded out`,
+      ).toBe(true);
     }
   });
 
@@ -345,6 +402,59 @@ describe('corpus retention', () => {
       .from(schema.events)
       .where(
         sql`not exists (select 1 from event_documents ed where ed.event_id = ${schema.events.id})`,
+      );
+    expect(row?.n).toBe(0);
+  });
+
+  it('holds no document that has been through clustering and produced nothing', async () => {
+    if (!reachable) return;
+    /*
+     * The measured state before this rule existed: 662 of 958 documents had never become
+     * an event, and 749 of 1,123 evidence pages were unreachable because of it — storage
+     * and published bytes spent on material no reader could navigate to.
+     *
+     * The grace period is what makes this safe. A document ingested in the last two days
+     * may simply not have been clustered yet, and deleting on first sight of no event
+     * would throw away material that was about to become one.
+     */
+    const grace = 2;
+    const [row] = await db()
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.rawDocuments)
+      .where(
+        sql`${schema.rawDocuments.isDemo} = false
+            and coalesce(${schema.rawDocuments.publishedAt}, ${schema.rawDocuments.discoveredAt})
+                < now() - (${grace} || ' days')::interval
+            and not exists (
+              select 1 from event_documents ed where ed.document_id = ${schema.rawDocuments.id}
+            )`,
+      );
+    expect(row?.n).toBe(0);
+  });
+
+  it('leaves no evidence page that nothing on the site can reach', async () => {
+    if (!reachable) return;
+    // Every claim gets a prerendered page. A claim whose document never became an event
+    // has a page no link points at — 87 KB of published site each, and two-thirds of the
+    // evidence section before the pipeline was rebalanced to keep up with ingestion.
+    const [row] = await db()
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.claims)
+      .innerJoin(
+        schema.documentVersions,
+        eq(schema.documentVersions.id, schema.claims.documentVersionId),
+      )
+      .where(
+        sql`not exists (
+              select 1 from event_documents ed
+               where ed.document_id = ${schema.documentVersions.documentId}
+            )
+            and exists (
+              select 1 from raw_documents rd
+               where rd.id = ${schema.documentVersions.documentId}
+                 and rd.is_demo = false
+                 and coalesce(rd.published_at, rd.discovered_at) < now() - interval '2 days'
+            )`,
       );
     expect(row?.n).toBe(0);
   });
