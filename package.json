@@ -18,6 +18,7 @@
     "db:seed": "tsx scripts/db-seed.ts",
     "db:reset": "tsx scripts/db-reset.ts",
     "db:retain": "tsx scripts/db-retain.ts",
+    "db:relink": "tsx scripts/db-relink-entities.ts",
     "db:generate": "drizzle-kit generate --config=drizzle.config.ts",
     "dev": "npm run dev --workspace=@mios/web",
     "build": "npm run build --workspace=@mios/web",

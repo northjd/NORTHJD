@@ -494,6 +494,70 @@ ordering. `tests/integration/pipeline.test.ts` pins it, and fails with the speci
 diagnostic — _"markdown occurs in 3 claims and was crowded out"_ — when the fix is
 reverted.
 
+### 13. Coverage gap review: retail, fashion and consumer goods
+
+Prompted by a colleague noticing Primark was missing. It was, and so were most of the
+companies a European retail practice reaches for first — 86 companies carried one of
+those industry tags and the absences were not random.
+
+**40 companies added, chosen from two signals rather than taste:** names the corpus
+already mentions but cannot resolve, and the largest absences in the sectors this
+product covers. Legal names come from the ESEF filing index where the company files
+there, so the financial connectors resolve them on their registered name.
+
+**Counting mentions on word boundaries rather than substrings changed the answer.**
+_Action_ looked like 34 claims and was one — the other 33 were the ordinary English word,
+and the one real hit was "the Sierra Club's action", not the retailer. _Normal_ was four
+and is none. _Spar_ was sixteen and is one. Had the substring counts been trusted, the
+list would have been led by three false signals.
+
+The real, confirmed mentions were: Next 7, Tesco 5, Sainsbury's 5, Marks & Spencer 4,
+Target 4, Primark 3, Carrefour 3, then Boots, Mango, Barilla, Hornbach, JD Sports, Spar,
+Müller, Arla, Moncler, Mercadona, Kroger and TJX at one or two each.
+
+**79 of 140 companies now carry filed financials**, up from 56 of 119 — Tesco £73.71bn,
+Carrefour €84.03bn, Sainsbury's £33.65bn, AB InBev $59.32bn, ABF £19.46bn, M&S £17.27bn,
+Essity SEK 145.55bn, Reckitt £14.21bn, Kingfisher £12.95bn, JD Sports £12.66bn.
+
+**Primark is a division, not a filer**, so it deliberately gets no financials: Associated
+British Foods publishes one set of accounts covering sugar, grocery, ingredients,
+agriculture and Primark together, and attributing £19.46bn to Primark would be exactly
+the mis-attribution the matcher exists to prevent. Both are registered, and the
+description on each says so.
+
+**A second gap the review surfaced.** `hq` is a plain string on an entity with no foreign
+key, so Campari, Ferrero and Lavazza had been filed under an `italy` the geography
+taxonomy did not contain — their company pages printed a raw slug and no geography filter
+could reach them. Italy, Ireland, Luxembourg and Australia added; zero entities now carry
+an unknown HQ.
+
+**And a third.** Resolution runs once, at extraction, so a newly registered company never
+reaches claims that already exist: adding Primark left seven claims about Primark still
+mentioning nothing the product knew about, and no later run would have revisited them.
+`npm run db:relink` applies the registry to existing claims — additive only, inserting
+links and removing none — and made **123 new links across 20 companies** on the first
+run. Primark went from nothing to 7 claims across 3 events immediately.
+
+### 14. ~~The easter-egg panel was broken by its own surroundings~~
+
+The monogram opens a full-screen panel, and it is mounted in three places with very
+different surroundings. Being a DOM descendant of any of them leaked their styling into
+it.
+
+The app-shell footer is `overflow-hidden whitespace-nowrap text-[10.5px]`, and
+`white-space` **inherits**. Every paragraph of the note rendered as one unwrapped line
+running out of both sides of the card — on the footer that appears on every page, so on
+the only route by which anyone would normally find it.
+
+The set-up gate is a different trap: `fixed inset-0 z-[95]` containing a `relative z-10`
+footer, so a panel rendered in place sat two stacking contexts deep and could never rise
+above either.
+
+Both are cured at once by portalling to `document.body` — the panel inherits from `body`
+and paints in the root stacking context — which is why it is a portal rather than a
+`whitespace-normal` patch. `tests/unit/makers-mark.test.ts` pins the portal and asserts
+the panel's z-index exceeds every other layer in the product.
+
 ### Documentation debt
 
 ~~`HANDOVER.md` is dated 2026-09-02 and several hundred commits behind.~~ Deleted — a

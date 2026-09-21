@@ -1178,4 +1178,15 @@ export const GEOGRAPHIES = [
   { slug: 'united-states', name: 'United States', isoCode: 'US', parentSlug: 'north-america' },
   { slug: 'china', name: 'China', isoCode: 'CN', parentSlug: 'asia-pacific' },
   { slug: 'japan', name: 'Japan', isoCode: 'JP', parentSlug: 'asia-pacific' },
+  /*
+   * Countries that entities already claimed as their headquarters without the taxonomy
+   * containing them. `hq` is a plain string on the entity, so nothing objected: Campari,
+   * Ferrero and Lavazza have been filed under an Italy that did not exist, which means
+   * their company pages printed a raw slug and no geography filter could find them.
+   * Ireland arrives with Primark.
+   */
+  { slug: 'italy', name: 'Italy', isoCode: 'IT', parentSlug: 'europe' },
+  { slug: 'ireland', name: 'Ireland', isoCode: 'IE', parentSlug: 'europe' },
+  { slug: 'luxembourg', name: 'Luxembourg', isoCode: 'LU', parentSlug: 'europe' },
+  { slug: 'australia', name: 'Australia', isoCode: 'AU', parentSlug: 'asia-pacific' },
 ];

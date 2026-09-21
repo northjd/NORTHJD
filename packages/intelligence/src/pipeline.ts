@@ -599,7 +599,14 @@ async function extractAll(summary: PipelineSummary, log: (m: string) => void): P
   );
 }
 
-async function loadEntityCandidates(): Promise<EntityCandidate[]> {
+/**
+ * Every entity and its aliases, in the shape `resolveEntities` wants.
+ *
+ * Exported because resolution is not only a pipeline concern. When the registry gains a
+ * company, claims that already exist still mention nothing the product knows about, and
+ * `scripts/db-relink-entities.ts` needs exactly this list to fix that.
+ */
+export async function loadEntityCandidates(): Promise<EntityCandidate[]> {
   const d = db();
   const rows = await d
     .select({
