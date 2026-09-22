@@ -394,12 +394,28 @@ accounts, so that is a complete filing, not a broken one.
 
 **What is genuinely still missing, and why:**
 
-- **Germany is in the ESEF index but its filings are not.** adidas, Puma, Zalando and
-  Henkel have entity records at filings.xbrl.org with **zero filings** attached. Only
-  some national officially-appointed mechanisms expose an API the index can harvest and
-  Germany's does not; measured, the 1,000 most recent filings carry GB, DK, FI, FR, NL,
-  AT, IT, BE, IS, LT, SI, SK, GR, PL and SE, and no DE at all. This is the largest
-  remaining gap — seventeen tracked companies are German.
+- **Germany: closed, not merely unfinished.** This is the largest remaining gap —
+  seventeen tracked companies are German — and it was chased to the end rather than
+  assumed.
+
+  German listed companies do file ESEF; the filings are simply not reachable. adidas,
+  Puma, Zalando and Henkel each have an entity record at filings.xbrl.org with **zero
+  filings attached** (checked individually by LEI), because only some national
+  officially-appointed mechanisms expose an API the index can harvest and Germany's does
+  not. Measured across the 1,000 most recent filings: GB, DK, FI, FR, NL, AT, IT, BE,
+  IS, LT, SI, SK, GR, PL, SE — and no DE at all.
+
+  Nor is there a German route of its own. Bundesanzeiger, Unternehmensregister and
+  publikations-plattform all return HTML and nothing else. What exists commercially are
+  third-party scrapers, which are neither free nor licence-clean, and scraping a registry
+  that publishes no machine-readable interface is not something to build into a scheduled
+  job.
+
+  So Beiersdorf, Hornbach, adidas, Puma, Zalando, Henkel, Metro AG and the rest stay
+  registered and financially blank, and their pages say why. The realistic unblock is
+  external: ESAP, the European Single Access Point, is the regulated successor to this
+  patchwork and is the thing to watch.
+
 - **Germany has no machine-readable route of its own either.** Bundesanzeiger,
   Unternehmensregister and publikations-plattform all serve HTML and nothing else, so
   Aldi, Rewe, Edeka, dm, Rossmann and Breuninger would need a scraper rather than a
@@ -410,6 +426,12 @@ accounts, so that is a complete filing, not a broken one.
 - **Norway and Finland are the same shape as Denmark** and untried: Brønnøysund's entity
   API answers without a key, and both countries require public accounts. That is the next
   connector, not a research question.
+- **One filer-shaped fix landed late.** Axfood matched a filer and produced nothing,
+  because it tags `ifrs-full:RevenueFromSaleOfGoods` rather than `Revenue`. Added as a
+  last-resort fallback — ordered after the two top-line concepts, never before them,
+  since goods revenue is a component and taking it first would report a grocer's goods
+  line as its total. SEK 84.06bn, 3.9% margin. **80 of 140 companies now carry filed
+  financials.**
 
 ### 10. ~~The size guard froze the site for two days~~ — fixed, and it was a design error
 
@@ -519,7 +541,7 @@ The real, confirmed mentions were: Next 7, Tesco 5, Sainsbury's 5, Marks & Spenc
 Target 4, Primark 3, Carrefour 3, then Boots, Mango, Barilla, Hornbach, JD Sports, Spar,
 Müller, Arla, Moncler, Mercadona, Kroger and TJX at one or two each.
 
-**79 of 140 companies now carry filed financials**, up from 56 of 119 — Tesco £73.71bn,
+**80 of 140 companies now carry filed financials**, up from 56 of 119 — Tesco £73.71bn,
 Carrefour €84.03bn, Sainsbury's £33.65bn, AB InBev $59.32bn, ABF £19.46bn, M&S £17.27bn,
 Essity SEK 145.55bn, Reckitt £14.21bn, Kingfisher £12.95bn, JD Sports £12.66bn.
 

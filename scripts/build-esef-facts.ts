@@ -170,7 +170,20 @@ function annualSeries(facts: JsonFact[], concepts: readonly string[]): AnnualFac
   return [];
 }
 
-const REVENUE = ['ifrs-full:Revenue', 'ifrs-full:RevenueFromContractsWithCustomers'] as const;
+/*
+ * Revenue concepts, most general first.
+ *
+ * Order is the whole point. `Revenue` and `RevenueFromContractsWithCustomers` are the
+ * top line; `RevenueFromSaleOfGoods` is one component of it, so it is only reached when
+ * a filer tags neither of the others — which Axfood does, and which cost it a profile.
+ * Taking it before them would report a grocer's goods revenue as its total and quietly
+ * drop the services alongside.
+ */
+const REVENUE = [
+  'ifrs-full:Revenue',
+  'ifrs-full:RevenueFromContractsWithCustomers',
+  'ifrs-full:RevenueFromSaleOfGoods',
+] as const;
 const OPERATING = ['ifrs-full:ProfitLossFromOperatingActivities'] as const;
 const NET = ['ifrs-full:ProfitLoss'] as const;
 
