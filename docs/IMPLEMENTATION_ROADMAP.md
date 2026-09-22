@@ -257,9 +257,13 @@ change was for.
    every page. There is no clean fix on a static host: the client fetches them by path,
    and deduplicating would need symlinks, whose survival through the Pages artifact
    pipeline is unverified. Worth an experiment, not an assumption.
-2. **Prerender evidence pages only for reachable claims.** An evidence page nobody can
-   link to is dead weight. The risk is a 404 in the middle of the evidence chain, which
-   is the product's central promise, so the reachability rule would have to be exact.
+2. ~~**Prerender evidence pages only for reachable claims.**~~ **Resolved by item 11,
+   without needing the rule.** The unreachable pages existed because two-thirds of
+   documents never became events — not because some claims are inherently unlinkable.
+   Once clustering kept up with ingestion, every claim's document reached an event and
+   the orphans disappeared: measured **3,740 of 3,740 evidence pages reachable, zero
+   orphaned**, pinned by a test in the integration suite. The risk this route carried —
+   a 404 in the middle of the evidence chain — never had to be taken.
 3. **Resolve evidence in the browser** from the `evidence.json` the export already ships
    for Ask, rather than prerendering a page per claim. The largest saving and the largest
    change.
@@ -494,7 +498,7 @@ ordering. `tests/integration/pipeline.test.ts` pins it, and fails with the speci
 diagnostic — _"markdown occurs in 3 claims and was crowded out"_ — when the fix is
 reverted.
 
-### 13. Coverage gap review: retail, fashion and consumer goods
+### 13. ~~Coverage gap review: retail, fashion and consumer goods~~ — done
 
 Prompted by a colleague noticing Primark was missing. It was, and so were most of the
 companies a European retail practice reaches for first — 86 companies carried one of
