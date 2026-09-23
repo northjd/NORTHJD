@@ -423,10 +423,33 @@ accounts, so that is a complete filing, not a broken one.
 - **Non-EU Europe has no ESEF at all.** Richemont, Swatch and Migros are Swiss; Zefix
   gives company identity, never accounts, and a Swiss co-operative has no filing
   obligation in the first place.
-- **Norway and Finland are the same shape as Denmark** and untried: Brønnøysund's entity
-  API answers without a key, and both countries require public accounts. That is the next
-  connector, not a research question.
-- **One filer-shaped fix landed late.** Axfood matched a filer and produced nothing,
+- **Norway and Finland are the same shape as Denmark, and not yet worth a connector.**
+  Brønnøysund's entity API answers without a key and both countries require public
+  accounts, so the route exists. It would reach exactly two tracked companies — Reitan
+  and Valio — and each carries the parent/subsidiary trap below. Revisit when the Nordic
+  side of the company list grows, not before.
+- **JYSK is deliberately blank, and should stay that way.** JYSK A/S (CVR 13590400) files
+  in Denmark and tags revenue, but every fact is undimensioned — parent-only in Danish
+  XBRL — and that entity is the Danish operating company with 3,517 staff, not the ~€5bn
+  group. The group parent is Lars Larsen Group A/S, a different company. Both available
+  numbers are wrong for a page headed "JYSK": the solo figure understates it by an order
+  of magnitude, the group figure belongs to something else. The connector's
+  `ConsolidatedMember` requirement already produces this outcome on its own; this note
+  exists so nobody later "fixes" it by relaxing that rule.
+
+  The same shape as Primark and Associated British Foods, and resolved the same way:
+  register both, attribute nothing.
+
+- **Two filer-shaped fixes landed late.** Molson Coors files under both `TAP` and
+  `TAP-A` — one registrant, two ticker lines — and the containment path counted the
+  lines rather than the registrants, so two matches looked like an ambiguity and a
+  company whose name _and_ ticker agreed was refused. Its name is 12 characters against
+  the filer's 21, so the length-ratio path could not rescue it either. Collapsing by CIK
+  before counting fixes it: $13.04bn. The exact-name path was tightened the same way — it
+  had been taking the first of several ticker matches, which is a coin toss dressed as a
+  decision.
+
+  Axfood matched a filer and produced nothing,
   because it tags `ifrs-full:RevenueFromSaleOfGoods` rather than `Revenue`. Added as a
   last-resort fallback — ordered after the two top-line concepts, never before them,
   since goods revenue is a component and taking it first would report a grocer's goods
@@ -541,7 +564,7 @@ The real, confirmed mentions were: Next 7, Tesco 5, Sainsbury's 5, Marks & Spenc
 Target 4, Primark 3, Carrefour 3, then Boots, Mango, Barilla, Hornbach, JD Sports, Spar,
 Müller, Arla, Moncler, Mercadona, Kroger and TJX at one or two each.
 
-**80 of 140 companies now carry filed financials**, up from 56 of 119 — Tesco £73.71bn,
+**81 of 140 companies now carry filed financials**, up from 56 of 119 — Tesco £73.71bn,
 Carrefour €84.03bn, Sainsbury's £33.65bn, AB InBev $59.32bn, ABF £19.46bn, M&S £17.27bn,
 Essity SEK 145.55bn, Reckitt £14.21bn, Kingfisher £12.95bn, JD Sports £12.66bn.
 

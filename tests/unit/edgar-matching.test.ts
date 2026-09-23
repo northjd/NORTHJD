@@ -126,6 +126,36 @@ describe('the ticker confirms a name, it never supplies one', () => {
     expect(resolve('Ericsson', 'ERIC-B')).toBe('ERICSSON LM TELEPHONE CO');
   });
 
+  it('accepts a company whose several ticker lines share one registrant', () => {
+    // MOLSON COORS BEVERAGE CO files under TAP and TAP-A. Counting the lines rather
+    // than the registrants made two matches look like an ambiguity and refused a
+    // company whose name and ticker both agreed.
+    const lines = buildIndex([
+      { cik_str: 24545, ticker: 'TAP', title: 'MOLSON COORS BEVERAGE CO' },
+      { cik_str: 24545, ticker: 'TAP-A', title: 'MOLSON COORS BEVERAGE CO' },
+    ]);
+    expect(resolveFiler(lines, 'Molson Coors', 'TAP').filer?.cik_str).toBe(24545);
+  });
+
+  it('still refuses when the ticker lines belong to different registrants', () => {
+    // Two unrelated companies whose names both contain ours, both trading as ZZZ.
+    // Nothing is left to choose on, and choosing anyway is a coin toss dressed as a
+    // decision.
+    const rivals = buildIndex([
+      { cik_str: 1, ticker: 'ZZZ', title: 'Orion Industries Beverage Co' },
+      { cik_str: 2, ticker: 'ZZZ', title: 'Orion Industries Chemical Co' },
+    ]);
+    expect(resolveFiler(rivals, 'Orion Industries', 'ZZZ').filer).toBeNull();
+  });
+
+  it('refuses when one name and one ticker are shared by two registrants', () => {
+    const twins = buildIndex([
+      { cik_str: 1, ticker: 'ZZZ', title: 'Vega Chemical Co' },
+      { cik_str: 2, ticker: 'ZZZ', title: 'Vega Chemical Co' },
+    ]);
+    expect(resolveFiler(twins, 'Vega Chemical', 'ZZZ').filer).toBeNull();
+  });
+
   it('refuses a contained name when nothing corroborates it', () => {
     // Douglas is a German perfumery chain; Douglas Emmett is a Los Angeles REIT.
     expect(resolve('Douglas')).toBeNull();

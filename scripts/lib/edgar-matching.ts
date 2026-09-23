@@ -220,10 +220,16 @@ export function resolveFiler(
     // Several ticker lines for one registrant — an ordinary share and its ADR — are one
     // company, and any of them resolves to the same filings.
     if (ciks.size === 1) return { filer: sameName[0]!, reason: 'exact' };
-    // Genuinely different registrants sharing a name. The ticker may pick between them;
-    // without it this refuses rather than guessing.
-    const byTicker = sameName.find((f) => normaliseTicker(f.ticker) === ticker);
-    if (byTicker) return { filer: byTicker, reason: 'exact-by-ticker' };
+    /*
+     * Genuinely different registrants sharing a name. The ticker may pick between them,
+     * but only when it picks *one*: if two registrants share both the name and the
+     * ticker there is nothing left to choose on, and taking the first is a coin toss
+     * dressed as a decision.
+     */
+    const byTicker = ticker ? sameName.filter((f) => normaliseTicker(f.ticker) === ticker) : [];
+    if (byTicker.length > 0 && new Set(byTicker.map((f) => f.cik_str)).size === 1) {
+      return { filer: byTicker[0]!, reason: 'exact-by-ticker' };
+    }
     return {
       filer: null,
       reason: 'ambiguous',
@@ -253,7 +259,22 @@ export function resolveFiler(
   if (byRatio.length === 1) return { filer: byRatio[0]!, reason: 'contained' };
 
   const byTicker = ticker ? near.filter((f) => normaliseTicker(f.ticker) === ticker) : [];
-  if (byTicker.length === 1) return { filer: byTicker[0]!, reason: 'contained-by-ticker' };
+  /*
+   * Collapse ticker lines by registrant before counting them.
+   *
+   * The exact-name path above already does this; this one did not, and the asymmetry
+   * cost a match. "MOLSON COORS BEVERAGE CO" files under both TAP and TAP-A — one
+   * company, two lines on one CIK — so `byTicker` held two entries, the `length === 1`
+   * test failed, and a company whose name and ticker both agreed was refused. The name
+   * is 12 characters against the filer's 21, so the length-ratio path could not rescue
+   * it either.
+   *
+   * Two entries on one CIK are one answer. Two CIKs remain genuinely ambiguous and are
+   * still refused.
+   */
+  if (byTicker.length > 0 && new Set(byTicker.map((f) => f.cik_str)).size === 1) {
+    return { filer: byTicker[0]!, reason: 'contained-by-ticker' };
+  }
 
   // Several plausible names: the ticker breaks the tie, never makes it.
   const tie = byRatio.find((f) => normaliseTicker(f.ticker) === ticker);
