@@ -120,6 +120,34 @@ whatever fits a 700 MB target, holding back a tenth for the non-linearity. It on
 lowers the cap; a build that came in small is not licence to grow past the configured
 maximum.
 
+**The correction has to survive the run, and for three weeks it did not.** The derived cap
+was computed after the build, the corpus was deleted down to it, and then the next run's
+pre-build prune started from `CORPUS_MAX_DOCUMENTS` again, because nothing had written the
+derived figure anywhere that outlived the job. Every run destroyed several hundred of the
+oldest documents and refilled to the ceiling before building.
+
+Nothing failed. Every run was green, which is why it took three weeks to notice. The
+evidence was in three numbers that only mean something together: the corpus sat at exactly
+2,200 documents — the ceiling, to the unit — the export weighed 748.9 MB against a 700 MB
+budget on _every_ build rather than sometimes, and the oldest document moved forward from
+2026-02-28 to 2026-05-22 in six days. A cap that binds exactly is a cap nothing else is
+deciding; a budget exceeded by the same amount every time is a loop that is not closing;
+three months of archive lost in a week is the cost.
+
+The fix is `data/corpus-cap.json`, written by the post-build prune and cached beside the
+corpus, read by the pre-build prune through `--cap-from`. Both prunes now agree, so the
+churn stops: the post-build step usually finds nothing left to do. The loop also converges
+rather than oscillating — with `F` the part of the export independent of the corpus and
+`v` the marginal cost of a document, iterating `n' = 0.9·target·n / (F + v·n)` has one
+fixed point, at the corpus whose export weighs `0.9 × target`. It approaches from above,
+settles within a day at the cron's rate, and re-derives itself from measurement every run,
+so it falls when fixed page weight grows and rises again when it shrinks.
+That property is pinned in `tests/unit/corpus-cap.test.ts`.
+
+An unreadable, missing or nonsensical cap file falls back to `CORPUS_MAX_DOCUMENTS`, never
+to zero — reading a corrupt file as "keep no documents" would delete the archive in one
+run and every run afterwards would look healthy.
+
 How many days that buys depends on how much the publishers publish, which is not ours to
 decide — so the market index prints the date the corpus actually reaches rather than a
 promised one.

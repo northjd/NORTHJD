@@ -64,7 +64,9 @@ jobs:
         if: ${{ !inputs.rebuild_corpus }}
         uses: actions/cache/restore@v4
         with:
-          path: data/pglite
+          path: |
+            data/pglite
+            data/corpus-cap.json
           key: corpus-v1-${{ github.run_id }}
           restore-keys: corpus-v1-
 
@@ -198,12 +200,16 @@ jobs:
       # in the tar, and the next run would restore a database referencing a WAL that
       # only half exists.
       - name: Prune the corpus to its retention window
-        run: npm run db:retain
+        run: npm run db:retain -- --cap-from=data/corpus-cap.json
         env:
           DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
           CORPUS_RETENTION_DAYS: '400'
-          # A starting point, not a promise — the post-build step below re-derives it
-          # from what the site actually weighed.
+          # A ceiling, not a target. The post-build step re-derives the real cap from
+          # what the site weighed and writes it to data/corpus-cap.json; --cap-from
+          # above reads it back, which is what makes the correction survive the run.
+          # Without that read-back the corpus returned here every time, so the build
+          # was always at the ceiling and always over budget, and each run ground a
+          # few hundred of the oldest documents away to no effect.
           #
           # 3,500 was set from a single measurement at 964 documents, where a document
           # looked like 0.171 MB of published site. At 2,700 documents the export was
@@ -219,7 +225,9 @@ jobs:
       - name: Save the corpus for the next run
         uses: actions/cache/save@v4
         with:
-          path: data/pglite
+          path: |
+            data/pglite
+            data/corpus-cap.json
           key: corpus-v1-${{ github.run_id }}
 
       - name: Build the site
@@ -253,7 +261,11 @@ jobs:
       # never waits on it: if this step fails, the site has already gone out.
       - name: Trim the corpus to what the build proved it can carry
         if: always()
-        run: npm run db:retain -- --from-build=apps/web/out/BUILD_SIZE.json --target-mb=700
+        run: |
+          npm run db:retain -- \
+            --from-build=apps/web/out/BUILD_SIZE.json \
+            --target-mb=700 \
+            --remember=data/corpus-cap.json
         env:
           DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
           CORPUS_RETENTION_DAYS: '400'
@@ -266,7 +278,9 @@ jobs:
         if: always()
         uses: actions/cache/save@v4
         with:
-          path: data/pglite
+          path: |
+            data/pglite
+            data/corpus-cap.json
           key: corpus-v1-${{ github.run_id }}-trimmed
 
   deploy:

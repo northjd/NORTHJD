@@ -30,10 +30,13 @@
  *   npm run db:retain -- --days=90  a shorter window
  *   npm run db:retain -- --max=2500 keep at most this many documents, newest first
  *   npm run db:retain -- --dry-run  count what would go, delete nothing
+ *   npm run db:retain -- --cap-from=<f>   prune to the cap the last build earned
+ *   npm run db:retain -- --remember=<f>   write the derived cap there for next time
  */
 
 import { sql } from 'drizzle-orm';
 import { closeDb, db, pingDb } from '@mios/database';
+import { capForTarget, rememberedCap, type RememberedCap } from './lib/corpus-cap';
 
 const args = new Map<string, string>();
 for (const arg of process.argv.slice(2)) {
@@ -67,43 +70,106 @@ const maxDocuments = Number.parseInt(
 const dryRun = args.get('dry-run') === 'true';
 
 /**
- * A document cap derived from what the site just weighed.
+ * A document cap derived from what the site just weighed — and carried to the next run.
  *
  * `build:static` writes `BUILD_SIZE.json` next to the export. Given a target, this reads
  * the measured total, divides by the documents that produced it, and caps the corpus at
- * whatever number fits — with a tenth held back, because the relationship is not quite
- * linear and erring small costs a few days of history while erring large costs the whole
- * publication.
+ * whatever number fits.
  *
- * Only ever lowers the cap. A build that came in under budget is not an invitation to
- * grow past `CORPUS_MAX_DOCUMENTS`.
+ * `--remember` is the part that was missing, and its absence undid everything else here.
+ * The cap was derived after the build, the corpus was deleted down to it, and then the
+ * next run's pre-build prune started from `CORPUS_MAX_DOCUMENTS` again, because the
+ * derived figure had never been written anywhere that outlived the job. Every run threw
+ * away several hundred of the oldest documents and refilled to the ceiling before
+ * building, so the build was always at the ceiling and always over budget. Measured on
+ * 2026-09-28: 2,200 documents against a 2,200 ceiling, 748.9 MB against a 700 MB budget
+ * on every run, and the oldest document three months newer than it had been six days
+ * earlier.
+ *
+ * Only ever lowers against the ceiling. A build that came in under budget is not an
+ * invitation to grow past `CORPUS_MAX_DOCUMENTS`.
  */
 async function capFromLastBuild(current: number): Promise<number> {
   const targetMb = Number.parseFloat(args.get('target-mb') ?? '');
   const sizeFile = args.get('from-build');
+  const rememberAt = args.get('remember');
   if (!Number.isFinite(targetMb) || !sizeFile) return maxDocuments;
 
-  const { readFileSync, existsSync } = await import('node:fs');
+  const { readFileSync, existsSync, writeFileSync, mkdirSync } = await import('node:fs');
+  const { dirname } = await import('node:path');
   if (!existsSync(sizeFile)) {
     console.log(`  no build size at ${sizeFile}; keeping the configured cap`);
     return maxDocuments;
   }
   const { totalMb } = JSON.parse(readFileSync(sizeFile, 'utf8')) as { totalMb: number };
-  if (!Number.isFinite(totalMb) || totalMb <= 0 || current <= 0) return maxDocuments;
 
-  const perDocument = totalMb / current;
-  const fits = Math.floor((targetMb / perDocument) * 0.9);
+  const cap = capForTarget({ totalMb, documents: current, targetMb, ceiling: maxDocuments });
+  if (cap === null) return maxDocuments;
+
   console.log(
-    `  measured    ${totalMb.toFixed(0)} MB from ${current} documents · ${perDocument.toFixed(3)} MB each`,
+    `  measured    ${totalMb.toFixed(0)} MB from ${current} documents · ${(totalMb / current).toFixed(3)} MB each`,
   );
-  if (fits >= maxDocuments) {
-    console.log(`  cap         ${maxDocuments} (build is within ${targetMb} MB; cap unchanged)`);
+  console.log(
+    cap >= maxDocuments
+      ? `  cap         ${maxDocuments} (build is within ${targetMb} MB; cap unchanged)`
+      : `  cap         ${cap} — lowered from ${maxDocuments} to come in under ${targetMb} MB`,
+  );
+
+  if (rememberAt && !dryRun) {
+    const note: RememberedCap = {
+      cap,
+      totalMb,
+      documents: current,
+      at: new Date().toISOString(),
+    };
+    mkdirSync(dirname(rememberAt), { recursive: true });
+    writeFileSync(rememberAt, `${JSON.stringify(note, null, 2)}\n`);
+    console.log(`  remembered  ${rememberAt} — the next run prunes to ${cap} before building`);
+  }
+  return cap;
+}
+
+/**
+ * The cap the last build earned, read back before this run's ingest is pruned.
+ *
+ * Without this the post-build correction is applied and then immediately discarded, and
+ * the corpus returns to the configured ceiling every run. `--cap-from` is what makes the
+ * two prunes agree with each other.
+ *
+ * A missing file is normal — the first run after a cache miss has nothing to read — and
+ * the configured ceiling is the right answer then. It is still worth saying out loud,
+ * because a *silently* missing measurement is exactly how this stopped working.
+ */
+async function capFromMemory(): Promise<number> {
+  const path = args.get('cap-from');
+  if (!path) return maxDocuments;
+
+  const { readFileSync, existsSync } = await import('node:fs');
+  if (!existsSync(path)) {
+    console.log(`  no remembered cap at ${path}; starting from the configured ${maxDocuments}`);
     return maxDocuments;
   }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    console.log(`  unreadable cap at ${path}; starting from the configured ${maxDocuments}`);
+    return maxDocuments;
+  }
+
+  const note = rememberedCap(parsed);
+  if (!note) {
+    console.log(`  unusable cap at ${path}; starting from the configured ${maxDocuments}`);
+    return maxDocuments;
+  }
+
+  const cap = Math.min(maxDocuments, note.cap);
   console.log(
-    `  cap         ${fits} — lowered from ${maxDocuments} to come in under ${targetMb} MB`,
+    `  remembered  ${cap} from a ${note.totalMb.toFixed(0)} MB build of ${note.documents} documents` +
+      `${note.at ? ` on ${note.at.slice(0, 10)}` : ''}`,
   );
-  return fits;
+  return cap;
 }
 
 if (!Number.isFinite(days) || days < 1) {
@@ -155,7 +221,8 @@ const [live] = (
     sql`select count(*)::int as n from raw_documents where is_demo = false`,
   )
 ).rows;
-const effectiveMax = await capFromLastBuild(live!.n);
+const measured = await capFromLastBuild(live!.n);
+const effectiveMax = args.get('from-build') ? measured : await capFromMemory();
 
 const [overflow] = (
   await d.execute<{ n: number }>(sql`
