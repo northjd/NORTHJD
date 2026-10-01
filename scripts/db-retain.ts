@@ -37,6 +37,7 @@
 import { sql } from 'drizzle-orm';
 import { closeDb, db, pingDb } from '@mios/database';
 import { capForTarget, rememberedCap, type RememberedCap } from './lib/corpus-cap';
+import { deleteUnevidencedInsights } from './lib/retention-cleanup';
 
 const args = new Map<string, string>();
 for (const arg of process.argv.slice(2)) {
@@ -332,6 +333,16 @@ const orphans = await d.execute<{ n: number }>(sql`
   )
   select count(*)::int as n from gone`);
 
+/*
+ * And the insights the cascade cannot reach.
+ *
+ * An event that keeps a document but loses every claim behind it leaves its insight
+ * tracing back to nothing. The orphan rule above does not see it — the event still has
+ * a document — and `npm run eval` fails the build over it, correctly. Retention created
+ * the violation, so retention removes it. See `scripts/lib/retention-cleanup.ts`.
+ */
+const unevidenced = await d.execute<{ n: number }>(deleteUnevidencedInsights());
+
 const after = await d.execute<{
   documents: number;
   claims: number;
@@ -345,7 +356,10 @@ const after = await d.execute<{
     (select count(*)::int from insights)      as insights`);
 
 console.log(
-  `  removed     ${expiring!.n} past the window · ${inert.rows[0]!.n} inert · ${capped.rows[0]!.n} past the cap · ${orphans.rows[0]!.n} orphaned events`,
+  `  removed     ${expiring!.n} past the window · ${inert.rows[0]!.n} inert · ${capped.rows[0]!.n} past the cap`,
+);
+console.log(
+  `              ${orphans.rows[0]!.n} orphaned events · ${unevidenced.rows[0]!.n} insights left without evidence`,
 );
 console.log(
   `  after       ${after.rows[0]!.documents} documents · ${after.rows[0]!.claims} claims · ${after.rows[0]!.events} events · ${after.rows[0]!.insights} insights`,
