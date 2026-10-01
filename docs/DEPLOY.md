@@ -231,9 +231,19 @@ has already gone out.
 
 ## When something breaks
 
-**The workflow fails at "Check the evidence invariants."** Working as intended — a source
-started returning something that breaks a rule. `npm run eval` locally prints which case
-failed.
+**The workflow fails at "Check the evidence invariants."** Working as intended: the gate
+refuses to publish a site that breaks one of the rules in `packages/evaluation`, because
+a stale site is a nuisance and an unevidenced claim is a lie. `npm run eval` locally
+prints which case failed.
+
+Look at retention before you look at the sources, though. Twice in eight days the failing
+case was "Every insight traces back to at least one evidenced claim", and no source had
+changed: deleting documents strips an event's claims through the cascade, and an event
+still anchored by a surviving document is not an orphan, so its insight was left tracing
+back to nothing. Retention now deletes those insights itself. The other two cases are not
+reachable that way — no claim anywhere cites evidence on another document's version, so a
+cascade cannot strand a FACT claim without its span — which is worth knowing before
+assuming a deletion caused it.
 
 **A source shows an error but the build passes.** Also intended. A feed returning 403 is
 recorded against that source and the run continues; one publisher blocking us is not a
